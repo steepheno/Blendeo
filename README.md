@@ -32,12 +32,12 @@
 <br/>
 
 # 4. Distinctiveness and Creative Elements (차별점 및 독창성성)
-  - 1. 그래프 DB를 활용한 데이터 관리 MySQL과 Neo4j의 데이터 정합성 유지
-  - 2. gRPC 기반 WebRTC 그룹 화상통화 연결 QUIC 프로토콜을 통한 gRPC 연결로 연결 안정성/시그널링 성능 제고
-  - 3. ffmpeg.wasm 라이브러리를 활용한 음성 효과 편집
-  - 4. ffmpeg을 활용한 영상 합치기 / 레이아웃 설정
-  - 5. Redis를 활용한 실시간 랭킹 제공
-  - 6. SSE를 활용한 알림 제공
+  - 그래프 DB를 활용한 데이터 관리 MySQL과 Neo4j의 데이터 정합성 유지
+  - gRPC 기반 WebRTC 그룹 화상통화 연결 QUIC 프로토콜을 통한 gRPC 연결로 연결 안정성/시그널링 성능 제고
+  - ffmpeg.wasm 라이브러리를 활용한 음성 효과 편집
+  - ffmpeg을 활용한 영상 합치기 / 레이아웃 설정
+  - Redis를 활용한 실시간 랭킹 제공
+  - SSE를 활용한 알림 제공
 
 <br/>
 <br/>
