@@ -8,7 +8,7 @@
 # 2. Team Members (팀원 및 팀 소개)
 | 김민서 | 김영진 | 김혜빈 | 박다희 | 유준선 | 임채준 |
 |:------:|:------:|:------:|:------:|:------:|:------:|
-| <img src="./assets/흰둥이.png" alt="김민서" width="150"> | <img src="./assets/맹구.png" alt="김영진" width="150"> | <img src="./assets/유리.jpg" alt="김혜빈" width="150"> | <img src="./assets/짱구.jpg" alt="박다희" width="150"> | <img src="./assets/철수.webp" alt="유준선" width="150"> | <img src="./assets/훈이.png" alt="임채준" width="150"> |
+| <img src="./assets/흰둥이.png" alt="김민서" width="150"> | <img src="./assets/맹구.png" alt="김영진" width="150"> | <img src="./assets/유리.jpg" alt="김혜빈" width="150"> | <img src="./assets/짱구.jpg" alt="박다희" width="150"> | <img src="./assets/철수.webp" alt="유준선" width="150"> | <img src="./assets/훈이.jpg" alt="임채준" width="150"> |
 | BE | BE | FE | BE | FE | FE |
 | [GitHub](https://github.com/ms9648) | [GitHub](https://github.com/haochaen73) | [GitHub](https://github.com/pencil-HB) | [GitHub]() | [GitHub](https://github.com/JoonsunRyu) | [GitHub](https://github.com/dlacowns21) |
 
