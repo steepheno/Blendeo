@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/user")
 @RestController
 public class UserController {
     // log
@@ -18,7 +18,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/register")
+    @PostMapping("/signup")
     public ResponseEntity<?> register(@RequestBody UserRegisterPostReq userRegisterPostReq) {
         logger.info("UserRegisterPostReq: {}", userRegisterPostReq);
         return ResponseEntity.ok().body(userService.register(userRegisterPostReq));

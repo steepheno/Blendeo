@@ -1,10 +1,14 @@
 package Blendeo.backend.user.service;
 
-import Blendeo.backend.user.vo.MailVo;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -12,14 +16,39 @@ public class MailService {
     private final JavaMailSender javaMailSender;
 
     private static final String senderEmail = "blendeo.ssafy@gmail.com";
+    private static final String title = "[BLENDEO 회원가입]: 인증번호 발송";
 
-    public void CreateMail(MailVo mailVo) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(mailVo.getReceiver());
-        message.setFrom(senderEmail);
-        message.setSubject(mailVo.getTitle());
-        message.setText(mailVo.getContent());
+    public String sendMail(String receiver)  throws MessagingException {
 
-        javaMailSender.send(message);
+        // 랜덤 비밀번호 생성
+        String authCode = createAuthCode();
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+
+        helper.setTo(receiver);
+        helper.setFrom(senderEmail);
+        helper.setSubject(title);
+
+        StringBuilder body = new StringBuilder();
+        body.append("<h3>BLENDEO에서 요청하신 인증 번호입니다.</h3>");
+        body.append("<h1>").append(authCode).append("</h1>");
+        body.append("<h3>감사합니다.</h3>");
+        helper.setText(body.toString(), true); // true = HTML 사용
+
+        javaMailSender.send(mimeMessage);
+
+        return authCode;
     }
+
+    public String createAuthCode() {
+        Random random = new Random();
+        StringBuilder key = new StringBuilder();
+
+        for (int i = 0; i < 6; i++) { // 인증 코드 6자리
+            key.append(random.nextInt(10));
+        }
+        return key.toString();
+    }
+
 }

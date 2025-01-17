@@ -1,14 +1,15 @@
 package Blendeo.backend.user.controller;
 
 import Blendeo.backend.user.service.MailService;
-import Blendeo.backend.user.vo.MailVo;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 
-@RequestMapping("/api/mail")
+@RequestMapping("/api/v1/mail")
 @RestController
 public class MailController {
 
@@ -19,9 +20,14 @@ public class MailController {
         this.mailService = mailService;
     }
 
-    @PostMapping("/send")
-    public ResponseEntity<?> MailSend(MailVo mailVo) {
-        mailService.CreateMail(mailVo);
-        return ResponseEntity.ok().body("성공했습니다!");
+    @PostMapping("/check")
+    public ResponseEntity<?> MailSend(@RequestParam String email) {
+        String authCode = null;
+        try {
+            authCode = mailService.sendMail(email);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.ok().body(authCode);
     }
 }
