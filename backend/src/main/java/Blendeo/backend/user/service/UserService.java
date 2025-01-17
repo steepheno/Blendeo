@@ -5,4 +5,5 @@ import Blendeo.backend.user.entity.User;
 
 public interface UserService {
     public int register(UserRegisterPostReq userRegisterPostReq);
+
 }
