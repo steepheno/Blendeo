@@ -1,8 +1,10 @@
 package Blendeo.backend.user.service;
 
+import Blendeo.backend.user.dto.UserLoginPostReq;
+import Blendeo.backend.user.dto.UserLoginPostRes;
 import Blendeo.backend.user.dto.UserRegisterPostReq;
 
 public interface UserService {
-    public int register(UserRegisterPostReq userRegisterPostReq);
-
+    int register(UserRegisterPostReq userRegisterPostReq);
+    UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
 }

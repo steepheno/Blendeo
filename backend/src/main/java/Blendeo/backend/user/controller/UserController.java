@@ -1,5 +1,6 @@
 package Blendeo.backend.user.controller;
 
+import Blendeo.backend.user.dto.UserLoginPostReq;
 import Blendeo.backend.user.dto.UserRegisterPostReq;
 import Blendeo.backend.user.service.UserService;
 import org.slf4j.Logger;
@@ -25,10 +26,9 @@ public class UserController {
         return ResponseEntity.ok().body(userService.register(userRegisterPostReq));
     }
 
-//    @GetMapping("/login")
-//    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
-//
-//        return ResponseEntity.ok().body(userService.login(username, password));
-//    }
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq) {
+        return ResponseEntity.ok().body(userService.login(userLoginPostReq));
+    }
 
 }
