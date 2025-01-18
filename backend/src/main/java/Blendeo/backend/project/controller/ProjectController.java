@@ -52,4 +52,14 @@ public class ProjectController {
 
         return ResponseEntity.ok(projectInfo);
     }
+
+    @Operation(
+            summary = "프로젝트 삭제"
+    )
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<?> deleteProject(@PathVariable Long projectId){
+        projectService.deleteProject(projectId);
+
+        return ResponseEntity.ok().build();
+    }
 }

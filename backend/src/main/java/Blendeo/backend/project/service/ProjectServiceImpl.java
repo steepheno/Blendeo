@@ -63,4 +63,9 @@ public class ProjectServiceImpl implements ProjectService {
                 .viewCnt(project.getViewCnt())
                 .build();
     }
+
+    @Override
+    public void deleteProject(Long projectId) {
+        projectRepository.deleteById(projectId);
+    }
 }
