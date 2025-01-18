@@ -7,4 +7,5 @@ public interface ProjectService {
     void createProject(ProjectCreateReq projectCreateReq);
     ProjectInfoRes getProjectInfo(Long projectId);
     void deleteProject(Long projectId);
+    void modifyProjectState(Long projectId, boolean state);
 }

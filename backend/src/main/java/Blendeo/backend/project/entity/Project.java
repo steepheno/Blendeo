@@ -62,4 +62,8 @@ public class Project {
         this.runningTime = runningTime;
         this.viewCnt = 0;
     }
+
+    public void updateState(boolean state) {
+        this.state = state;
+    }
 }

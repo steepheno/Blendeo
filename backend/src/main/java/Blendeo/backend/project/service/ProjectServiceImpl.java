@@ -68,4 +68,14 @@ public class ProjectServiceImpl implements ProjectService {
     public void deleteProject(Long projectId) {
         projectRepository.deleteById(projectId);
     }
+
+
+    @Override
+    @Transactional
+    public void modifyProjectState(Long projectId, boolean state) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
+
+        project.updateState(state);
+    }
 }

@@ -62,4 +62,14 @@ public class ProjectController {
 
         return ResponseEntity.ok().build();
     }
+
+    @Operation(
+            summary = "프로젝트 공개 여부 수정"
+    )
+    @PatchMapping("/state/{projectId}")
+    public ResponseEntity<?> modifyProjectState(@PathVariable Long projectId, boolean state){
+        projectService.modifyProjectState(projectId, state);
+
+        return ResponseEntity.ok().build();
+    }
 }
