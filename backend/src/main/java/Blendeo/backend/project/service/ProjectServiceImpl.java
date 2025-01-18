@@ -78,4 +78,13 @@ public class ProjectServiceImpl implements ProjectService {
 
         project.updateState(state);
     }
+
+    @Override
+    @Transactional
+    public void modifyProjectContents(Long projectId, String contents) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
+
+        project.updateContents(contents);
+    }
 }

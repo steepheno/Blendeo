@@ -72,4 +72,14 @@ public class ProjectController {
 
         return ResponseEntity.ok().build();
     }
+
+    @Operation(
+            summary = "프로젝트 상세 설명 수정"
+    )
+    @PatchMapping("/contents/{projectId}")
+    public ResponseEntity<?> modifyProjectContents(@PathVariable Long projectId, String contents){
+        projectService.modifyProjectContents(projectId, contents);
+
+        return ResponseEntity.ok().build();
+    }
 }

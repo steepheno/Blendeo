@@ -66,4 +66,8 @@ public class Project {
     public void updateState(boolean state) {
         this.state = state;
     }
+
+    public void updateContents(String contents) {
+        this.contents = contents;
+    }
 }
