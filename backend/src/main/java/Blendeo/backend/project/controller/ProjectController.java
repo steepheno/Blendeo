@@ -41,4 +41,15 @@ public class ProjectController {
         projectService.createProject(projectCreateReq);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    @Operation(
+            summary = "프로젝트 조회"
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<ProjectInfoRes> getProject(@PathVariable Long id) {
+        ProjectInfoRes projectInfo = projectService.getProjectInfo(id);
+        System.out.println(projectInfo);
+
+        return ResponseEntity.ok(projectInfo);
+    }
 }

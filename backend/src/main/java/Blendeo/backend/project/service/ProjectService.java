@@ -5,4 +5,5 @@ import Blendeo.backend.project.dto.ProjectInfoRes;
 
 public interface ProjectService {
     void createProject(ProjectCreateReq projectCreateReq);
+    ProjectInfoRes getProjectInfo(Long projectId);
 }

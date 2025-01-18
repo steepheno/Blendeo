@@ -41,4 +41,26 @@ public class ProjectServiceImpl implements ProjectService {
 
         projectRepository.save(project);
     }
+
+    @Override
+    public ProjectInfoRes getProjectInfo(Long projectId) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("해당하는 프로젝트가 존재하지 않습니다."));
+
+        String forkProjectName = "";
+        return ProjectInfoRes.builder()
+                .id(project.getId())
+                .projectTitle(project.getTitle())
+                .state(project.isState())
+                .forkId(project.getForkId())
+                .forkProjectName(forkProjectName)
+                .contributorCnt(project.getContributorCnt())
+                .runningTime(project.getRunningTime())
+                .createdAt(project.getCreatedAt())
+                .contents(project.getContents())
+                .thumbnail(project.getThumbnail())
+                .viewCnt(project.getViewCnt())
+                .build();
+    }
 }
