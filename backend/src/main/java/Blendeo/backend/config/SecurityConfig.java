@@ -35,10 +35,10 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/api/v1/**"
-//                                "/webjars/**",
-//                                "/configuration/ui",
-//                                "/configuration/security"
+                                "/api/v1/**",
+                                "/webjars/**",
+                                "/configuration/ui",
+                                "/configuration/security"
                         ).permitAll()
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()

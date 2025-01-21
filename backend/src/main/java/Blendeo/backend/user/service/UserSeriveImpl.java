@@ -1,14 +1,10 @@
 package Blendeo.backend.user.service;
 
-import Blendeo.backend.user.dto.UserLoginPostReq;
-import Blendeo.backend.user.dto.UserLoginPostRes;
-import Blendeo.backend.user.dto.UserRegisterPostReq;
+import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.TokenRepository;
 import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
-import org.neo4j.driver.exceptions.DatabaseException;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -69,5 +65,28 @@ public class UserSeriveImpl implements UserService {
     @Override
     public void logout(String token) {
         tokenRepository.addToBlacklist(token);
+    }
+
+    @Override
+    public UserInfoGetRes getUser(int id) {
+        User user = userRepository.findById(id).get();
+        UserInfoGetRes info = new UserInfoGetRes(id, user.getEmail(), user.getNickname(), null);
+        return info;
+    }
+
+    @Override
+    public boolean deleteUser(int id) {
+        boolean isExists = userRepository.existsById(id);
+        if (isExists) {
+            userRepository.deleteById(id);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public void updateUser(UserUpdatePutReq userUpdatePutReq) {
+        userRepository.updateUser(userUpdatePutReq.getId(), userUpdatePutReq.getNickname());
     }
 }

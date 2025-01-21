@@ -1,11 +1,17 @@
 package Blendeo.backend.user.service;
 
-import Blendeo.backend.user.dto.UserLoginPostReq;
-import Blendeo.backend.user.dto.UserLoginPostRes;
-import Blendeo.backend.user.dto.UserRegisterPostReq;
+import Blendeo.backend.user.dto.*;
 
 public interface UserService {
     int register(UserRegisterPostReq userRegisterPostReq);
+
     UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
+
     void logout(String token);
+
+    UserInfoGetRes getUser(int id);
+
+    boolean deleteUser(int id);
+
+    void updateUser(UserUpdatePutReq userUpdatePutReq);
 }
