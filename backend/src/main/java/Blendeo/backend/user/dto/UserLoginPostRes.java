@@ -8,7 +8,9 @@ import lombok.Setter;
 @Setter
 public class UserLoginPostRes {
     private int id;
-    private int email;
+    private String email;
     private String nickname;
     private String profile_image;
+    private String accessToken;
+    private String refreshToken;
 }

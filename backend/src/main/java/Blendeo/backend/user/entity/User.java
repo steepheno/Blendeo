@@ -20,8 +20,8 @@ public class User {
     private String nickname;
 
     public User() {
-
     }
+
     @Builder
     User(int id, String email, String password, String nickname) {
         this.id = id;
