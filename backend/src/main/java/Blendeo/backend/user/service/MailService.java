@@ -18,7 +18,7 @@ public class MailService {
     private static final String senderEmail = "blendeo.ssafy@gmail.com";
     private static final String title = "[BLENDEO 회원가입]: 인증번호 발송";
 
-    public String sendMail(String receiver)  throws MessagingException {
+    public String sendMail(String receiver) throws MessagingException {
 
         // 랜덤 비밀번호 생성
         String authCode = createAuthCode();
