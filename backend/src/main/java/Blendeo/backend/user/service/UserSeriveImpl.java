@@ -8,6 +8,7 @@ import Blendeo.backend.user.repository.TokenRepository;
 import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
 import org.neo4j.driver.exceptions.DatabaseException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -63,5 +64,10 @@ public class UserSeriveImpl implements UserService {
         }
 
         return userLoginPostRes;
+    }
+
+    @Override
+    public void logout(String token) {
+        tokenRepository.addToBlacklist(token);
     }
 }

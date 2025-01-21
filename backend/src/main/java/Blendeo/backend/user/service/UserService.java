@@ -7,4 +7,5 @@ import Blendeo.backend.user.dto.UserRegisterPostReq;
 public interface UserService {
     int register(UserRegisterPostReq userRegisterPostReq);
     UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
+    void logout(String token);
 }

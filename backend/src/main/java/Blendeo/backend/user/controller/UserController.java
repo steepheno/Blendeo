@@ -31,4 +31,9 @@ public class UserController {
         return ResponseEntity.ok().body(userService.login(userLoginPostReq));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        userService.logout(token);
+        return ResponseEntity.ok().body("로그아웃 되었습니다");
+    }
 }
