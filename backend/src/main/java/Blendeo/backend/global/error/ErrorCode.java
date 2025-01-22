@@ -1,18 +1,20 @@
 package Blendeo.backend.global.error;
 
-public enum ErrorCode {
-    ENTITY_NOT_FOUND(404, "Entity not found"),
-    INVALID_INPUT_VALUE(400, "Invalid input value");
+import org.springframework.http.HttpStatus;
 
-    private final int status;
+public enum ErrorCode {
+    ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "Entity not found"),
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "Invalid input value"),
+    EMAIL_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다.");
+    private final HttpStatus status;
     private final String message;
 
-    ErrorCode(int status, String message) {
+    ErrorCode(HttpStatus status, String message) {
         this.status = status;
         this.message = message;
     }
 
-    public int getStatus() {
+    public HttpStatus getStatus() {
         return status;
     }
 

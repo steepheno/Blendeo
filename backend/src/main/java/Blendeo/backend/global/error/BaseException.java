@@ -1,5 +1,8 @@
 package Blendeo.backend.global.error;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+
 public abstract class BaseException extends RuntimeException {
     private final ErrorCode errorCode;
 
@@ -13,7 +16,7 @@ public abstract class BaseException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public ErrorCode getErrorCode() {
-        return errorCode;
+    public HttpStatus getErrorCode() {
+        return errorCode.getStatus();
     }
 }
