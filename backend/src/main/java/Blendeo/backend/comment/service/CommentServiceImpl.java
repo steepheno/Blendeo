@@ -5,6 +5,7 @@ import Blendeo.backend.comment.entity.Comment;
 import Blendeo.backend.comment.repository.CommentRepository;
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.exception.InvalidCommentException;
+import Blendeo.backend.exception.UnauthorizedAccessException;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
@@ -14,7 +15,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 
 @Slf4j
 @Service
@@ -47,5 +47,24 @@ public class CommentServiceImpl implements CommentService {
                 .build();
 
         commentRepository.save(comment);
+    }
+
+
+    @Override
+    @Transactional
+    public void deleteComment(String userEmail, Long commentId) {
+        // 댓글 존재 여부 확인
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("댓글을 찾을 수 없습니다: "));
+
+        User user = userRepository.findByEmail(userEmail);
+
+        if(user == null) throw new EntityNotFoundException("");
+
+        if (comment.getUser().getId() != user.getId()) {
+            throw new UnauthorizedAccessException("댓글 삭제 권한이 없습니다.");
+        }
+
+        commentRepository.delete(comment);
     }
 }
