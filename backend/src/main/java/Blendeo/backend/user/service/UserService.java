@@ -5,6 +5,8 @@ import Blendeo.backend.user.dto.*;
 public interface UserService {
     int register(UserRegisterPostReq userRegisterPostReq);
 
+    void emailExist(String email);
+
     UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
 
     void logout(String accessToken);

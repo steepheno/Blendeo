@@ -1,11 +1,15 @@
 package Blendeo.backend.user.controller;
 
+import Blendeo.backend.exception.EmailAlreadyExistsException;
+import Blendeo.backend.global.error.BaseException;
 import Blendeo.backend.user.dto.UserInfoGetRes;
 import Blendeo.backend.user.dto.UserLoginPostReq;
 import Blendeo.backend.user.dto.UserRegisterPostReq;
 import Blendeo.backend.user.dto.UserUpdatePutReq;
+import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,16 +23,38 @@ public class UserController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final UserService userService;
+    private final MailService mailService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, MailService mailService) {
         this.userService = userService;
+        this.mailService = mailService;
     }
 
     @Operation(summary = "회원가입")
     @PostMapping("/signup")
     public ResponseEntity<?> register(@RequestBody UserRegisterPostReq userRegisterPostReq) {
         logger.info("UserRegisterPostReq: {}", userRegisterPostReq);
-        return ResponseEntity.ok().body(userService.register(userRegisterPostReq));
+        try {
+            int userId = userService.register(userRegisterPostReq);
+            return ResponseEntity.ok().body(userId);
+        } catch (BaseException e) {
+            return ResponseEntity.status(e.getErrorCode()).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/mail/check")
+    public ResponseEntity<?> MailSend(@RequestParam String email) {
+        String authCode = null;
+        try {
+            userService.emailExist(email);
+            authCode = mailService.sendMail(email);
+        } catch (BaseException e) {
+            return ResponseEntity.status(e.getErrorCode()).body(e.getMessage());
+        }
+        catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.ok().body(authCode);
     }
 
     @Operation(summary = "로그인")

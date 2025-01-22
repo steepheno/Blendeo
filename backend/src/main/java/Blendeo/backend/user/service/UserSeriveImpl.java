@@ -1,5 +1,9 @@
 package Blendeo.backend.user.service;
 
+import Blendeo.backend.exception.EmailAlreadyExistsException;
+import Blendeo.backend.global.error.BaseException;
+import Blendeo.backend.global.error.ErrorCode;
+import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.TokenRepository;
@@ -7,6 +11,8 @@ import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserSeriveImpl implements UserService {
@@ -24,31 +30,45 @@ public class UserSeriveImpl implements UserService {
 
     @Override
     public int register(UserRegisterPostReq userRegisterPostReq) {
+
+        // 이미 존재하는 이메일 예외 처리
+        boolean emailExists =  userRepository.existsByEmail(userRegisterPostReq.getEmail());
+
+        if (emailExists) {
+            throw new EmailAlreadyExistsException();
+        }
         User user = userRegisterPostReq.toEntity();
         user.hashPassword(passwordEncoder);
         return userRepository.save(user).getId();
     }
 
     @Override
+    public void emailExist(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException();
+        }
+    }
+
+    @Override
     public UserLoginPostRes login(UserLoginPostReq userLoginPostReq) {
         String email = userLoginPostReq.getEmail();
-        User user = userRepository.findByEmail(email);
-        UserLoginPostRes userLoginPostRes = new UserLoginPostRes();
+        Optional<User> user = userRepository.findByEmail(email);
+        UserLoginPostRes userLoginPostRes;
 
-        if (user != null) {
-            if (user.checkPassword(userLoginPostReq.getPassword(), passwordEncoder)) {
-                userLoginPostRes.setId(user.getId());
-                userLoginPostRes.setEmail(user.getEmail());
-                userLoginPostRes.setNickname(user.getNickname());
-            } else {
+        if (user.isPresent()) {
+            if (!user.get().checkPassword(userLoginPostReq.getPassword(), passwordEncoder)) {
                 return null; // 비밀번호 불일치
             }
 
             String accessToken = jwtUtil.generateAccessToken(email);
             String refreshToken = jwtUtil.generateRefreshToken();
 
-            userLoginPostRes.setAccessToken(accessToken);
-            userLoginPostRes.setRefreshToken(refreshToken);
+            userLoginPostRes = UserLoginPostRes.builder()
+                    .id(user.get().getId())
+                    .email(user.get().getEmail())
+                    .nickname(user.get().getNickname())
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken).build();
 
             // Redis에 저장
             tokenRepository.saveAccessToken("ACCESS:" + email, accessToken, 15 * 60 * 1000L); // 15분
