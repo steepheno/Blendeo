@@ -33,6 +33,7 @@ dependencies {
 	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
 	implementation 'org.springframework.boot:spring-boot-starter-data-neo4j' // neo4j
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.openvidu:openvidu-java-client:2.31.0' // openvidu
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
