@@ -6,11 +6,11 @@ import lombok.Getter;
 public class UserUpdatePutReq {
     private int id;
     private String nickname;
-    private String profile_image;
+    private String profileImage;
 
-    public UserUpdatePutReq(int id, String nickname, String profile_image) {
+    public UserUpdatePutReq(int id, String nickname, String profileImage) {
         this.id = id;
         this.nickname = nickname;
-        this.profile_image = profile_image;
+        this.profileImage = profileImage;
     }
 }

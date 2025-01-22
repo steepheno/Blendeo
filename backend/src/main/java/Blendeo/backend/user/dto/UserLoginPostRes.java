@@ -10,7 +10,7 @@ public class UserLoginPostRes {
     private int id;
     private String email;
     private String nickname;
-    private String profile_image;
+    private String profileImage;
     private String accessToken;
     private String refreshToken;
 }
