@@ -13,5 +13,4 @@ public class UserLoginPostRes {
     private String nickname;
     private String profileImage;
     private String accessToken;
-    private String refreshToken;
 }

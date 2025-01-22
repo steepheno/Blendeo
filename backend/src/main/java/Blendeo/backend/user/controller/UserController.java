@@ -1,6 +1,5 @@
 package Blendeo.backend.user.controller;
 
-import Blendeo.backend.exception.EmailAlreadyExistsException;
 import Blendeo.backend.global.error.BaseException;
 import Blendeo.backend.user.dto.UserInfoGetRes;
 import Blendeo.backend.user.dto.UserLoginPostReq;
@@ -42,6 +41,7 @@ public class UserController {
         }
     }
 
+    @Operation(summary="이메일 존재 유무 확인 / 인증번호 발송")
     @PostMapping("/mail/check")
     public ResponseEntity<?> MailSend(@RequestParam String email) {
         String authCode = null;
@@ -50,8 +50,7 @@ public class UserController {
             authCode = mailService.sendMail(email);
         } catch (BaseException e) {
             return ResponseEntity.status(e.getErrorCode()).body(e.getMessage());
-        }
-        catch (MessagingException e) {
+        } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
         return ResponseEntity.ok().body(authCode);

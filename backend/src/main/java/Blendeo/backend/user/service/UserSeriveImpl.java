@@ -1,12 +1,10 @@
 package Blendeo.backend.user.service;
 
 import Blendeo.backend.exception.EmailAlreadyExistsException;
-import Blendeo.backend.global.error.BaseException;
-import Blendeo.backend.global.error.ErrorCode;
-import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.user.dto.*;
+import Blendeo.backend.user.entity.RefreshToken;
 import Blendeo.backend.user.entity.User;
-import Blendeo.backend.user.repository.TokenRepository;
+import Blendeo.backend.user.repository.RefreshTokenRepository;
 import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,13 +17,13 @@ public class UserSeriveImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final TokenRepository tokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public UserSeriveImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, TokenRepository tokenRepository) {
+    public UserSeriveImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
-        this.tokenRepository = tokenRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @Override
@@ -60,19 +58,17 @@ public class UserSeriveImpl implements UserService {
                 return null; // 비밀번호 불일치
             }
 
-            String accessToken = jwtUtil.generateAccessToken(email);
+            String accessToken = jwtUtil.generateAccessToken(user.get().getId());
             String refreshToken = jwtUtil.generateRefreshToken();
 
             userLoginPostRes = UserLoginPostRes.builder()
                     .id(user.get().getId())
                     .email(user.get().getEmail())
                     .nickname(user.get().getNickname())
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken).build();
+                    .accessToken(accessToken).build();
 
             // Redis에 저장
-            tokenRepository.saveAccessToken("ACCESS:" + email, accessToken, 15 * 60 * 1000L); // 15분
-            tokenRepository.saveRefreshToken("REFRESH:" + email, refreshToken, 7 * 24 * 60 * 60 * 1000L); // 7일
+            refreshTokenRepository.save(new RefreshToken(user.get().getId(), accessToken, refreshToken));
 
         } else {
             // 존재하지 않을 경우 Exception Handler 적용 필요!
@@ -86,7 +82,18 @@ public class UserSeriveImpl implements UserService {
     public void logout(String token) {
         if (token != null && token.startsWith("Bearer ")) {
             String accessToken = token.substring(7);
-            tokenRepository.addToBlacklist(accessToken);
+
+            if (!jwtUtil.validateToken(accessToken)) {
+                throw new IllegalArgumentException("Invalid or expired access token");
+            }
+
+            int userId = jwtUtil.getIdFromToken(accessToken);
+
+            Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(String.valueOf(userId));
+
+            refreshTokenRepository.delete(refreshToken.get());
+
+//            SecurityContextHolder.clearContext(); // SecurityContext에서 인증 정보 제거
         }
     }
 
