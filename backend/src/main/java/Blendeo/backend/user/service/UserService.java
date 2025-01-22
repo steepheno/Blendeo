@@ -7,7 +7,7 @@ public interface UserService {
 
     UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
 
-    void logout(String token);
+    void logout(String accessToken);
 
     UserInfoGetRes getUser(int id);
 

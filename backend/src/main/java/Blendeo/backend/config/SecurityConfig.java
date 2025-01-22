@@ -40,6 +40,7 @@ public class SecurityConfig {
                                 "/configuration/ui",
                                 "/configuration/security"
                         ).permitAll()
+                        .requestMatchers("/api/v1/admin/**").authenticated()
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
                 )

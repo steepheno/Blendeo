@@ -64,7 +64,10 @@ public class UserSeriveImpl implements UserService {
 
     @Override
     public void logout(String token) {
-        tokenRepository.addToBlacklist(token);
+        if (token != null && token.startsWith("Bearer ")) {
+            String accessToken = token.substring(7);
+            tokenRepository.addToBlacklist(accessToken);
+        }
     }
 
     @Override

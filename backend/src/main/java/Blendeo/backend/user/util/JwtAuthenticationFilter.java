@@ -28,21 +28,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authorizationHeader = request.getHeader("Authorization");
+        System.out.println("doFilterInternal");
+        String authorization = request.getHeader("Authorization");
 
-//        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-//            String token = authorizationHeader.substring(7);
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            String accessToken = authorization.substring(7);
+            if (accessToken != null) {
 
-        if (authorizationHeader != null) {
-            String token = authorizationHeader;
-            if (jwtUtil.validateToken(token)) {
-                // Redis에서 토큰이 블랙리스트에 등록되었는지 확인
-                if (tokenRepository.isBlacklisted(token)) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is invalid or expired");
-                    return; // 블랙리스트에 있으면 인증을 중단
+                if (!jwtUtil.validateToken(accessToken)) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+                    return; // 토큰이 유효하지 않다면 요청 중단
                 }
 
-                String email = jwtUtil.getEmailFromToken(token);
+                if (tokenRepository.isBlacklisted(accessToken)) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is blacklisted");
+                    return; // 블랙리스트에 있으면 요청 중단
+                }
+
+                String email = jwtUtil.getEmailFromToken(accessToken);
 
                 // 인증 객체 생성
                 User principal = new User(email, "", new ArrayList<>());
