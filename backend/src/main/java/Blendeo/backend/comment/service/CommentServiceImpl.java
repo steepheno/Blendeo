@@ -1,6 +1,7 @@
 package Blendeo.backend.comment.service;
 
 import Blendeo.backend.comment.dto.CommentRegisterReq;
+import Blendeo.backend.comment.dto.CommentRes;
 import Blendeo.backend.comment.entity.Comment;
 import Blendeo.backend.comment.repository.CommentRepository;
 import Blendeo.backend.exception.EntityNotFoundException;
@@ -15,6 +16,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -66,5 +70,16 @@ public class CommentServiceImpl implements CommentService {
         }
 
         commentRepository.delete(comment);
+    }
+
+    @Override
+    public List<CommentRes> getComments(Long projectId) {
+
+        List<Comment> comments = commentRepository.findCommentByProjectId(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 프로젝트에 댓글이 존재하지 않습니다."));
+
+        return comments.stream()
+                .map(CommentRes::from)
+                .collect(Collectors.toList());
     }
 }

@@ -1,6 +1,7 @@
 package Blendeo.backend.comment.controller;
 
 import Blendeo.backend.comment.dto.CommentRegisterReq;
+import Blendeo.backend.comment.dto.CommentRes;
 import Blendeo.backend.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -40,5 +43,10 @@ public class CommentController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body("댓글이 성공적으로 삭제되었습니다.");
+    }
+
+    @GetMapping("/{projectId}")
+    public ResponseEntity<List<CommentRes>> getAllComments(@PathVariable Long projectId) {
+        return ResponseEntity.ok(commentService.getComments(projectId));
     }
 }
