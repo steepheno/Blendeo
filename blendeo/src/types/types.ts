@@ -22,3 +22,22 @@ export interface SubscriptionItemProps {
   timeAgo: string;
   views: string;
 }
+
+/* 채팅 */
+export interface UserProps {
+  name: string;
+  message?: string;
+  isOnline?: boolean;
+  imageUrl: string;
+}
+
+export interface ChatSearchBarProps {
+  placeholder: string;
+  iconSrc: string;
+}
+
+export interface NavigationItemProps {
+  icon: string;
+  label: string;
+  isActive?: boolean;
+}
