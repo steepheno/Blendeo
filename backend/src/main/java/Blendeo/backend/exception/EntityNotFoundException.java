@@ -12,4 +12,8 @@ public class EntityNotFoundException extends BaseException {
     public EntityNotFoundException(ErrorCode errorCode, String message) {
         super(errorCode, message);
     }
+
+    public EntityNotFoundException() {
+        super(ErrorCode.ENTITY_NOT_FOUND, ErrorCode.ENTITY_NOT_FOUND.getMessage());
+    }
 }

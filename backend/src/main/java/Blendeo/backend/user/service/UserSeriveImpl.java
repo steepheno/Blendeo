@@ -1,6 +1,7 @@
 package Blendeo.backend.user.service;
 
 import Blendeo.backend.exception.EmailAlreadyExistsException;
+import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.entity.RefreshToken;
 import Blendeo.backend.user.entity.User;
@@ -55,7 +56,7 @@ public class UserSeriveImpl implements UserService {
 
         if (user.isPresent()) {
             if (!user.get().checkPassword(userLoginPostReq.getPassword(), passwordEncoder)) {
-                return null; // 비밀번호 불일치
+                throw new EntityNotFoundException("아이디 혹은 비밀번호가 일치하지 않습니다."); // 비밀번호 불일치
             }
 
             String accessToken = jwtUtil.generateAccessToken(user.get().getId());
@@ -71,8 +72,7 @@ public class UserSeriveImpl implements UserService {
             refreshTokenRepository.save(new RefreshToken(user.get().getId(), accessToken, refreshToken));
 
         } else {
-            // 존재하지 않을 경우 Exception Handler 적용 필요!
-            return null;
+            throw new EntityNotFoundException("아이디 혹은 비밀번호가 일치하지 않습니다.");
         }
 
         return userLoginPostRes;
@@ -99,24 +99,23 @@ public class UserSeriveImpl implements UserService {
 
     @Override
     public UserInfoGetRes getUser(int id) {
-        User user = userRepository.findById(id).get();
+        User user = userRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
         UserInfoGetRes info = new UserInfoGetRes(id, user.getEmail(), user.getNickname(), null);
         return info;
     }
 
     @Override
-    public boolean deleteUser(int id) {
-        boolean isExists = userRepository.existsById(id);
-        if (isExists) {
-            userRepository.deleteById(id);
-            return true;
-        } else {
-            return false;
-        }
+    public void deleteUser(int id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+        userRepository.deleteById(id);
     }
 
     @Override
     public void updateUser(UserUpdatePutReq userUpdatePutReq) {
+        User user = userRepository.findById(userUpdatePutReq.getId())
+                        .orElseThrow(EntityNotFoundException::new);
         userRepository.updateUser(userUpdatePutReq.getId(), userUpdatePutReq.getNickname());
     }
 }

@@ -13,7 +13,7 @@ public interface UserService {
 
     UserInfoGetRes getUser(int id);
 
-    boolean deleteUser(int id);
+    void deleteUser(int id);
 
     void updateUser(UserUpdatePutReq userUpdatePutReq);
 }

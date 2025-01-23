@@ -33,23 +33,17 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<?> register(@RequestBody UserRegisterPostReq userRegisterPostReq) {
         logger.info("UserRegisterPostReq: {}", userRegisterPostReq);
-        try {
-            int userId = userService.register(userRegisterPostReq);
-            return ResponseEntity.ok().body(userId);
-        } catch (BaseException e) {
-            return ResponseEntity.status(e.getErrorCode()).body(e.getMessage());
-        }
+        int userId = userService.register(userRegisterPostReq);
+        return ResponseEntity.ok().body(userId);
     }
 
     @Operation(summary="이메일 존재 유무 확인 / 인증번호 발송")
     @PostMapping("/mail/check")
     public ResponseEntity<?> MailSend(@RequestParam String email) {
         String authCode = null;
+        userService.emailExist(email);
         try {
-            userService.emailExist(email);
             authCode = mailService.sendMail(email);
-        } catch (BaseException e) {
-            return ResponseEntity.status(e.getErrorCode()).body(e.getMessage());
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
@@ -88,11 +82,7 @@ public class UserController {
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/delete-user/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id) {
-        boolean result = userService.deleteUser(id);
-        if (result) {
-            return ResponseEntity.ok().build();
-        } else {
-            return new ResponseEntity<>(ResponseEntity.status(HttpStatus.NOT_FOUND).build(), HttpStatus.NOT_FOUND);
-        }
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
     }
 }
