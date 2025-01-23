@@ -5,13 +5,15 @@ import Blendeo.backend.user.dto.*;
 public interface UserService {
     int register(UserRegisterPostReq userRegisterPostReq);
 
+    void emailExist(String email);
+
     UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
 
     void logout(String accessToken);
 
     UserInfoGetRes getUser(int id);
 
-    boolean deleteUser(int id);
+    void deleteUser(int id);
 
     void updateUser(UserUpdatePutReq userUpdatePutReq);
 }

@@ -1,11 +1,14 @@
 package Blendeo.backend.user.controller;
 
+import Blendeo.backend.global.error.BaseException;
 import Blendeo.backend.user.dto.UserInfoGetRes;
 import Blendeo.backend.user.dto.UserLoginPostReq;
 import Blendeo.backend.user.dto.UserRegisterPostReq;
 import Blendeo.backend.user.dto.UserUpdatePutReq;
+import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,16 +22,32 @@ public class UserController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final UserService userService;
+    private final MailService mailService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, MailService mailService) {
         this.userService = userService;
+        this.mailService = mailService;
     }
 
     @Operation(summary = "회원가입")
     @PostMapping("/signup")
     public ResponseEntity<?> register(@RequestBody UserRegisterPostReq userRegisterPostReq) {
         logger.info("UserRegisterPostReq: {}", userRegisterPostReq);
-        return ResponseEntity.ok().body(userService.register(userRegisterPostReq));
+        int userId = userService.register(userRegisterPostReq);
+        return ResponseEntity.ok().body(userId);
+    }
+
+    @Operation(summary="이메일 존재 유무 확인 / 인증번호 발송")
+    @PostMapping("/mail/check")
+    public ResponseEntity<?> MailSend(@RequestParam String email) {
+        String authCode = null;
+        userService.emailExist(email);
+        try {
+            authCode = mailService.sendMail(email);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.ok().body(authCode);
     }
 
     @Operation(summary = "로그인")
@@ -63,11 +82,7 @@ public class UserController {
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/delete-user/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id) {
-        boolean result = userService.deleteUser(id);
-        if (result) {
-            return ResponseEntity.ok().build();
-        } else {
-            return new ResponseEntity<>(ResponseEntity.status(HttpStatus.NOT_FOUND).build(), HttpStatus.NOT_FOUND);
-        }
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
     }
 }
