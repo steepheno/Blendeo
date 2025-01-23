@@ -1,14 +1,12 @@
 import './App.css'
+import { MainInterface } from './components/MainInterface';
 
 function App() {
-
   return (
-    <>
-      <div>
-        Hello react
-      </div>
-    </>
-  )
+    <div className="App">
+      <MainInterface />
+    </div>
+  );
 }
 
-export default App
+export default App;
