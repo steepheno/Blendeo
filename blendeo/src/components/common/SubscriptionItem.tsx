@@ -1,3 +1,5 @@
+/* 구독 상세정보 */
+
 import * as React from 'react';
 import { SubscriptionItemProps } from '../../types/types';
 

@@ -1,12 +1,12 @@
 import './App.css'
-import { ChatLayout } from './components/chat/ChatLayout';
-import { MainInterface } from './components/MainInterface';
+import { ChatLayout } from './components/Layout/ChatLayout';
+import { MainLayout } from './components/Layout/MainLayout';
 
 function App() {
   return (
     <div className="App">
-      {/* <MainInterface /> */}
-      <ChatLayout />
+      <MainLayout />
+      {/* <ChatLayout /> */}
     </div>
   );
 }
