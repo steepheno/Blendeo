@@ -8,6 +8,8 @@ import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.RefreshTokenRepository;
 import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
+import org.neo4j.driver.exceptions.DatabaseException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -76,6 +78,28 @@ public class UserSeriveImpl implements UserService {
         }
 
         return userLoginPostRes;
+    }
+
+    @Override
+    public String findByAccessToken(String token) {
+        if (!token.startsWith("Bearer ")) {
+            throw new IllegalArgumentException();
+        }
+        String accessToken = token.substring(7);
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByAccessToken(accessToken);
+
+        if (refreshToken.isPresent() && jwtUtil.validateToken(refreshToken.get().getRefreshToken())) {
+            RefreshToken resultToken = refreshToken.get();
+
+            String newAccessToken = jwtUtil.generateAccessToken(resultToken.getId());
+
+            resultToken.updateAccessToken(newAccessToken);
+            refreshTokenRepository.save(resultToken);
+
+            return newAccessToken;
+        } else {
+            throw new EntityNotFoundException("accessToken 만료되었습니다.");
+        }
     }
 
     @Override
