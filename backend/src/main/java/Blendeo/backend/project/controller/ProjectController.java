@@ -56,7 +56,6 @@ public class ProjectController {
     @GetMapping("/{id}")
     public ResponseEntity<ProjectInfoRes> getProject(@PathVariable Long id) {
         ProjectInfoRes projectInfo = projectService.getProjectInfo(id);
-        System.out.println(projectInfo);
 
         return ResponseEntity.ok(projectInfo);
     }

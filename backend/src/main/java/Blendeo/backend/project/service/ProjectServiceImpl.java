@@ -82,8 +82,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
     public void deleteProject(Long projectId) {
         projectRepository.deleteById(projectId);
+        // Neo4j에서 삭제(자신을 fork한 프로젝트가 없으면 삭제!)
+        projectNodeRepository.deleteByProjectIdIfNotForked(projectId);
     }
 
 

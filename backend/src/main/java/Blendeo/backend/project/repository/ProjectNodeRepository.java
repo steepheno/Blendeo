@@ -16,6 +16,11 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
     @Query("CREATE (p:ProjectNode) SET p.projectId = $node.projectId")
     void createNode(@Param("node") ProjectNode projectNode);
 
+    @Query("MATCH (p:ProjectNode {projectId: $projectId}) " +
+            "WHERE NOT (p)<-[:FORK]-() " +  // fork 관계가 없는 경우만
+            "DETACH DELETE p")
+    void deleteByProjectIdIfNotForked(@Param("projectId") Long projectId);
+
 
     // fork 관계 추가
     @Query("MATCH (child:ProjectNode {projectId: $childId}), (parent:ProjectNode {projectId: $parentId}) " +
