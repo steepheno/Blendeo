@@ -41,3 +41,18 @@ export interface NavigationItemProps {
   label: string;
   isActive?: boolean;
 }
+
+/* 로그인 */
+export interface SocialLoginButtonProps {
+  icon: string;
+  text: string;
+  onClick?: () => void;
+}
+
+export interface InputFieldProps {
+  id: string;
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}

@@ -15,7 +15,6 @@ export const ChatLayout = () => {
 
       {/* 사이드바 */}
       <div className="flex flex-wrap flex-1 gap-2.5 mt-2.5 size-full max-md:max-w-full">
-
         <div className="flex overflow-hidden flex-col min-w-[240px] w-[354px]">
           <Sidebar />
         </div>
@@ -37,12 +36,12 @@ export const ChatLayout = () => {
           </section>
 
           <aside className="flex overflow-hidden flex-col justify-center items-end p-5 min-w-[240px] w-[354px]">
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/e909df090ac7ea856915eb33569cb507191306a43d172b92ca6d2ed052e8e51e?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b"
-              alt="Chat decoration"
-              className="object-contain aspect-square w-[70px]"
-            />
+          <img
+            loading="lazy"
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/e909df090ac7ea856915eb33569cb507191306a43d172b92ca6d2ed052e8e51e?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b"
+            alt="Chat decoration"
+            className="fixed bottom-0 right-0 m-5 object-contain aspect-square w-[70px] z-10"
+          />
           </aside>
         </main>
       </div>
