@@ -4,9 +4,12 @@ import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 import Blendeo.backend.project.entity.Project;
+import Blendeo.backend.project.entity.ProjectNode;
+import Blendeo.backend.project.repository.ProjectNodeRepository;
 import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.project.util.VideoDurationExtractor;
 import Blendeo.backend.user.entity.User;
+import Blendeo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,32 +17,46 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final ProjectNodeRepository projectNodeRepository;
     private final VideoService videoService;
+    private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public void createProject(ProjectCreateReq projectCreateReq) {
-
         MultipartFile videoFile = projectCreateReq.getVideoFile();
         String videoUrl = videoService.uploadVideo(videoFile);
         int duration = VideoDurationExtractor.extractVideoDuration(videoFile);
 
+        User user = userRepository.findById(projectCreateReq.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+
         Project project = Project.builder()
                 .title(projectCreateReq.getTitle())
-                .author(User.builder()
-                        .id(1)
-                        .email("ms9648@naver.com")
-                        .nickname("민서김")
-                        .password("12341234")
-                        .build())
+                .author(user)
+                .forkId(projectCreateReq.getForkProjectId())
                 .contents(projectCreateReq.getContent())
                 .videoUrl(videoUrl)
                 .runningTime(duration)
                 .build();
 
         projectRepository.save(project);
+
+        ProjectNode projectNode = ProjectNode.builder()
+                .projectId(project.getId())
+                .build();
+
+        projectNodeRepository.save(projectNode);
+        if (projectCreateReq.getForkProjectId() != null) {
+            ProjectNode parentNode = projectNodeRepository.findByProjectId(projectCreateReq.getForkProjectId())
+                    .orElseThrow(() -> new EntityNotFoundException("Fork 대상 프로젝트를 찾을 수 없습니다."));
+
+            projectNodeRepository.createForkRelation(projectNode.getProjectId(), parentNode.getProjectId());
+        }
     }
 
     @Override
