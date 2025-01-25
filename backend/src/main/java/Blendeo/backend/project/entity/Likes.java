@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Like {
+public class Likes {
     @EmbeddedId
     private LikeId id;
 
@@ -28,7 +28,7 @@ public class Like {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    public Like(User user, Project project) {
+    public Likes(User user, Project project) {
         this.id = new LikeId(user.getId(), project.getId());
         this.user = user;
         this.project = project;

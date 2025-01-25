@@ -2,9 +2,11 @@ package Blendeo.backend.project.controller;
 
 import Blendeo.backend.project.service.LikeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,10 +22,19 @@ public class LikeController {
     @PostMapping("/{projectId}")
     public ResponseEntity<?> addLike(@PathVariable long projectId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userEmail = user.getUsername();
+        int userId = Integer.parseInt(user.getUsername());
 
-        likeService.addLike(projectId, userEmail);
+        likeService.addLike(projectId, userId);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<?> removeLike(@PathVariable long projectId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        likeService.removeLike(projectId, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

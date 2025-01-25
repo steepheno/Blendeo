@@ -1,14 +1,16 @@
 package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
-import Blendeo.backend.exception.ProjectNotFoundException;
-import Blendeo.backend.project.entity.Like;
+import Blendeo.backend.global.error.ErrorCode;
+import Blendeo.backend.project.entity.Likes;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.repository.LikeRepository;
 import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,16 +20,41 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public void addLike(long projectId, String userEmail) {
-        User user = userRepository.findByEmail(userEmail);
-        if (user == null) {
-            throw new EntityNotFoundException("유저 정보를 찾을 수 없습니다.");
+    @Transactional
+    public void addLike(long projectId, int userId) {
+        if (likeRepository.existsByUserIdAndProjectId(userId, projectId)) {
+            return;
         }
 
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectNotFoundException("프로젝트를 찾을 수 없습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 
-        likeRepository.save(new Like(user, project));
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+        String likeSetKey = "like:set:" + projectId;
+        String likeScoreKey = "like:score";
+
+        redisTemplate.opsForSet().add(likeSetKey, String.valueOf(userId));
+        redisTemplate.opsForZSet().incrementScore(likeScoreKey, String.valueOf(projectId), 1);
+
+        likeRepository.save(new Likes(user, project));
+    }
+
+    @Transactional
+    public void removeLike(long projectId, int userId) {
+        if (!likeRepository.existsByUserIdAndProjectId(userId, projectId)) {
+            return;
+        }
+
+        String likeSetKey = "like:set:" + projectId;
+        String likeScoreKey = "like:score";
+
+        redisTemplate.opsForSet().remove(likeSetKey, String.valueOf(userId));
+        redisTemplate.opsForZSet().incrementScore(likeScoreKey, String.valueOf(projectId), -1);
+
+        likeRepository.deleteByUserIdAndProjectId(userId, projectId);
     }
 }
