@@ -1,6 +1,7 @@
 package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
+import Blendeo.backend.global.error.ErrorCode;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 import Blendeo.backend.project.entity.Project;
@@ -33,7 +34,7 @@ public class ProjectServiceImpl implements ProjectService {
         int duration = VideoDurationExtractor.extractVideoDuration(videoFile);
 
         User user = userRepository.findById(projectCreateReq.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 
         Project project = Project.builder()
                 .title(projectCreateReq.getTitle())
@@ -53,7 +54,7 @@ public class ProjectServiceImpl implements ProjectService {
         projectNodeRepository.save(projectNode);
         if (projectCreateReq.getForkProjectId() != null) {
             ProjectNode parentNode = projectNodeRepository.findByProjectId(projectCreateReq.getForkProjectId())
-                    .orElseThrow(() -> new EntityNotFoundException("Fork 대상 프로젝트를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
             projectNodeRepository.createForkRelation(projectNode.getProjectId(), parentNode.getProjectId());
         }
@@ -63,15 +64,13 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectInfoRes getProjectInfo(Long projectId) {
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("해당하는 프로젝트가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
-        String forkProjectName = "";
         return ProjectInfoRes.builder()
                 .id(project.getId())
                 .projectTitle(project.getTitle())
                 .state(project.isState())
                 .forkId(project.getForkId())
-                .forkProjectName(forkProjectName)
                 .contributorCnt(project.getContributorCnt())
                 .runningTime(project.getRunningTime())
                 .createdAt(project.getCreatedAt())
@@ -85,7 +84,6 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public void deleteProject(Long projectId) {
         projectRepository.deleteById(projectId);
-        // Neo4j에서 삭제(자신을 fork한 프로젝트가 없으면 삭제!)
         projectNodeRepository.deleteByProjectIdIfNotForked(projectId);
     }
 
@@ -94,7 +92,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public void modifyProjectState(Long projectId, boolean state) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
         project.updateState(state);
     }
@@ -103,7 +101,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public void modifyProjectContents(Long projectId, String contents) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
         project.updateContents(contents);
     }
