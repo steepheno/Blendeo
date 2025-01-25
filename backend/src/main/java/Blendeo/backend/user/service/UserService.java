@@ -1,6 +1,7 @@
 package Blendeo.backend.user.service;
 
 import Blendeo.backend.user.dto.*;
+import Blendeo.backend.user.entity.RefreshToken;
 
 public interface UserService {
     int register(UserRegisterPostReq userRegisterPostReq);
@@ -8,6 +9,8 @@ public interface UserService {
     void emailExist(String email);
 
     UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
+
+    String findByAccessToken(String accessToken);
 
     void logout(String accessToken);
 
