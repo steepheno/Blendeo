@@ -31,7 +31,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void registerComment(String userEmail, CommentRegisterReq commentRegisterReq) {
+    public void registerComment(int userId, CommentRegisterReq commentRegisterReq) {
 
         if (commentRegisterReq.getComment() == null || commentRegisterReq.getComment().trim().isEmpty()) {
             throw new InvalidCommentException();
@@ -40,9 +40,8 @@ public class CommentServiceImpl implements CommentService {
         Project project = projectRepository.findById(commentRegisterReq.getProjectId())
                 .orElseThrow(() -> new EntityNotFoundException("해당하는 프로젝트가 없습니다."));
 
-        User user = userRepository.findByEmail(userEmail);
-
-        if(user == null) throw new EntityNotFoundException("");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
 
         Comment comment = Comment.builder()
                 .comment(commentRegisterReq.getComment())
@@ -56,14 +55,13 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void deleteComment(String userEmail, Long commentId) {
+    public void deleteComment(int userId, Long commentId) {
         // 댓글 존재 여부 확인
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new EntityNotFoundException("댓글을 찾을 수 없습니다: "));
 
-        User user = userRepository.findByEmail(userEmail);
-
-        if(user == null) throw new EntityNotFoundException("");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
 
         if (comment.getUser().getId() != user.getId()) {
             throw new UnauthorizedAccessException("댓글 삭제 권한이 없습니다.");
