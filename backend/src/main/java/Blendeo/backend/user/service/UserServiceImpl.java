@@ -2,36 +2,51 @@ package Blendeo.backend.user.service;
 
 import Blendeo.backend.exception.EmailAlreadyExistsException;
 import Blendeo.backend.exception.EntityNotFoundException;
-import Blendeo.backend.user.dto.*;
+import Blendeo.backend.user.dto.FollowerListRes;
+import Blendeo.backend.user.dto.FollowingListRes;
+import Blendeo.backend.user.dto.UserInfoGetRes;
+import Blendeo.backend.user.dto.UserLoginPostReq;
+import Blendeo.backend.user.dto.UserLoginPostRes;
+import Blendeo.backend.user.dto.UserRegisterPostReq;
+import Blendeo.backend.user.dto.UserUpdatePutReq;
+import Blendeo.backend.user.entity.Follow;
 import Blendeo.backend.user.entity.RefreshToken;
 import Blendeo.backend.user.entity.User;
+import Blendeo.backend.user.repository.FollowRepository;
 import Blendeo.backend.user.repository.RefreshTokenRepository;
 import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class UserSeriveImpl implements UserService {
+public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final FollowService followService;
+    private final FollowRepository followRepository;
 
-    public UserSeriveImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
+                           RefreshTokenRepository refreshTokenRepository, FollowService followService,
+                           FollowRepository followRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.followService = followService;
+        this.followRepository = followRepository;
     }
 
     @Override
     public int register(UserRegisterPostReq userRegisterPostReq) {
 
         // 이미 존재하는 이메일 예외 처리
-        boolean emailExists =  userRepository.existsByEmail(userRegisterPostReq.getEmail());
+        boolean emailExists = userRepository.existsByEmail(userRegisterPostReq.getEmail());
 
         if (emailExists) {
             throw new EmailAlreadyExistsException();
@@ -115,7 +130,85 @@ public class UserSeriveImpl implements UserService {
     @Override
     public void updateUser(UserUpdatePutReq userUpdatePutReq) {
         User user = userRepository.findById(userUpdatePutReq.getId())
-                        .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(EntityNotFoundException::new);
         userRepository.updateUser(userUpdatePutReq.getId(), userUpdatePutReq.getNickname());
+    }
+
+    @Transactional
+    @Override
+    public void follow(int userId, int targetId) {
+        User follower = userRepository.findById(userId)
+                .orElseThrow(EntityNotFoundException::new);
+        User followee = userRepository.findById(targetId)
+                .orElseThrow(EntityNotFoundException::new);
+        followService.follow(follower, followee);
+    }
+
+    @Transactional
+    @Override
+    public void unfollow(int userId, int targetId) {
+        User follower = userRepository.findById(userId)
+                .orElseThrow(EntityNotFoundException::new);
+        User followee = userRepository.findById(targetId)
+                .orElseThrow(EntityNotFoundException::new);
+        followService.unfollow(follower, followee);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public FollowerListRes getFollowers(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        List<Follow> followerList = followRepository.findAllByFollowPK_Following(user);
+
+        List<User> followerUserList = followerList.stream()
+                .map(Follow::getFollower)
+                .toList();
+
+        List<Integer> followerIdList = followerUserList.stream()
+                .map(User::getId)
+                .toList();
+
+        List<String> followerNicknameList = followerUserList.stream()
+                .map(User::getNickname)
+                .toList();
+
+        int followerCount = followerList.size();
+
+        return FollowerListRes.builder()
+                .followerIdList(followerIdList)
+                .followerNicknameList(followerNicknameList)
+                .followerCount(followerCount)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public FollowingListRes getFollowings(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        List<Follow> followingList = followRepository.findAllByFollowPK_Follower(user);
+
+        List<User> followingUserList = followingList.stream()
+                .map(Follow::getFollowing)
+                .toList();
+
+        List<Integer> followingIdList = followingUserList.stream()
+                .map(User::getId)
+                .toList();
+
+        List<String> followingNicknameList = followingUserList.stream()
+                .map(User::getNickname)
+                .toList();
+
+        int followingCount = followingList.size();
+
+        return FollowingListRes.builder()
+                .followingIdList(followingIdList)
+                .followingNicknameList(followingNicknameList)
+                .followingCount(followingCount)
+                .build();
     }
 }
