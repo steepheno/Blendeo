@@ -94,6 +94,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String findByAccessToken(String token) {
+        if (!token.startsWith("Bearer ")) {
+            throw new IllegalArgumentException();
+        }
+        String accessToken = token.substring(7);
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByAccessToken(accessToken);
+
+        if (refreshToken.isPresent() && jwtUtil.validateToken(refreshToken.get().getRefreshToken())) {
+            RefreshToken resultToken = refreshToken.get();
+
+            String newAccessToken = jwtUtil.generateAccessToken(resultToken.getId());
+
+            resultToken.updateAccessToken(newAccessToken);
+            refreshTokenRepository.save(resultToken);
+
+            return newAccessToken;
+        } else {
+            throw new EntityNotFoundException("accessToken 만료되었습니다.");
+        }
+    }
+
+    @Override
     public void logout(String token) {
         if (token != null && token.startsWith("Bearer ")) {
             String accessToken = token.substring(7);

@@ -6,6 +6,7 @@ import Blendeo.backend.user.dto.UserInfoGetRes;
 import Blendeo.backend.user.dto.UserLoginPostReq;
 import Blendeo.backend.user.dto.UserRegisterPostReq;
 import Blendeo.backend.user.dto.UserUpdatePutReq;
+import Blendeo.backend.user.entity.RefreshToken;
 import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,9 +69,14 @@ public class UserController {
         return ResponseEntity.ok().body(userService.login(userLoginPostReq));
     }
 
+    @PostMapping("/auth/refresh")
+    public ResponseEntity<?> refresh(@RequestHeader("Authorization") final String token) {
+        return ResponseEntity.ok().body(userService.findByAccessToken(token));
+    }
+
     @Operation(summary = "로그아웃")
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+    @PostMapping("/auth/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") final String token) {
         userService.logout(token);
         return ResponseEntity.ok().body("로그아웃 되었습니다");
     }

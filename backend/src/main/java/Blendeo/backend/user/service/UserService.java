@@ -15,6 +15,8 @@ public interface UserService {
 
     UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
 
+    String findByAccessToken(String accessToken);
+
     void logout(String accessToken);
 
     UserInfoGetRes getUser(int id);
