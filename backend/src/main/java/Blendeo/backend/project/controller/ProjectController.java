@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,12 +30,18 @@ public class ProjectController {
     public ResponseEntity<Void> createProject(
             @RequestParam("title") String title,
             @RequestParam("content") String content,
+            @RequestParam(value = "forkProjectId", required = false) Long forkProjectId,
             @RequestParam("state") boolean state,
             @RequestParam("videoFile") MultipartFile videoFile
     ) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
         ProjectCreateReq projectCreateReq = ProjectCreateReq.builder()
                 .title(title)
                 .content(content)
+                .userId(userId)
+                .forkProjectId(forkProjectId)
                 .state(state)
                 .videoFile(videoFile)
                 .build();
@@ -48,7 +56,6 @@ public class ProjectController {
     @GetMapping("/{id}")
     public ResponseEntity<ProjectInfoRes> getProject(@PathVariable Long id) {
         ProjectInfoRes projectInfo = projectService.getProjectInfo(id);
-        System.out.println(projectInfo);
 
         return ResponseEntity.ok(projectInfo);
     }
