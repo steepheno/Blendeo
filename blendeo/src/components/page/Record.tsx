@@ -1,7 +1,7 @@
 import * as React from 'react';
 import ImageComponent from '../record/ImageComponent';
 import PlaybackControl from '../record/PlaybackControl';
-import Navbar from '../common/Navbar';
+import Searchbar from '../common/Searchbar';
 import WebCamera from '../record/WebCamera';
 
 const Record = () => {
@@ -12,7 +12,7 @@ const Record = () => {
   return (
     <div className="flex flex-col">
       <div className="flex overflow-hidden flex-col w-full bg-stone-950 max-md:max-w-full">
-        <Navbar />
+        <Searchbar />
         <main className="flex flex-col flex-1 w-full max-md:max-w-full justify-center">
           <div className="flex flex-wrap flex-1 justify-center items-center size-full max-md:max-w-full">
             <div className="flex overflow-hidden flex-col justify-center items-center self-stretch px-5 my-auto rotate-[3.141592653589793rad] w-[88px]">

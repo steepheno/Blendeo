@@ -1,6 +1,6 @@
 import MusicCard from '../common/MusicCard';
 import GenreTag from '../common/GenreTag';
-import Navbar from '../common/Navbar';
+import Searchbar from '../common/Searchbar';
 import Sidebar from '../common/Sidebar';
 
 const genreTags = [
@@ -47,7 +47,7 @@ const musicCards = [
 const Main = () => {
   return (
     <div className="flex overflow-hidden flex-col bg-white">
-      <Navbar />
+      <Searchbar />
 
       <div className="flex flex-wrap flex-1 gap-2.5 mt-2.5 size-full max-md:max-w-full">
         {/* 사이드바 */}

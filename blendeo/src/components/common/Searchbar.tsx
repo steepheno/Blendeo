@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Searchbar = () => {
   const navigate = useNavigate();
 
   const goToMain = () => {
@@ -75,4 +75,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Searchbar;

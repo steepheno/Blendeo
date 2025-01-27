@@ -1,6 +1,6 @@
 import { ChatSearchBar } from "../chat/ChatSearchBar";
 import { UserItem } from "../chat/UserItem";
-import Navbar from "../common/Navbar";
+import Searchbar from "../common/Searchbar";
 import Sidebar from "../common/Sidebar";
 
 const users = [
@@ -11,7 +11,7 @@ const users = [
 const Chat = () => {
   return (
     <div className="flex overflow-hidden flex-col bg-white">
-      <Navbar />
+      <Searchbar />
 
       {/* 사이드바 */}
       <div className="flex flex-wrap flex-1 gap-2.5 mt-2.5 size-full max-md:max-w-full">
