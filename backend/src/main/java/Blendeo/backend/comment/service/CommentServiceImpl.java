@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,13 +41,13 @@ public class CommentServiceImpl implements CommentService {
         Project project = projectRepository.findById(commentRegisterReq.getProjectId())
                 .orElseThrow(() -> new EntityNotFoundException("해당하는 프로젝트가 없습니다."));
 
-        User user = userRepository.findByEmail(userEmail);
+        Optional<User> user = userRepository.findByEmail(userEmail);
 
         if(user == null) throw new EntityNotFoundException("");
 
         Comment comment = Comment.builder()
                 .comment(commentRegisterReq.getComment())
-                .user(user)
+                .user(user.get())
                 .project(project)
                 .build();
 
@@ -61,11 +62,11 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new EntityNotFoundException("댓글을 찾을 수 없습니다: "));
 
-        User user = userRepository.findByEmail(userEmail);
+        Optional<User> user = userRepository.findByEmail(userEmail);
 
         if(user == null) throw new EntityNotFoundException("");
 
-        if (comment.getUser().getId() != user.getId()) {
+        if (comment.getUser().getId() != user.get().getId()) {
             throw new UnauthorizedAccessException("댓글 삭제 권한이 없습니다.");
         }
 

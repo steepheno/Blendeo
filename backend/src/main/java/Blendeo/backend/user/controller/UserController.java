@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @Operation(summary = "회원가입")
-    @PostMapping("/signup")
+    @PostMapping("/auth/signup")
     public ResponseEntity<?> register(@RequestBody UserRegisterPostReq userRegisterPostReq) {
         logger.info("UserRegisterPostReq: {}", userRegisterPostReq);
         int userId = userService.register(userRegisterPostReq);
@@ -39,7 +39,7 @@ public class UserController {
     }
 
     @Operation(summary="이메일 존재 유무 확인 / 인증번호 발송")
-    @PostMapping("/mail/check")
+    @PostMapping("/auth/mail/check")
     public ResponseEntity<?> MailSend(@RequestParam String email) {
         String authCode = null;
         userService.emailExist(email);
@@ -52,7 +52,7 @@ public class UserController {
     }
 
     @Operation(summary = "로그인")
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq) {
         return ResponseEntity.ok().body(userService.login(userLoginPostReq));
     }
