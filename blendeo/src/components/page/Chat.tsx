@@ -8,7 +8,7 @@ const users = [
   { name: "GPT-3.5", isOnline: true, imageUrl: "https://cdn.builder.io/api/v1/image/assets/TEMP/25c684c71d0b87d42917b77d4bc62bf6f44f0048bf22843f37e2ee035bda4b95?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b" }
 ];
 
-export const ChatLayout = () => {
+const Chat = () => {
   return (
     <div className="flex overflow-hidden flex-col bg-white">
       <Navbar />
@@ -48,3 +48,5 @@ export const ChatLayout = () => {
     </div>
   );
 };
+
+export default Chat;

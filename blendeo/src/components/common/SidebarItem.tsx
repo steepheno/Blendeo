@@ -1,10 +1,30 @@
 import * as React from 'react';
 import { SidebarItemProps } from '../../types/types';
+import { useNavigate } from 'react-router-dom';
 
-export const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, isActive }) => {
+const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
+  const navigate = useNavigate();
+
+  const routing = () => {
+    switch(label) {
+      case '홈':
+        navigate('/');
+        break;
+
+      case '채팅':
+        navigate('/chat');
+        break;
+      
+      case '내 정보':
+        navigate('/mypage');
+        break;
+    }
+  }
+
+
   return (
-    // 홈, 탐색, ... 버튼
-    <div className={`flex gap-3 items-center px-3 py-2 w-full ${isActive ? 'bg-gray-100 rounded-3xl' : ''}`}>
+    // 홈, 탐색, ..., 내 정보 버튼
+    <div onClick={routing} className={`flex gap-3 items-center px-3 py-2 w-full hover:bg-gray-100 cursor-pointer hover:rounded-3xl`}>
       <div className="flex flex-col self-stretch my-auto w-6">
         <img
           loading="lazy"
@@ -19,3 +39,5 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, isActive 
     </div>
   );
 };
+
+export default SidebarItem;

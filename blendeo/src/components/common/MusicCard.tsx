@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { MusicCardProps } from '../../types/types';
 
-export const MusicCard: React.FC<MusicCardProps> = ({ imageUrl, title, timeAgo, views }) => {
+const MusicCard: React.FC<MusicCardProps> = ({ imageUrl, title, timeAgo, views }) => {
   return (
     <div className="flex flex-col grow shrink justify-between pb-3 min-h-[237px] min-w-[240px] w-[193px]">
       <img
@@ -21,3 +21,5 @@ export const MusicCard: React.FC<MusicCardProps> = ({ imageUrl, title, timeAgo, 
     </div>
   );
 };
+
+export default MusicCard;

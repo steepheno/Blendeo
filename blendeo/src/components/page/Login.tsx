@@ -1,14 +1,21 @@
 import * as React from 'react';
-import { InputField } from './InputField';
-import { SocialLoginButton } from './SocialLoginButton';
+import InputField from '../login/InputField';
+import SocialLoginButton from '../login/SocialLoginButton';
+import { useNavigate } from 'react-router-dom';
 
-export const LoginPage: React.FC = () => {
+const Login = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
   };
+
+  const navigate = useNavigate();
+
+  const goToSignup = () => {
+    navigate('/signup');
+  }
 
   return (
     <div className="overflow-hidden pb-36 pl-20 bg-white max-md:pb-24 max-md:pl-5">
@@ -76,7 +83,7 @@ export const LoginPage: React.FC = () => {
                 
                 <div className="mt-7 text-base tracking-wide text-center max-md:max-w-full">
                   <span>계정이 없으신가요? </span>
-                  <button className="font-semibold text-violet-700 hover:underline">
+                  <button onClick={goToSignup} className="font-semibold text-violet-700 hover:underline">
                     회원가입하러 가기
                   </button>
                 </div>
@@ -91,3 +98,5 @@ export const LoginPage: React.FC = () => {
     </div>
   );
 };
+
+export default Login;

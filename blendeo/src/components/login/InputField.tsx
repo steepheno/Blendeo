@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { InputFieldProps } from '../../types/types';
 
-export const InputField: React.FC<InputFieldProps> = ({
+const InputField: React.FC<InputFieldProps> = ({
   id,
   type,
   placeholder,
@@ -23,3 +23,5 @@ export const InputField: React.FC<InputFieldProps> = ({
     </div>
   );
 };
+
+export default InputField;

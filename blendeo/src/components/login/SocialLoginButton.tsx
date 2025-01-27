@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { SocialLoginButtonProps } from '../../types/types';
 
-export const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
+const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
   icon,
   text,
   onClick
@@ -23,3 +23,5 @@ export const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
     </button>
   );
 };
+
+export default SocialLoginButton;

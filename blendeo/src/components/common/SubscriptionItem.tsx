@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { SubscriptionItemProps } from '../../types/types';
 
-export const SubscriptionItem: React.FC<SubscriptionItemProps> = ({ imageUrl, title, timeAgo, views }) => {
+const SubscriptionItem: React.FC<SubscriptionItemProps> = ({ imageUrl, title, timeAgo, views }) => {
   return (
     <div className="flex gap-4 items-center px-4 py-3 w-full bg-white bg-opacity-0 min-h-[76px]">
       <img
@@ -23,3 +23,5 @@ export const SubscriptionItem: React.FC<SubscriptionItemProps> = ({ imageUrl, ti
     </div>
   );
 };
+
+export default SubscriptionItem;

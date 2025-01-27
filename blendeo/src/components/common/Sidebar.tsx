@@ -1,5 +1,6 @@
-import { SidebarItem } from './SidebarItem';
-import { SubscriptionItem } from './SubscriptionItem';
+import SidebarItem from './SidebarItem';
+import SubscriptionItem from './SubscriptionItem';
+import { useNavigate } from 'react-router-dom';
 
 const sidebarItems = [
 	{ icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/2773c8ae867c168434eaa09658e0bf5ca92644170e4886703b307de3e36bd802?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b", label: "홈", isActive: true },
@@ -24,8 +25,15 @@ const subscriptionItems = [
 	}
 ];
 
+
 const Sidebar = () => {
-  return (
+	const navigate = useNavigate();
+	
+	const goToLogin = () => {
+		navigate('/login')
+	}
+  
+	return (
 		// 사이드바
     <div className="flex flex-col justify-between p-4 w-full bg-white bg-opacity-0 min-h-[723px]">
 			<div className="flex flex-col w-full">
@@ -35,7 +43,7 @@ const Sidebar = () => {
 					))}
 				</div>
 			</div>
-			<button className="flex overflow-hidden justify-center items-center px-4 mt-96 w-full text-sm font-bold text-center text-white bg-violet-700 rounded-3xl max-w-[480px] min-h-[40px] min-w-[84px] max-md:mt-10">
+			<button onClick={goToLogin} className="flex overflow-hidden justify-center items-center px-4 mt-96 w-full text-sm font-bold text-center text-white bg-violet-700 rounded-3xl max-w-[480px] min-h-[40px] min-w-[84px] max-md:mt-10">
 				<div className="overflow-hidden self-stretch my-auto w-[47px]">Sign in</div>
 			</button>
 			

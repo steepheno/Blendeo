@@ -1,17 +1,28 @@
 import './App.css'
-import { ChatLayout } from './components/layout/ChatLayout';
-import { MainLayout } from './components/layout/MainLayout';
-import { LoginPage } from './components/login/LoginPage';
-import { RecordLayout } from './components/layout/RecordLayout';
+import Main from './components/page/Main';
+import Login from './components/page/Login';
+import Signup from './components/page/Signup';
+import Chat from './components/page/Chat';
+import Mypage from './components/page/Mypage';
+import Upload from './components/page/Upload';
+
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
 
 function App() {
   return (
-    <div className="App">
-      {/* <MainLayout /> */}
-      {/* <ChatLayout /> */}
-      {/* <LoginPage /> */}
-      <RecordLayout />
-    </div>
+    <BrowserRouter>
+      <div className="App">
+
+        <Routes>
+          <Route path="/" element={<Main />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/mypage" element={<Mypage />} />
+          <Route path="/upload" element={<Upload />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

@@ -1,5 +1,5 @@
-import { MusicCard } from '../common/MusicCard';
-import { GenreTag } from '../common/GenreTag';
+import MusicCard from '../common/MusicCard';
+import GenreTag from '../common/GenreTag';
 import Navbar from '../common/Navbar';
 import Sidebar from '../common/Sidebar';
 
@@ -44,7 +44,7 @@ const musicCards = [
   }
 ];
 
-export const MainLayout = () => {
+const Main = () => {
   return (
     <div className="flex overflow-hidden flex-col bg-white">
       <Navbar />
@@ -105,3 +105,5 @@ export const MainLayout = () => {
     </div>
   );
 };
+
+export default Main;

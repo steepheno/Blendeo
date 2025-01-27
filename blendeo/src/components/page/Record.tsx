@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { ImageComponent } from '../record/ImageComponent';
-import { PlaybackControl } from '../record/PlaybackControl';
+import ImageComponent from '../record/ImageComponent';
+import PlaybackControl from '../record/PlaybackControl';
 import Navbar from '../common/Navbar';
 import WebCamera from '../record/WebCamera';
 
-export const RecordLayout = () => {
+const Record = () => {
   const [currentTime] = React.useState('0:15');
   const [duration] = React.useState('3:45');
   const [progress] = React.useState(15);
@@ -65,3 +65,5 @@ export const RecordLayout = () => {
     </div>
   );
 };
+
+export default Record;

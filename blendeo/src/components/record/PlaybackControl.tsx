@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { PlaybackControlProps } from '../../types/types';
 
-export const PlaybackControl: React.FC<PlaybackControlProps> = ({ currentTime, duration, progress }) => (
+const PlaybackControl: React.FC<PlaybackControlProps> = ({ currentTime, duration, progress }) => (
   <div className="flex overflow-hidden justify-center items-center max-w-full h-[113px] w-[962px]">
     <div className="flex overflow-hidden flex-col justify-center items-center self-stretch px-4 py-4 my-auto min-w-[240px] w-[962px]">
       <div className="flex flex-col w-full rounded-none max-w-[928px] max-md:max-w-full">
@@ -24,3 +24,5 @@ export const PlaybackControl: React.FC<PlaybackControlProps> = ({ currentTime, d
     </div>
   </div>
 );
+
+export default PlaybackControl;

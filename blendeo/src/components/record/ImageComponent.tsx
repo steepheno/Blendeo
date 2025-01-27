@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ImageProps } from '../../types/types';
 
-export const ImageComponent: React.FC<ImageProps> = ({ src, alt, className }) => (
+const ImageComponent: React.FC<ImageProps> = ({ src, alt, className }) => (
   <img
     loading="lazy"
     src={src}
@@ -9,3 +9,5 @@ export const ImageComponent: React.FC<ImageProps> = ({ src, alt, className }) =>
     className={className}
   />
 );
+
+export default ImageComponent;
