@@ -58,7 +58,11 @@ export interface LoginInputProps {
   placeholder: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
 
+export interface SaveIdCheckboxProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
 }
 
 /* 회원가입 */

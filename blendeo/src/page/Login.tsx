@@ -1,103 +1,74 @@
 import * as React from 'react';
-import InputField from '../components/login/LoginInput';
 import SocialLoginButton from '../components/login/SocialLoginButton';
 import { useNavigate } from 'react-router-dom';
+import LoginForm from '../components/login/LoginForm';
 
 const Login = () => {
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  // const [email, setEmail] = React.useState('');
+  // const [password, setPassword] = React.useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  // };
 
   const navigate = useNavigate();
-
+  
   const goToSignup = () => {
     navigate('/signup');
   }
 
   return (
-    <div className="overflow-hidden pb-36 pl-20 bg-white max-md:pb-24 max-md:pl-5">
-      <div className="flex gap-5 max-md:flex-col">
-        <div className="flex flex-col w-[36%] max-md:ml-0 max-md:w-full ml-[50px]">
-          <div className="flex flex-col self-stretch my-auto w-full max-md:mt-10 max-md:max-w-full">
-            <div className="self-start text-5xl font-extrabold text-slate-900 tracking-[2.13px] max-md:text-4xl">
-              Blendeo
-            </div>
-            <div className="self-start mt-3 text-lg text-gray-500">
-              로그인하여 세상의 모든 음악에 섞여 보세요
-            </div>
-            
-            <form onSubmit={handleSubmit}>
-              <InputField
-                id="email"
-                type="email"
-                placeholder="이메일"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <InputField
-                id="password"
-                type="password"
-                placeholder="비밀번호"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              
-              <div className="self-end mt-7 text-base tracking-wide leading-none text-right text-black">
-                <button className="hover:underline">비밀번호를 잊으셨나요?</button>
-              </div>
-              
-              <button type="submit" className="gap-3 w-full px-6 py-5 mt-9 text-xl font-semibold tracking-wide leading-none text-center text-white bg-violet-700 rounded-md">
-                로그인하기
-              </button>
-            </form>
-
-            <div className="flex flex-col mt-14 w-full max-md:mt-10 max-md:max-w-full">
-              <div className="flex flex-wrap gap-6 items-center w-full text-sm tracking-wide leading-none text-gray-500 max-md:max-w-full">
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/78d88fc4a71dfca2344b5a5340be657ba8abdc345db01a75d5b035f89c9f81cb?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b"
-                  alt=""
-                  className="object-contain shrink-0 w-auto flex-grow max-w-full"
-                />
-                <div className="flex flex-1 gap-5 items-center justify-center my-auto">
-                  <div className="whitespace-nowrap flex justify-center items-center">
-                    또는 구글 계정으로 로그인
-                  </div>
-                </div>
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/b14e650042d2269374e88fdabebf1ab5718d83c465a9ee987de3785923f8e6af?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b"
-                  alt=""
-                  className="object-contain shrink-0 w-auto flex-grow max-w-full"
-                />
-              </div>
-
-
-              <div className="flex flex-col self-center mt-16 max-w-full leading-none text-slate-900 w-[423px] max-md:mt-10">
-                <SocialLoginButton
-                  icon="https://cdn.builder.io/api/v1/image/assets/TEMP/4d0608112de1a3cdd8fad78fa127cb6595c8301310dc72f8ff5c1275a9fb0227?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b"
-                  text={<span className="whitespace-nowrap">구글로 로그인하기</span>}
-                />
-                <div className="mt-7 text-base tracking-wide text-center max-md:max-w-full">
-                  <span>계정이 없으신가요? </span>
-                  <button onClick={goToSignup} className="font-semibold text-violet-700 hover:underline">
-                    회원가입하러 가기
-                  </button>
-                </div>
+    <div className="flex mx-auto my-0 w-full bg-white max-w-[1920px] max-md:flex-col">
+      <div className="pt-52 pr-0 pb-0 pl-20 w-[36%] max-md:px-5 max-md:py-10 max-md:w-full">
+        <div className="mb-3 text-5xl font-extrabold text-slate-900 tracking-[2.13px] max-md:text-4xl">
+          Blendeo
+        </div>
+        <div className="mb-11 text-lg text-gray-500">
+          로그인하여 세상의 모든 음악에 섞여 보세요
+        </div>
+        
+        <LoginForm />
+        
+        {/* 소셜로그인 */}
+        <div className="flex flex-col mt-14 w-full max-md:mt-10 max-md:max-w-full">
+          <div className="flex flex-wrap gap-6 items-center w-full text-sm tracking-wide leading-none text-gray-500 max-md:max-w-full">
+            <img
+              loading="lazy"
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/78d88fc4a71dfca2344b5a5340be657ba8abdc345db01a75d5b035f89c9f81cb?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b"
+              alt=""
+              className="object-contain shrink-0 w-auto flex-grow max-w-full"
+            />
+            <div className="flex flex-1 gap-5 items-center justify-center my-auto">
+              <div className="whitespace-nowrap flex justify-center items-center">
+                또는 구글 계정으로 로그인
               </div>
             </div>
+            <img
+              loading="lazy"
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/b14e650042d2269374e88fdabebf1ab5718d83c465a9ee987de3785923f8e6af?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b"
+              alt=""
+              className="object-contain shrink-0 w-auto flex-grow max-w-full"
+            />
           </div>
         </div>
-        <div className="flex flex-col ml-5 w-[64%] max-md:ml-0 max-md:w-full">
-
-        <div className="flex justify-center items-center w-[64%] max-md:mt-10 max-md:w-full">
-          <div className="flex justify-center items-center">
-            <div className="bg-center bg-no-repeat bg-contain bg-[url('/src/assets/login_img.png')] h-[831px] w-[860px] max-md:w-full max-md:h-[400px]" />
+        
+        <div className="flex gap-4 justify-center items-center p-4 mt-6 rounded-md border border-gray-200 border-solid cursor-pointer w-[423px] max-md:w-full">
+          <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/f095d799dfcd30076a73387a5484c8f056ccb01f3b63dad2b3eef2b1bd05a98d?apiKey=b682f36019fa47c8ad11d631a8d9d40b&" alt="Google" />
+          <div className="text-sm font-medium tracking-wide text-slate-900">
+            구글 계정으로 회원가입하기
           </div>
         </div>
+        <div className="mt-7 text-base tracking-wide text-center max-md:max-w-full">
+          <span>계정이 없으신가요? </span>
+          <button onClick={goToSignup} className="font-semibold text-violet-700 hover:underline">
+            회원가입하러 가기
+          </button>
+        </div>
+      </div>
+
+      <div className="flex justify-center items-center w-[64%] max-md:mt-10 max-md:w-full">
+        <div className="flex justify-center items-center">
+          <div className="bg-center bg-no-repeat bg-contain bg-[url('/src/assets/login_img.png')] h-[831px] w-[860px] max-md:w-full max-md:h-[400px]" />
         </div>
       </div>
     </div>
