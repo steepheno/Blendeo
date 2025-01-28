@@ -1,10 +1,10 @@
 import './App.css'
-import Main from './components/page/Main';
-import Login from './components/page/Login';
-import Signup from './components/page/Signup';
-import Chat from './components/page/Chat';
-import Mypage from './components/page/Mypage';
-import Upload from './components/page/Upload';
+import Main from './page/Main';
+import Login from './page/Login';
+import Signup from './page/Signup';
+import Chat from './page/Chat';
+import Mypage from './page/Mypage';
+import Upload from './page/Upload';
 
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
 

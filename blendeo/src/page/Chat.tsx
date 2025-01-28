@@ -1,7 +1,7 @@
-import { ChatSearchBar } from "../chat/ChatSearchBar";
-import { UserItem } from "../chat/UserItem";
-import Searchbar from "../common/Searchbar";
-import Sidebar from "../common/Sidebar";
+import { ChatSearchBar } from "../components/chat/ChatSearchBar";
+import { UserItem } from "../components/chat/UserItem";
+import Searchbar from "../components/common/Searchbar";
+import Sidebar from "../components/common/Sidebar";
 
 const users = [
   { name: "Katie", message: "Sure thing! Message me when you're ready to be reminded.", imageUrl: "https://cdn.builder.io/api/v1/image/assets/TEMP/737891f12d242c60bccf3e49406cbc5b3bf7a5a2c6008b7f12f043ca8ca0b239?placeholderIfAbsent=true&apiKey=b682f36019fa47c8ad11d631a8d9d40b" },

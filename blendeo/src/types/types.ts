@@ -52,12 +52,28 @@ export interface SocialLoginButtonProps {
   onClick?: () => void;
 }
 
-export interface InputFieldProps {
+export interface LoginInputProps {
   id: string;
   type: string;
   placeholder: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+
+}
+
+/* 회원가입 */
+
+export interface SignupInputProps {
+  type: string;
+  placeholder: string;
+  className: string;
+  id: string;
+  "aria-label": string;
+}
+
+export interface VerificationInputProps extends SignupInputProps {
+  onVerify: () => void;
+  buttonText: string;
 }
 
 /* 촬영 */

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { InputFieldProps } from '../../types/types';
+import { LoginInputProps } from '../../types/types';
 
-const InputField: React.FC<InputFieldProps> = ({
+const LoginInput: React.FC<LoginInputProps> = ({
   id,
   type,
   placeholder,
@@ -24,4 +24,4 @@ const InputField: React.FC<InputFieldProps> = ({
   );
 };
 
-export default InputField;
+export default LoginInput;

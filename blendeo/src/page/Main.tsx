@@ -1,7 +1,7 @@
-import MusicCard from '../common/MusicCard';
-import GenreTag from '../common/GenreTag';
-import Searchbar from '../common/Searchbar';
-import Sidebar from '../common/Sidebar';
+import MusicCard from '../components/common/MusicCard';
+import GenreTag from '../components/common/GenreTag';
+import Searchbar from '../components/common/Searchbar';
+import Sidebar from '../components/common/Sidebar';
 
 const genreTags = [
   { label: "All", width: "50px" },
