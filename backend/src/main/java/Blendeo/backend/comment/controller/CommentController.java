@@ -25,9 +25,9 @@ public class CommentController {
     public ResponseEntity<?> registerComment(@RequestBody CommentRegisterReq commentRegisterReq) {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userEmail = user.getUsername();
+        int userId = Integer.parseInt(user.getUsername());
 
-        commentService.registerComment(userEmail, commentRegisterReq);
+        commentService.registerComment(userId, commentRegisterReq);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("댓글이 성공적으로 등록되었습니다.");
@@ -37,9 +37,9 @@ public class CommentController {
     public ResponseEntity<?> deleteComment(@PathVariable Long commentId) {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userEmail = user.getUsername();
+        int userId = Integer.parseInt(user.getUsername());
 
-        commentService.deleteComment(userEmail, commentId);
+        commentService.deleteComment(userId, commentId);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body("댓글이 성공적으로 삭제되었습니다.");
