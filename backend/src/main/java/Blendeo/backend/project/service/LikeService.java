@@ -29,26 +29,6 @@ public class LikeService {
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisLockManager redisLockManager;
 
-//    @Transactional
-//    public void addLike(long projectId, int userId) {
-//        if (likeRepository.existsByUserIdAndProjectId(userId, projectId)) {
-//            return;
-//        }
-//
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
-//
-//        Project project = projectRepository.findById(projectId)
-//                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
-//
-//        String likeSetKey = "like:set:" + projectId;
-//        String likeScoreKey = "like:score";
-//
-//        redisTemplate.opsForSet().add(likeSetKey, String.valueOf(userId));
-//        redisTemplate.opsForZSet().incrementScore(likeScoreKey, String.valueOf(projectId), 1);
-//
-//        likeRepository.save(new Likes(user, project));
-//    }
     @Transactional
     public void addLike(long projectId, int userId) {
         String lockKey = "lock:project:" + projectId;
@@ -56,7 +36,7 @@ public class LikeService {
         try {
             // 락 획득 시도
             if (!redisLockManager.tryLock(lockKey)) {
-                throw new RuntimeException("Failed to acquire lock");
+                throw new RuntimeException("락 획득 실패");
             }
 
             // 중복 좋아요 체크
@@ -98,7 +78,7 @@ public class LikeService {
 
         try {
             if (!redisLockManager.tryLock(lockKey)) {
-                throw new RuntimeException("Failed to acquire lock");
+                throw new RuntimeException("락 획득 실패");
             }
 
             if (!likeRepository.existsByUserIdAndProjectId(userId, projectId)) {
