@@ -1,67 +1,67 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.1'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'Blendeo'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
 
-	implementation 'org.springframework.boot:spring-boot-starter' // logger 포함
+    implementation 'org.springframework.boot:spring-boot-starter' // logger 포함
 
-	// jpa 라이브러리 추가.
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'com.mysql:mysql-connector-j:8.0.33'
-	implementation 'me.paulschwarz:spring-dotenv:3.0.0' // .env 실행 안됨
+    // jpa 라이브러리 추가.
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'com.mysql:mysql-connector-j:8.0.33'
+    implementation 'me.paulschwarz:spring-dotenv:3.0.0' // .env 실행 안됨
 
     // 영상
-	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
-	implementation 'net.bramp.ffmpeg:ffmpeg:0.7.0'
+    implementation 'me.paulschwarz:spring-dotenv:3.0.0'
+    implementation 'net.bramp.ffmpeg:ffmpeg:0.7.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-neo4j' // neo4j
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'io.openvidu:openvidu-java-client:2.31.0' // openvidu
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'io.openvidu:openvidu-java-client:2.31.0' // openvidu
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	// Springdoc OpenAPI Starter WebMVC UI
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    // Springdoc OpenAPI Starter WebMVC UI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
-	// 이메일 인증
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // 이메일 인증
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-	// jwt
-	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	testImplementation("org.springframework.security:spring-security-test")
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    // jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation("org.springframework.security:spring-security-test")
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-	// redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

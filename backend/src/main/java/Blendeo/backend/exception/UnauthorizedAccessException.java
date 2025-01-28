@@ -8,5 +8,7 @@ public class UnauthorizedAccessException extends BaseException {
         super(ErrorCode.UNAUTHORIZED_ACCESS, message);
     }
 
-
+    public UnauthorizedAccessException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
 }
