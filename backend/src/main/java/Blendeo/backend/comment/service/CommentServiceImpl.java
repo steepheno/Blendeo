@@ -14,16 +14,10 @@ import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-<<<<<<< backend/src/main/java/Blendeo/backend/comment/service/CommentServiceImpl.java
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -50,7 +44,7 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = Comment.builder()
                 .comment(commentRegisterReq.getComment())
-                .user(user.get())
+                .user(user)
                 .project(project)
                 .build();
 
