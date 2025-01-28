@@ -1,3 +1,5 @@
+import { ChangeEvent } from 'react';
+
 /* Navigation 바 */
 export interface NavigationItemProps {
   icon: string;
@@ -66,18 +68,21 @@ export interface SaveIdCheckboxProps {
 }
 
 /* 회원가입 */
-
 export interface SignupInputProps {
   type: string;
   placeholder: string;
   className: string;
   id: string;
   "aria-label": string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export interface VerificationInputProps extends SignupInputProps {
   onVerify: () => void;
   buttonText: string;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
 /* 촬영 */

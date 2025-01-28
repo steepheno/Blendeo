@@ -4,13 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import LoginForm from '../components/login/LoginForm';
 
 const Login = () => {
-  // const [email, setEmail] = React.useState('');
-  // const [password, setPassword] = React.useState('');
-
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  // };
-
   const navigate = useNavigate();
   
   const goToSignup = () => {
@@ -18,8 +11,8 @@ const Login = () => {
   }
 
   return (
-    <div className="flex mx-auto my-0 w-full bg-white max-w-[1920px] max-md:flex-col">
-      <div className="pt-52 pr-0 pb-0 pl-20 w-[36%] max-md:px-5 max-md:py-10 max-md:w-full">
+    <div className="flex justify-center items-center mx-auto my-0 w-full bg-white max-w-[1920px] max-md:flex-col">
+      <div className="pt-52 pr-0 pb-0 pl-20 w-[40%] max-md:px-5 max-md:py-10 max-md:w-full">
         <div className="mb-3 text-5xl font-extrabold text-slate-900 tracking-[2.13px] max-md:text-4xl">
           Blendeo
         </div>
@@ -55,20 +48,20 @@ const Login = () => {
         <div className="flex gap-4 justify-center items-center p-4 mt-6 rounded-md border border-gray-200 border-solid cursor-pointer w-[423px] max-md:w-full">
           <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/f095d799dfcd30076a73387a5484c8f056ccb01f3b63dad2b3eef2b1bd05a98d?apiKey=b682f36019fa47c8ad11d631a8d9d40b&" alt="Google" />
           <div className="text-sm font-medium tracking-wide text-slate-900">
-            구글 계정으로 회원가입하기
+            구글 계정으로 회원가입
           </div>
         </div>
         <div className="mt-7 text-base tracking-wide text-center max-md:max-w-full">
           <span>계정이 없으신가요? </span>
           <button onClick={goToSignup} className="font-semibold text-violet-700 hover:underline">
-            회원가입하러 가기
+            회원가입
           </button>
         </div>
       </div>
 
-      <div className="flex justify-center items-center w-[64%] max-md:mt-10 max-md:w-full">
+      <div className="flex justify-center items-center w-[60%] max-md:mt-10 max-md:w-full">
         <div className="flex justify-center items-center">
-          <div className="bg-center bg-no-repeat bg-contain bg-[url('/src/assets/login_img.png')] h-[831px] w-[860px] max-md:w-full max-md:h-[400px]" />
+          <div className="bg-center bg-no-repeat bg-contain bg-[url('/src/assets/login_img.png')] h-[770px] w-[800px] max-md:w-full max-md:h-[400px]" />
         </div>
       </div>
     </div>

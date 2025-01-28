@@ -6,7 +6,9 @@ const SignupInput: React.FC<SignupInputProps> = ({
   placeholder,
   className,
   id,
-  "aria-label": ariaLabel
+  "aria-label": ariaLabel,
+  value,
+  onChange
 }) => (
   <>
     <label htmlFor={id} className="sr-only">
@@ -14,10 +16,12 @@ const SignupInput: React.FC<SignupInputProps> = ({
     </label>
     <input
       type={type}
-      id={id}
       placeholder={placeholder}
       className={className}
+      id={id}
       aria-label={ariaLabel}
+      value={value}
+      onChange={onChange}
     />
   </>
 );

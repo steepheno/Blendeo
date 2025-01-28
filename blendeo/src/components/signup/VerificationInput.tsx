@@ -8,8 +8,10 @@ const VerificationInput: React.FC<VerificationInputProps> = ({
   className,
   id,
   "aria-label": ariaLabel,
+  value,
+  onChange,
   onVerify,
-  buttonText
+  buttonText,
 }) => (
   <div className="flex items-center gap-2.5 mb-4 w-full">
     <SignupInput
@@ -18,6 +20,8 @@ const VerificationInput: React.FC<VerificationInputProps> = ({
       className={className}
       id={id}
       aria-label={ariaLabel}
+      value={value}
+      onChange={onChange}
     />
     <button
       onClick={onVerify}

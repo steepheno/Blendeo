@@ -2,7 +2,7 @@ import SignupForm from "../components/signup/SignupForm";
 
 const Signup = () => {
   return (
-    <div className="flex mx-auto my-0 w-full bg-white max-w-[1920px] max-md:flex-col">
+    <div className="flex justify-center items-center mx-auto my-0 w-full bg-white max-w-[1920px] max-md:flex-col">
       <div className="pt-52 pr-0 pb-0 pl-20 w-[36%] max-md:px-5 max-md:py-10 max-md:w-full">
         <div className="mb-3 text-5xl font-extrabold text-slate-900 tracking-[2.13px] max-md:text-4xl">
           환영합니다!
@@ -38,14 +38,14 @@ const Signup = () => {
         <div className="flex gap-4 justify-center items-center p-4 mt-6 rounded-md border border-gray-200 border-solid cursor-pointer w-[423px] max-md:w-full">
           <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/f095d799dfcd30076a73387a5484c8f056ccb01f3b63dad2b3eef2b1bd05a98d?apiKey=b682f36019fa47c8ad11d631a8d9d40b&" alt="Google" />
           <div className="text-sm font-medium tracking-wide text-slate-900">
-            구글 계정으로 회원가입하기
+            구글 계정으로 회원가입
           </div>
         </div>
       </div>
 
       <div className="flex justify-center items-center w-[64%] max-md:mt-10 max-md:w-full">
         <div className="flex justify-center items-center">
-          <div className="bg-center bg-no-repeat bg-contain bg-[url('/src/assets/login_img.png')] h-[831px] w-[860px] max-md:w-full max-md:h-[400px]" />
+          <div className="bg-center bg-no-repeat bg-contain bg-[url('/src/assets/login_img.png')] h-[770px] w-[800px] max-md:w-full max-md:h-[400px]" />
         </div>
       </div>
     </div>

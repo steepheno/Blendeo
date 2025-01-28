@@ -6,8 +6,8 @@ const LoginForm = () => {
   return (
     <form className="w-full">
       <LoginInput
-        type="password"
-        placeholder="••••••••"
+        type="email"
+        placeholder="이메일"
         className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] max-md:w-full"
         id="password"
         aria-label="Password"
@@ -31,7 +31,7 @@ const LoginForm = () => {
       </div>
 
       <button type="submit" className="gap-3 w-full px-6 py-5 mt-9 text-xl font-semibold tracking-wide leading-none text-center text-white bg-violet-700 rounded-md">
-        로그인하기
+        로그인
       </button>
     </form>
   );
