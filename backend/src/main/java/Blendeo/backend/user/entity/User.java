@@ -1,16 +1,23 @@
 package Blendeo.backend.user.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
 public class User {
     @Id // 해당 변수가 PK 임.
-    @GeneratedValue(strategy= GenerationType.IDENTITY) // 자동생성 : auto_increment의 역할
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 자동생성 : auto_increment의 역할
     private int id;
     @Column
     private String email;
@@ -18,6 +25,13 @@ public class User {
     private String password;
     @Column
     private String nickname;
+
+    @OneToMany(mappedBy = "followPK.follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "followPK.following", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followings = new ArrayList<>();
+
 
     public User() {
     }
