@@ -1,5 +1,7 @@
 package Blendeo.backend.config;
 
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -7,11 +9,24 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 
+import java.util.Arrays;
+
 @Configuration // 스프링 설정 클래스임을 나타냅니다.
 public class SwaggerConfig {
     @Bean // 스프링 빈으로 등록합니다.
     public OpenAPI openAPI() {
-        return new OpenAPI().components(new Components()) // API 구성 요소를 설정합니다.
+        SecurityScheme securityScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("Bearer")
+                .bearerFormat("JWT")
+                .in(SecurityScheme.In.HEADER)
+                .name("Authorization");
+
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
+
+        return new OpenAPI().components(new Components()
+                        .addSecuritySchemes("bearerAuth", securityScheme)) // API 구성 요소를 설정합니다.
+                .security(Arrays.asList(securityRequirement))
                 .info(apiInfo()); // API 정보를 설정합니다.
     }
 

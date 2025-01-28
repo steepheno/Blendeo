@@ -25,12 +25,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         // Filter에 걸리면 안되는 url(로그아웃, 토큰 재발급)
-        return request.getRequestURI().startsWith("/api/v1/user/auth");
+        return request.getRequestURI().startsWith("/swagger-ui/index.html")
+                || request.getRequestURI().startsWith("/swagger-ui")
+                || request.getRequestURI().startsWith("/v3/api-docs")
+                || request.getRequestURI().startsWith("/swagger-resources")
+                || request.getRequestURI().startsWith("/api/v1/user/auth")
+                || request.getRequestURI().startsWith("/webjars")
+                || request.getRequestURI().startsWith("/configuration");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        System.out.println("doFilterInternal");
         String authorization = request.getHeader("Authorization");
 
         if (authorization != null && authorization.startsWith("Bearer ")) {
@@ -53,6 +60,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // SecurityContext에 인증 객체 설정
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } else {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization header is missing");
+            return; // 토큰이 유효하지 않다면 요청 중단
         }
 
         filterChain.doFilter(request, response);
