@@ -28,9 +28,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void createProject(ProjectCreateReq projectCreateReq) {
+    public void createProject(ProjectCreateReq projectCreateReq, String uploadedUrl) {
         MultipartFile videoFile = projectCreateReq.getVideoFile();
-        String videoUrl = videoService.uploadVideo(videoFile);
         int duration = VideoDurationExtractor.extractVideoDuration(videoFile);
 
         User user = userRepository.findById(projectCreateReq.getUserId())
@@ -41,7 +40,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .author(user)
                 .forkId(projectCreateReq.getForkProjectId())
                 .contents(projectCreateReq.getContent())
-                .videoUrl(videoUrl)
+                .videoUrl(uploadedUrl)
                 .runningTime(duration)
                 .build();
 

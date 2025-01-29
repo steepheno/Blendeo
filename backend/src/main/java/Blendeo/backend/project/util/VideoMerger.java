@@ -19,101 +19,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VideoMerger {
 
-        private final AmazonS3 s3;
-        @Value("${aws.s3.bucket}")
-        private String bucket;
-        @Value("${ffmpeg.path}")
-        private String ffmpegPath;
-        @Value("${video.output.path}")
-        private String outputPath;
-        @Value("${aws.s3.dir}")
-        private String directory;
-        @Value("${ffprobe.path}")
-        public String ffprobePath;
-
-        public String mergeVideos(MultipartFile video1, MultipartFile video2) {
-        String mergedVideoUrl  = null;
-        File tempVideo1 = null;
-        File tempVideo2 = null;
-        File mergedVideo = null;
-        try {
-            // 임시 파일 생성
-            tempVideo1 = File.createTempFile("video1_", ".mp4");
-            tempVideo2 = File.createTempFile("video2_", ".mp4");
-
-            // MultipartFile을 임시 파일로 저장
-            video1.transferTo(tempVideo1);
-            video2.transferTo(tempVideo2);
-
-            VideoInfo videoInfo = new VideoInfo(tempVideo1.getPath(), ffprobePath);
-            String mergedVideoPath = null;
-
-            System.out.println(videoInfo.getWidth() +" " + videoInfo.getHeight());
-            if (videoInfo.getWidth() > videoInfo.getHeight()) { // 너비가 더 길다
-                // 비디오 합치기 실행
-                mergedVideoPath = mergeVideosVertically(
-                        tempVideo1.getAbsolutePath(),
-                        tempVideo2.getAbsolutePath()
-                );
-            } else {
-                mergedVideoPath = mergeVideosHorizontally(
-                        tempVideo1.getAbsolutePath(),
-                        tempVideo2.getAbsolutePath()
-                );
-            }
-            // 병합된 비디오 파일 생성
-            mergedVideo = new File(mergedVideoPath);
-
-            // S3에 업로드
-            String fileName = directory + "/merged_" + UUID.randomUUID() + ".mp4";
-            uploadToS3(mergedVideo, fileName);
-
-            // S3 URL 생성
-            mergedVideoUrl = s3.getUrl(bucket, fileName).toString();
-
-        } catch (Exception e) {
-            log.error("Error processing video merge request", e);
-            throw new RuntimeException("Failed to merge videos", e);
-        } finally {
-            // 임시 파일 삭제
-            cleanupTempFiles(tempVideo1, tempVideo2, mergedVideo);
-        }
-        return mergedVideoUrl;
-    }
-
-    private void cleanupTempFiles(File... files) {
-        for (File file : files) {
-            if (file != null && file.exists()) {
-                file.delete();
-            }
-        }
-    }
-
-
-    private void uploadToS3(File file, String fileName) {
-        try {
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType("video/mp4");
-            metadata.setContentLength(file.length());
-
-            PutObjectRequest putObjectRequest = new PutObjectRequest(
-                    bucket,
-                    fileName,
-                    new FileInputStream(file),
-                    metadata
-            );
-
-            s3.putObject(putObjectRequest);
-        } catch (IOException e) {
-            log.error("Error uploading file to S3", e);
-            throw new RuntimeException("Failed to upload file to S3", e);
-        }
-    }
+    @Value("${ffmpeg.path}")
+    private String ffmpegPath;
 
     public String mergeVideosHorizontally(String video1Path, String video2Path) {
         try {
-            String outputFileName = "merged_" + System.currentTimeMillis() + ".mp4";
-            String outputFilePath = outputPath + File.separator + outputFileName;
+            String outputFileName = "merged_" + UUID.randomUUID().toString() + ".mp4";
+            // System.getProperty("java.io.tmpdir") : 현재 운영체제의 임시 디렉토리 경로 반환.
+            String outputFilePath = System.getProperty("java.io.tmpdir") + File.separator + outputFileName;
 
             // FFmpeg 명령어 구성
             List<String> command = new ArrayList<>();
@@ -163,8 +76,9 @@ public class VideoMerger {
 
     public String mergeVideosVertically(String video1Path, String video2Path) {
         try {
-            String outputFileName = "merged_" + System.currentTimeMillis() + ".mp4";
-            String outputFilePath = outputPath + File.separator + outputFileName;
+            String outputFileName = "merged_" + UUID.randomUUID().toString() + ".mp4";
+            // System.getProperty("java.io.tmpdir") : 현재 운영체제의 임시 디렉토리 경로 반환.
+            String outputFilePath = System.getProperty("java.io.tmpdir") + File.separator + outputFileName;
 
             // FFmpeg 명령어 구성
             List<String> command = new ArrayList<>();
@@ -211,5 +125,12 @@ public class VideoMerger {
         }
     }
 
+    public void cleanupTempFiles(File... files) {
+        for (File file : files) {
+            if (file != null && file.exists()) {
+                file.delete();
+            }
+        }
+    }
 
 }

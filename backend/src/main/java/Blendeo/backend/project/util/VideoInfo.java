@@ -11,12 +11,22 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+@Component
 @Getter
 public class VideoInfo {
-    public int width;
-    public int height;
+    @Value("${ffprobe.path}")
+    public String ffprobePath;
 
-    public VideoInfo(String videoPath, String ffprobePath) throws IOException {
+    public class Info {
+        public int width;
+        public int height;
+        Info(int width, int height) {
+            this.width = width;
+            this.height = height;
+        }
+    }
+
+    public Info getVideoInfo(String videoPath) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(
                 ffprobePath,
                 "-v", "error",
@@ -43,7 +53,9 @@ public class VideoInfo {
         JsonNode root = mapper.readTree(output.toString());
         JsonNode stream = root.get("streams").get(0);
 
-        width = stream.get("width").asInt();
-        height = stream.get("height").asInt();
+        int width = stream.get("width").asInt();
+        int height = stream.get("height").asInt();
+
+        return new Info(width, height);
     }
 }

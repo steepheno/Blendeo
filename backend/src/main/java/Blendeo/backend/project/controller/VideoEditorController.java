@@ -27,7 +27,6 @@ public class VideoEditorController {
             String uploadedUrl = videoEditorService.uploadVideo(videoFile);
             return ResponseEntity.ok(uploadedUrl);
         } else {
-
             // 두 영상 합치기
             String blendedUrl = videoEditorService.blendTwoVideo(forkedUrl, videoFile);
             return ResponseEntity.ok(blendedUrl);

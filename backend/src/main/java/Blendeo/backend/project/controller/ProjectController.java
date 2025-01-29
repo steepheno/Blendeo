@@ -3,6 +3,7 @@ package Blendeo.backend.project.controller;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 import Blendeo.backend.project.service.ProjectService;
+import Blendeo.backend.project.service.VideoEditorService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,9 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final VideoEditorService videoEditorService;
 
     @Operation(
-            summary = "프로젝트 생성"
+            summary = "프로젝트 생성",
+            description = "forkedUrl == null || forkedUrl.isEmpty() 이라면, 첫 영상!"
     )
     @PostMapping(
             value = "/create",
@@ -32,10 +35,20 @@ public class ProjectController {
             @RequestParam("content") String content,
             @RequestParam(value = "forkProjectId", required = false) Long forkProjectId,
             @RequestParam("state") boolean state,
+            @RequestParam("forkedUrl") MultipartFile forkedUrl,
             @RequestParam("videoFile") MultipartFile videoFile
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
+
+        String uploadedUrl = null;
+        // forkedUrl == null 이라면, 첫 영상!
+        if (forkedUrl == null || forkedUrl.isEmpty()) {
+            uploadedUrl = videoEditorService.uploadVideo(videoFile);
+        } else {
+            // 두 영상 합치기
+            uploadedUrl = videoEditorService.blendTwoVideo(forkedUrl, videoFile);
+        }
 
         ProjectCreateReq projectCreateReq = ProjectCreateReq.builder()
                 .title(title)
@@ -46,7 +59,8 @@ public class ProjectController {
                 .videoFile(videoFile)
                 .build();
 
-        projectService.createProject(projectCreateReq);
+        projectService.createProject(projectCreateReq, uploadedUrl);
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
