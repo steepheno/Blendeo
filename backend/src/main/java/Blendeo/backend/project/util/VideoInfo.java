@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import net.bramp.ffmpeg.FFprobe;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,9 +16,9 @@ public class VideoInfo {
     public int width;
     public int height;
 
-    public VideoInfo(String videoPath) throws IOException {
+    public VideoInfo(String videoPath, String ffprobePath) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(
-                "C:\\Users\\SSAFY\\Desktop\\ffmpeg-2025-01-15-git-4f3c9f2f03-essentials_build\\ffmpeg-2025-01-15-git-4f3c9f2f03-essentials_build\\bin\\ffprobe.exe",
+                ffprobePath,
                 "-v", "error",
                 "-select_streams", "v:0",
                 "-show_entries", "stream=width,height",
@@ -36,7 +38,7 @@ public class VideoInfo {
             output.append(line);
         }
 
-        // JSON 파싱 (Jackson 또는 다른 JSON 라이브러리 사용)
+        // JSON 파싱
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(output.toString());
         JsonNode stream = root.get("streams").get(0);
