@@ -4,6 +4,7 @@ import Blendeo.backend.project.dto.ProjectRankRes;
 import Blendeo.backend.project.service.RankingService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +17,7 @@ public class RankingController {
     private final RankingService rankingService;
 
     @GetMapping("/likes")
-    public List<ProjectRankRes> getRankingByLikes(){
-        return rankingService.getRankingByLikes();
+    public ResponseEntity<List<ProjectRankRes>> getRankingByLikes(){
+        return ResponseEntity.ok(rankingService.getRankingByLikes());
     }
 }
