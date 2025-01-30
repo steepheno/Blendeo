@@ -1,6 +1,7 @@
 package Blendeo.backend.project.service;
 
 import Blendeo.backend.global.util.S3Utils;
+import Blendeo.backend.project.util.VideoDurationExtractor;
 import Blendeo.backend.project.util.VideoInfo;
 import Blendeo.backend.project.util.VideoMerger;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,26 @@ import java.util.UUID;
 @Slf4j
 public class VideoEditorServiceImpl implements VideoEditorService {
 
+    private final VideoDurationExtractor videoDurationExtractor;
     private final VideoMerger videoMerger;
     private final VideoInfo videoInfo;
     private final S3Utils s3Utils;
     @Value("${aws.s3.video.dir}")
     private String videoDir;
+
+    public int getLength(String url) {
+        File tempFile = null;
+        try {
+            tempFile = s3Utils.extractFileFromS3(url);
+            int duration = videoDurationExtractor.extractVideoDuration(tempFile);
+
+            videoMerger.cleanupTempFiles(tempFile);
+            return duration;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public String uploadVideo(MultipartFile videoFile) {
@@ -40,8 +56,8 @@ public class VideoEditorServiceImpl implements VideoEditorService {
             // S3 링크 반환
             return s3Utils.getUrlByFileName(filename);
         } catch (Exception e) {
-            log.error("Error processing video merge request", e);
-            throw new RuntimeException("Failed to merge videos", e);
+            log.error("Error processing video upload request", e);
+            throw new RuntimeException("비디오 업로드에 실패", e);
         } finally {
             // 임시 파일 삭제
             videoMerger.cleanupTempFiles(tempFile);
@@ -49,11 +65,9 @@ public class VideoEditorServiceImpl implements VideoEditorService {
     }
 
     @Override
-    public String blendTwoVideo(MultipartFile forkedUrl, MultipartFile videoFile) {
-
+    public String blendTwoVideo(String forkedUrl, MultipartFile videoFile) {
         File tempVideo1 = null;
         File tempVideo2 = null;
-        File tempOutputVideo = null;
 
         File mergedVideo = null;
         String mergedVideoPath = null;
@@ -61,16 +75,16 @@ public class VideoEditorServiceImpl implements VideoEditorService {
         String mergedVideoUrl = null;
 
         try {
+            // forkedUlr -> 영상 파일 가져오기
+            tempVideo1 = s3Utils.extractFileFromS3(forkedUrl);
+
             // 랜덤한 이름으로 temp 파일 생성
-            tempVideo1 = File.createTempFile("video1_" + UUID.randomUUID().toString(), ".mp4");
             tempVideo2 = File.createTempFile("video2_"+ UUID.randomUUID().toString(), ".mp4");
-            tempOutputVideo = File.createTempFile("output_"+ System.currentTimeMillis(), ".mp4");
 
             // MultipartFile을 임시 파일로 저장
-            forkedUrl.transferTo(tempVideo1);
             videoFile.transferTo(tempVideo2);
 
-            /* forkedFile 영상의 너비와 높이 구해서 세로, 가로 방향 정하기 */
+            /* forkedFile 영상의 너비와 높이 구해서 세로, 가로 방향 정하기 => 반복 적용 후 수정 필요함!! */
             VideoInfo.Info info = videoInfo.getVideoInfo(tempVideo1.getPath());
 
             if (info.width > info.height) { // 너비가 더 길다

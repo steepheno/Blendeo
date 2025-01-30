@@ -13,15 +13,17 @@ public class ProjectCreateReq {
     private int userId;
     private Long forkProjectId;
     private boolean state;
-    private MultipartFile videoFile;
+    private int duration;
+    private String videoUrl;
 
     @Builder
-    public ProjectCreateReq(String title, String content, int userId, Long forkProjectId, boolean state, MultipartFile videoFile) {
+    public ProjectCreateReq(String title, String content, int userId, Long forkProjectId, boolean state, int duration, String videoUrl) {
         this.title = title;
         this.content = content;
         this.userId = userId;
         this.forkProjectId = forkProjectId;
         this.state = state;
-        this.videoFile = videoFile;
+        this.duration = duration;
+        this.videoUrl = videoUrl;
     }
 }

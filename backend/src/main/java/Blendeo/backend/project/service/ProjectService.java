@@ -4,7 +4,7 @@ import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 
 public interface ProjectService {
-    void createProject(ProjectCreateReq projectCreateReq, String uploadedUrl);
+    int createProject(ProjectCreateReq projectCreateReq);
     ProjectInfoRes getProjectInfo(Long projectId);
     void deleteProject(Long projectId);
     void modifyProjectState(Long projectId, boolean state);

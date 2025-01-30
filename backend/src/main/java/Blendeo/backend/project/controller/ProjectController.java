@@ -6,6 +6,7 @@ import Blendeo.backend.project.service.ProjectService;
 import Blendeo.backend.project.service.VideoEditorService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,31 +18,27 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/v1/project")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectController {
 
     private final ProjectService projectService;
     private final VideoEditorService videoEditorService;
 
     @Operation(
-            summary = "프로젝트 생성",
-            description = "forkedUrl == null || forkedUrl.isEmpty() 이라면, 첫 영상!"
+            summary = "[STEP1] 영상 업로드 (* 한 개 영상 업로드 or 두 개 영상 합치고 업로드 *)",
+            description = "forkedUrl == null || forkedUrl.isEmpty() 이라면, 첫 영상! \n" +
+                    "합쳐지는 영상의 맞닿는 부분의 길이가 같아야만 blend에 성공!"
     )
     @PostMapping(
-            value = "/create",
+            value = "/create/video/blend/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<Void> createProject(
-            @RequestParam("title") String title,
-            @RequestParam("content") String content,
-            @RequestParam(value = "forkProjectId", required = false) Long forkProjectId,
-            @RequestParam("state") boolean state,
-            @RequestParam("forkedUrl") MultipartFile forkedUrl,
+    public ResponseEntity<?> blendVideo(
+            @RequestParam(value = "forkedUrl", required = false) String forkedUrl,
             @RequestParam("videoFile") MultipartFile videoFile
     ) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        int userId = Integer.parseInt(user.getUsername());
-
         String uploadedUrl = null;
+
         // forkedUrl == null 이라면, 첫 영상!
         if (forkedUrl == null || forkedUrl.isEmpty()) {
             uploadedUrl = videoEditorService.uploadVideo(videoFile);
@@ -50,18 +47,42 @@ public class ProjectController {
             uploadedUrl = videoEditorService.blendTwoVideo(forkedUrl, videoFile);
         }
 
+        return new ResponseEntity<>(uploadedUrl, HttpStatus.OK);
+    }
+
+
+    @Operation(
+            summary = "[STEP2] 프로젝트 생성",
+            description = "업로드된 영상 url로 create 요청"
+    )
+    @PostMapping(
+            value = "/create"
+    )
+    public ResponseEntity<?> createProject(
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "forkProjectId", required = false) Long forkProjectId,
+            @RequestParam("state") boolean state,
+            @RequestParam("videoUrl") String videoUrl
+    ) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        int duration = videoEditorService.getLength(videoUrl);
+
         ProjectCreateReq projectCreateReq = ProjectCreateReq.builder()
                 .title(title)
                 .content(content)
                 .userId(userId)
                 .forkProjectId(forkProjectId)
                 .state(state)
-                .videoFile(videoFile)
+                .duration(duration)
+                .videoUrl(videoUrl)
                 .build();
 
-        projectService.createProject(projectCreateReq, uploadedUrl);
+        log.info("영상 길이: " + duration);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(projectCreateReq));
     }
 
     @Operation(
