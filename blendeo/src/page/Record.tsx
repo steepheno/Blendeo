@@ -1,9 +1,8 @@
 import * as React from 'react';
 import ImageComponent from '../components/record/ImageComponent';
 import PlaybackControl from '../components/record/PlaybackControl';
-import Searchbar from '../components/common/Searchbar';
-import WebCamera from '../components/record/WebCamera';
-
+import Searchbar from '../components/Layout/Searchbar';
+// import WebCamera from '../components/record/WebCamera';
 const Record = () => {
   const [currentTime] = React.useState('0:15');
   const [duration] = React.useState('3:45');

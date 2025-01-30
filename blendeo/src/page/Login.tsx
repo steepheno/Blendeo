@@ -1,5 +1,5 @@
 import * as React from 'react';
-import SocialLoginButton from '../components/login/SocialLoginButton';
+// import SocialLoginButton from '../components/login/SocialLoginButton';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '../components/login/LoginForm';
 
