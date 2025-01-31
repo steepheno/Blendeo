@@ -11,6 +11,7 @@ import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RequestMapping("/api/v1/user")
 @RestController
+@Slf4j
 public class UserController {
-    // log
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final UserService userService;
     private final MailService mailService;
@@ -37,7 +37,7 @@ public class UserController {
     @Operation(summary = "회원가입")
     @PostMapping("/auth/signup")
     public ResponseEntity<?> register(@RequestBody UserRegisterPostReq userRegisterPostReq) {
-        logger.info("UserRegisterPostReq: {}", userRegisterPostReq);
+        log.info("UserRegisterPostReq: {}", userRegisterPostReq);
         int userId = userService.register(userRegisterPostReq);
         return ResponseEntity.ok().body(userId);
     }
@@ -46,8 +46,10 @@ public class UserController {
     @PostMapping("/auth/mail/check")
     public ResponseEntity<?> MailSend(@RequestParam String email) {
         String authCode = null;
+        log.warn("컨트롤러 시작");
         userService.emailExist(email);
         try {
+            log.warn("mail 서비스 시작");
             authCode = mailService.sendMail(email);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
