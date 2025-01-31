@@ -19,6 +19,7 @@ public class VideoDurationExtractor {
 
     public int extractVideoDuration(File file) {
         try {
+            /** 나중에 언젠가 사용할 것이라 남겨둠 **/
 //            File tempFile = File.createTempFile("temp", file.getOriginalFilename());
 //            file.transferTo(tempFile);
 
