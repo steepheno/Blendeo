@@ -8,7 +8,6 @@ import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.entity.ProjectNode;
 import Blendeo.backend.project.repository.ProjectNodeRepository;
 import Blendeo.backend.project.repository.ProjectRepository;
-import Blendeo.backend.project.util.VideoDurationExtractor;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -23,15 +22,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectNodeRepository projectNodeRepository;
-    private final VideoService videoService;
     private final UserRepository userRepository;
 
     @Override
     @Transactional
-    public void createProject(ProjectCreateReq projectCreateReq) {
-        MultipartFile videoFile = projectCreateReq.getVideoFile();
-        String videoUrl = videoService.uploadVideo(videoFile);
-        int duration = VideoDurationExtractor.extractVideoDuration(videoFile);
+    public int createProject(ProjectCreateReq projectCreateReq) {
 
         User user = userRepository.findById(projectCreateReq.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
@@ -41,11 +36,9 @@ public class ProjectServiceImpl implements ProjectService {
                 .author(user)
                 .forkId(projectCreateReq.getForkProjectId())
                 .contents(projectCreateReq.getContent())
-                .videoUrl(videoUrl)
-                .runningTime(duration)
+                .runningTime(projectCreateReq.getDuration())
+                .videoUrl(projectCreateReq.getVideoUrl())
                 .build();
-
-        projectRepository.save(project);
 
         ProjectNode projectNode = ProjectNode.builder()
                 .projectId(project.getId())
@@ -58,6 +51,8 @@ public class ProjectServiceImpl implements ProjectService {
 
             projectNodeRepository.createForkRelation(projectNode.getProjectId(), parentNode.getProjectId());
         }
+
+        return Math.toIntExact(projectRepository.save(project).getId());
     }
 
     @Override
