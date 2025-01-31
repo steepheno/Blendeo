@@ -32,4 +32,14 @@ public class ScrapController {
 
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<?> deleteProject(@PathVariable Long projectId){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        scrapService.deleteScrap(userId, projectId);
+
+        return ResponseEntity.ok().build();
+    }
 }
