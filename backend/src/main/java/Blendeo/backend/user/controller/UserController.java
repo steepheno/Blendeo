@@ -11,27 +11,19 @@ import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RequestMapping("/api/v1/user")
 @RestController
+@Slf4j
 public class UserController {
-    // log
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final UserService userService;
     private final MailService mailService;
@@ -45,17 +37,19 @@ public class UserController {
     @Operation(summary = "회원가입")
     @PostMapping("/auth/signup")
     public ResponseEntity<?> register(@RequestBody UserRegisterPostReq userRegisterPostReq) {
-        logger.info("UserRegisterPostReq: {}", userRegisterPostReq);
+        log.info("UserRegisterPostReq: {}", userRegisterPostReq);
         int userId = userService.register(userRegisterPostReq);
         return ResponseEntity.ok().body(userId);
     }
 
     @Operation(summary = "이메일 존재 유무 확인 / 인증번호 발송")
-    @PostMapping("/mail/check")
-    public ResponseEntity<?> MailSend(@RequestParam String email) {
+    @PostMapping("/auth/mail/check")
+    public ResponseEntity<?> MailSend(@RequestParam("email") String email) {
         String authCode = null;
+        log.warn("컨트롤러 시작");
         userService.emailExist(email);
         try {
+            log.warn("mail 서비스 시작");
             authCode = mailService.sendMail(email);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
@@ -83,7 +77,7 @@ public class UserController {
 
     @Operation(summary = "회원정보 단일건 조회")
     @GetMapping("/get-user/{id}")
-    public ResponseEntity<?> getUser(@PathVariable int id) {
+    public ResponseEntity<?> getUser(@PathVariable("id") int id) {
         UserInfoGetRes user = userService.getUser(id);
         return ResponseEntity.ok().body(user);
     }
