@@ -1,7 +1,7 @@
-import Layout from "../Layout/Layout";
+import Layout from "../components/Layout/Layout";
 
-import ProfileSection from "../Profile/ProfileSection";
-import VideoSection from "../Profile/VideoSection";
+import ProfileSection from "../components/Profile/ProfileSection";
+import VideoSection from "../components/Profile/VideoSection";
 
 const Mypage = () => {
   const tags = [

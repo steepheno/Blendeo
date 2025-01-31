@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Camera, Edit3, Music, Users, Share2 } from 'lucide-react';
-import Button from '../common/Button';
-import Layout from '../Layout/Layout';
-import TabNavigation from '../common/TabNavigation';
-import VideoGrid from '../common/VideoGrid';
+import Button from '../components/common/Button';
+import Layout from '../components/Layout/Layout';
+import TabNavigation from '../components/common/TabNavigation';
+import VideoGrid from '../components/common/VideoGrid';
 
 interface UserProfileProps {
   isMyProfile?: boolean;
