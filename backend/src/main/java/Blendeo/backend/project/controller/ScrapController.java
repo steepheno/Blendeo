@@ -42,4 +42,12 @@ public class ScrapController {
 
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/")
+    public ResponseEntity<List<ProjectScrapRes>> getScrapProject(){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        return ResponseEntity.status(HttpStatus.OK).body(scrapService.findAllScrap(userId));
+    }
 }

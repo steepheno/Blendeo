@@ -53,4 +53,33 @@ public class ScrapService {
         }
 
     }
+
+    public List<ProjectScrapRes> findAllScrap(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        List<Scrap> scraps = scrapRepository.findAllByUser(user)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SCRAP_NOT_FOUND, ErrorCode.SCRAP_NOT_FOUND.getMessage()));
+
+        return scraps.stream()
+                .map(scrap -> {
+                    Project project = projectRepository.findById(scrap.getProject().getId())
+                            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+                    User author = userRepository.findById(project.getAuthor().getId())
+                            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
+
+                    return ProjectScrapRes.builder()
+                            .projectId(project.getId())
+                            .projectName(project.getTitle())
+                            .authorId(author.getId())
+                            .authorNickname(author.getNickname())
+                            .viewCnt(project.getViewCnt())
+                            .createdAt(project.getCreatedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+
 }

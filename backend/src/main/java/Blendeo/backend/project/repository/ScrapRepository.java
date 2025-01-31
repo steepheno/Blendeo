@@ -8,4 +8,5 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ScrapRepository extends JpaRepository<Scrap, ScrapId> {
+    Optional<List<Scrap>> findAllByUser(User user);
 }
