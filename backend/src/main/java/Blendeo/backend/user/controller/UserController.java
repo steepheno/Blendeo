@@ -44,7 +44,7 @@ public class UserController {
 
     @Operation(summary = "이메일 존재 유무 확인 / 인증번호 발송")
     @PostMapping("/auth/mail/check")
-    public ResponseEntity<?> MailSend(@RequestParam String email) {
+    public ResponseEntity<?> MailSend(@RequestParam("email") String email) {
         String authCode = null;
         log.warn("컨트롤러 시작");
         userService.emailExist(email);
@@ -77,7 +77,7 @@ public class UserController {
 
     @Operation(summary = "회원정보 단일건 조회")
     @GetMapping("/get-user/{id}")
-    public ResponseEntity<?> getUser(@PathVariable int id) {
+    public ResponseEntity<?> getUser(@PathVariable("id") int id) {
         UserInfoGetRes user = userService.getUser(id);
         return ResponseEntity.ok().body(user);
     }
