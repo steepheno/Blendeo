@@ -2,7 +2,7 @@ package Blendeo.backend.project.service;
 
 import Blendeo.backend.global.util.S3Utils;
 import Blendeo.backend.project.util.VideoDurationExtractor;
-import Blendeo.backend.project.util.VideoInfo;
+import Blendeo.backend.project.util.VideoInfoGetter;
 import Blendeo.backend.project.util.VideoMerger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class VideoEditorServiceImpl implements VideoEditorService {
 
     private final VideoDurationExtractor videoDurationExtractor;
     private final VideoMerger videoMerger;
-    private final VideoInfo videoInfo;
+    private final VideoInfoGetter videoInfo;
     private final S3Utils s3Utils;
     @Value("${aws.s3.video.dir}")
     private String videoDir;
@@ -75,7 +75,7 @@ public class VideoEditorServiceImpl implements VideoEditorService {
         String mergedVideoUrl = null;
 
         try {
-            // forkedUlr -> 영상 파일 가져오기
+            // forkedUrl -> 영상 파일 가져오기
             tempVideo1 = s3Utils.extractFileFromS3(forkedUrl);
 
             // 랜덤한 이름으로 temp 파일 생성
@@ -85,7 +85,7 @@ public class VideoEditorServiceImpl implements VideoEditorService {
             videoFile.transferTo(tempVideo2);
 
             /* forkedFile 영상의 너비와 높이 구해서 세로, 가로 방향 정하기 => 반복 적용 후 수정 필요함!! */
-            VideoInfo.Info info = videoInfo.getVideoInfo(tempVideo1.getPath());
+            VideoInfoGetter.Info info = videoInfo.getVideoInfo(tempVideo1.getPath());
 
             if (info.width > info.height) { // 너비가 더 길다
                 // 비디오 아래로 합치기

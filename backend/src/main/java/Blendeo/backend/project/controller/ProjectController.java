@@ -15,6 +15,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URL;
+
 @RequestMapping("/api/v1/project")
 @RestController
 @RequiredArgsConstructor
@@ -63,12 +65,12 @@ public class ProjectController {
             @RequestParam("content") String content,
             @RequestParam(value = "forkProjectId", required = false) Long forkProjectId,
             @RequestParam("state") boolean state,
-            @RequestParam("videoUrl") String videoUrl
+            @RequestParam("videoUrl") URL videoUrl
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
 
-        int duration = videoEditorService.getLength(videoUrl);
+        int duration = videoEditorService.getLength(videoUrl.toString());
 
         ProjectCreateReq projectCreateReq = ProjectCreateReq.builder()
                 .title(title)

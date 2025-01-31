@@ -3,7 +3,6 @@ package Blendeo.backend.project.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import net.bramp.ffmpeg.FFprobe;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +12,7 @@ import java.io.InputStreamReader;
 
 @Component
 @Getter
-public class VideoInfo {
+public class VideoInfoGetter {
     @Value("${ffprobe.path}")
     public String ffprobePath;
 
