@@ -35,7 +35,7 @@ public class ScrapService {
     }
 
     @Transactional
-    public void deleteScrap(int userId, long projectId){
+    public void deleteScrapProject(int userId, long projectId){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 
@@ -54,7 +54,7 @@ public class ScrapService {
 
     }
 
-    public List<ProjectScrapRes> findAllScrap(int userId) {
+    public List<ProjectScrapRes> getScrapProject(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 

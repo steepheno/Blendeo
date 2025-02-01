@@ -34,11 +34,11 @@ public class ScrapController {
     }
 
     @DeleteMapping("/{projectId}")
-    public ResponseEntity<?> deleteProject(@PathVariable Long projectId){
+    public ResponseEntity<?> deleteScrapProject(@PathVariable Long projectId){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
 
-        scrapService.deleteScrap(userId, projectId);
+        scrapService.deleteScrapProject(userId, projectId);
 
         return ResponseEntity.ok().build();
     }
@@ -48,6 +48,6 @@ public class ScrapController {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
 
-        return ResponseEntity.status(HttpStatus.OK).body(scrapService.findAllScrap(userId));
+        return ResponseEntity.status(HttpStatus.OK).body(scrapService.getScrapProject(userId));
     }
 }
