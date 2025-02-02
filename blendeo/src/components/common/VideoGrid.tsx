@@ -1,4 +1,4 @@
-import VideoCard from './VideoCard';
+import VideoCard from "./VideoCard";
 
 interface Video {
   id: number;

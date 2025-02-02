@@ -1,101 +1,173 @@
 import { useState } from "react";
-import axios from 'axios';
+import { useNavigate } from "react-router-dom";
+import { signup } from "@/api/auth";
+import { sendVerificationEmail, verifyEmailCode } from "@/api/mail";
+import SignUpInput from "./SignUpInput";
+import VerificationInput from "@/components/signup/VerificationInput";
 
-import InputField from "../login/LoginInput";
-import VerificationInput from "./VerificationInput";
+interface ApiError {
+  message?: string;
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
-const API_URL = "http://i12a602.p.ssafy.io:8080/api/v1";
+const SignUpForm = () => {
+  const navigate = useNavigate();
 
-const SignupForm = () => {
-  // 폼 상태 관리
-  const [email, setEmail] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  // 상태 메시지
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    nickname: "",
+    verificationCode: "",
+  });
+  const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 이메일 인증번호 전송
+  const validatePassword = (password: string) => {
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return regex.test(password);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setError(""); // 입력값이 변경되면 에러 메시지 초기화
+  };
+
   const handleEmailVerification = async () => {
-    console.log("이메일 인증 시도: ", email);
-    try {
-      const response = await axios.post(`${API_URL}/user/mail/check`, {
-        email: email
-      });
-      console.log("이메일 인증 응답: ", response);
+    if (!formData.email) {
+      setError("이메일을 입력해주세요.");
+      return;
+    }
 
-      if (response.status === 200) {
-        setEmailSent(true);
-        alert("인증번호가 전송되었습니다.");
-      }
-    } catch (error) {
-      console.error("이메일 전송 실패: ", error);
-      alert('인증번호 전송에 실패했습니다.');
+    // 이메일 형식 검사
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("올바른 이메일 형식이 아닙니다.");
+      return;
+    }
+
+    try {
+      setIsLoading(true); // 로딩 상태 추가
+      await sendVerificationEmail(formData.email);
+      setEmailSent(true);
+      setError("");
+      alert("인증번호가 전송되었습니다.");
+    } catch (err) {
+      console.error("이메일 전송 실패: ", err);
+      const error = err as ApiError;
+      setError(
+        error.response?.data?.message || "인증번호 전송에 실패했습니다."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // 인증번호 확인
   const handleCodeVerification = async () => {
-    try {
-      const response = await axios.post(`${API_URL}/user/mail/check`, {
-        email: email,
-        code: verificationCode
-      });
+    if (!formData.verificationCode) {
+      setError("인증번호를 입력해주세요.");
+      return;
+    }
 
-      if (response.status === 200) {
-        setVerificationStatus('success');
-        alert('이메일 인증이 완료되었습니다.')
-      }
-    } catch (error) {
-      console.error('인증번호 확인 실패: ', error);
-      setVerificationStatus('fail');
-      alert('잘못된 인증번호입니다.');
+    try {
+      await verifyEmailCode(formData.email, formData.verificationCode);
+      setVerificationStatus("success");
+      setError("");
+      alert("이메일 인증이 완료되었습니다.");
+    } catch (err) {
+      console.error("인증번호 확인 실패: ", err);
+      setVerificationStatus("fail");
+      setError("잘못된 인증번호입니다.");
     }
   };
 
-  // 회원가입 제출
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
 
-    if (verificationStatus !== 'success') {
-      alert('이메일 인증을 완료해주세요.');
+    // 모든 필수 필드 검사
+    if (!formData.email || !formData.password || !formData.nickname) {
+      setError("모든 필드를 입력해주세요.");
       return;
     }
 
-    if (password !== confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.');
+    // 이메일 인증 확인
+    if (verificationStatus !== "success") {
+      setError("이메일 인증을 완료해주세요.");
       return;
     }
-    
+
+    // 비밀번호 유효성 검사
+    if (!validatePassword(formData.password)) {
+      setError(
+        "비밀번호는 영문 대/소문자, 숫자, 특수문자를 포함하여 8자 이상이어야 합니다."
+      );
+      return;
+    }
+
+    // 비밀번호 일치 확인
+    if (formData.password !== formData.confirmPassword) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      const response = await axios.post(`${API_URL}/user/auth/signup`, {
-        email,
-        password,
+      const signupData = {
+        email: formData.email,
+        password: formData.password,
+        nickname: formData.nickname,
+      };
+
+      await signup(signupData);
+      alert("회원가입이 완료되었습니다.");
+      navigate("/auth/signin", {
+        state: { message: "회원가입이 완료되었습니다. 로그인해주세요." },
       });
-  
-      if (response.status === 200) {
-        alert('회원가입이 완료되었습니다.');
-      }
-    } catch (error) {
-      console.error('회원가입 실패: ', error);
-      alert('회원가입에 실패했습니다.');
+    } catch (err) {
+      console.error("회원가입 실패: ", err);
+      const error = err as ApiError;
+      setError(
+        error.response?.data?.message ||
+          error.message ||
+          "회원가입에 실패했습니다."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
+      {error && (
+        <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
+          {error}
+        </div>
+      )}
+
       <VerificationInput
         type="email"
         placeholder="ssafy@gmail.com"
         className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] w-[374px] max-md:w-full"
         id="email"
         aria-label="Email address"
-        value={email}  // 이메일 상태값
-        onChange={(e) => setEmail(e.target.value)}  // 이메일 변경 핸들러
+        value={formData.email}
+        onChange={handleChange}
         onVerify={handleEmailVerification}
         buttonText="인증번호 전송"
+        name="email"
       />
 
       <VerificationInput
@@ -104,53 +176,69 @@ const SignupForm = () => {
         className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] max-md:w-full"
         id="verification"
         aria-label="Verification code"
-        value={verificationCode}
-        onChange={(e) => setVerificationCode(e.target.value)}
+        value={formData.verificationCode}
+        onChange={handleChange}
         onVerify={handleCodeVerification}
         buttonText="확인"
         disabled={!emailSent}
+        name="verificationCode"
       />
 
-      <InputField
+      <SignUpInput
+        type="text"
+        placeholder="닉네임을 입력해주세요"
+        className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] max-md:w-full mb-4"
+        id="nickname"
+        aria-label="Nickname"
+        value={formData.nickname}
+        onChange={handleChange}
+        name="nickname"
+      />
+
+      <SignUpInput
         type="password"
         placeholder="••••••••"
         className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] max-md:w-full"
         id="password"
         aria-label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        value={formData.password}
+        onChange={handleChange}
+        name="password"
       />
 
       <div className="mt-1.5 mb-1.5 text-xs font-light leading-5 text-zinc-400">
-        비밀번호는 영문자(대,소문자), 숫자, 특수문자를 포함하여 최소 8자 이상 작성 해야 합니다.
+        비밀번호는 영문자(대,소문자), 숫자, 특수문자를 포함하여 최소 8자 이상
+        작성해야 합니다.
       </div>
 
-      <InputField
+      <SignUpInput
         type="password"
         placeholder="••••••••"
         className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] w-[533px] max-md:w-full"
         id="confirmPassword"
         aria-label="Confirm password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
+        value={formData.confirmPassword}
+        onChange={handleChange}
+        name="confirmPassword"
       />
 
       <div className="mt-1.5 mb-1.5 text-xs font-light leading-5 text-zinc-400">
-        {password && confirmPassword && (password === confirmPassword ?
-          '비밀번호가 일치합니다.' :
-          '비밀번호가 일치하지 않습니다.'
-        )}
+        {formData.password &&
+          formData.confirmPassword &&
+          (formData.password === formData.confirmPassword
+            ? "비밀번호가 일치합니다."
+            : "비밀번호가 일치하지 않습니다.")}
       </div>
 
       <button
         type="submit"
-        className="gap-3 w-full px-6 py-5 mt-9 text-xl font-semibold tracking-wide leading-none text-center text-white bg-violet-700 rounded-md"
-        disabled={verificationStatus !== 'success'}
+        disabled={isLoading || verificationStatus !== "success"}
+        className="gap-3 w-full px-6 py-5 mt-9 text-xl font-semibold tracking-wide leading-none text-center text-white bg-violet-700 rounded-md hover:bg-violet-800 disabled:opacity-50"
       >
-        회원가입하기
+        {isLoading ? "가입 중..." : "회원가입하기"}
       </button>
     </form>
   );
 };
 
-export default SignupForm;
+export default SignUpForm;

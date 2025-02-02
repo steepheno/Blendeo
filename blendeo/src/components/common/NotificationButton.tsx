@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { useState } from "react";
+import { X } from "lucide-react";
 
 const NotificationButton = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,49 +8,55 @@ const NotificationButton = () => {
       id: 1,
       user: {
         name: "유리리",
-        avatar: "/api/placeholder/40/40"
+        avatar: "/api/placeholder/40/40",
       },
       message: "님이 내 음악을 Blend 했어요!",
       timestamp: "방금 전",
-      isRead: false
+      isRead: false,
     },
     {
       id: 2,
       user: {
         name: "민지",
-        avatar: "/api/placeholder/40/40"
+        avatar: "/api/placeholder/40/40",
       },
       message: "님이 회원님의 게시물을 좋아합니다.",
       timestamp: "1시간 전",
-      isRead: false
+      isRead: false,
     },
     {
       id: 3,
       user: {
         name: "하니",
-        avatar: "/api/placeholder/40/40"
+        avatar: "/api/placeholder/40/40",
       },
       message: "님이 회원님을 팔로우하기 시작했습니다.",
       timestamp: "2시간 전",
-      isRead: true
-    }
+      isRead: true,
+    },
   ]);
 
-  const unreadCount = notifications.filter(notification => !notification.isRead).length;
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead
+  ).length;
 
-  const markAsRead = (notificationId:number) => {
-    setNotifications(notifications.map(notification =>
-      notification.id === notificationId
-        ? { ...notification, isRead: true }
-        : notification
-    ));
+  const markAsRead = (notificationId: number) => {
+    setNotifications(
+      notifications.map((notification) =>
+        notification.id === notificationId
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
   };
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map(notification => ({
-      ...notification,
-      isRead: true
-    })));
+    setNotifications(
+      notifications.map((notification) => ({
+        ...notification,
+        isRead: true,
+      }))
+    );
   };
 
   return (
@@ -111,7 +117,7 @@ const NotificationButton = () => {
                 <div
                   key={notification.id}
                   className={`flex items-start space-x-3 mb-4 last:mb-0 p-2 rounded-lg transition-colors ${
-                    !notification.isRead ? 'bg-blue-50' : ''
+                    !notification.isRead ? "bg-blue-50" : ""
                   }`}
                   onClick={() => markAsRead(notification.id)}
                 >
@@ -122,8 +128,10 @@ const NotificationButton = () => {
                   />
                   <div className="flex-1">
                     <p className="text-sm">
-                      <span className="font-semibold">{notification.user.name}</span>
-                      {" "}{notification.message}
+                      <span className="font-semibold">
+                        {notification.user.name}
+                      </span>{" "}
+                      {notification.message}
                     </p>
                     <span className="text-xs text-gray-500">
                       {notification.timestamp}
