@@ -14,13 +14,21 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     allowedHosts: ["i12a602.p.ssafy.io"],
+    proxy: {
+      "/api": {
+        target: "http://i12a602.p.ssafy.io:8080",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, "/api"),
+      },
+    },
   },
   define: {
     global: "window",
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"), // '@' 별칭 추가
+      "@": path.resolve(__dirname, "./src"),
       util: path.resolve(__dirname, "node_modules/util"),
       events: path.resolve(__dirname, "node_modules/events"),
     },

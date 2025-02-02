@@ -21,5 +21,10 @@ export const signin = async (data: SigninRequest) => {
 };
 
 export const logout = async () => {
-  return axiosInstance.post("/user/logout");
+  const token = localStorage.getItem("token");
+  return axiosInstance.post("/user/auth/logout", null, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };

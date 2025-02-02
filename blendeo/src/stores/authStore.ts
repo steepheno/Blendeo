@@ -10,7 +10,7 @@ import type {
 
 interface AuthStore {
   user: AuthResponse | null;
-  token: string | null; // token 필드 추가
+  token: string | null;
   isAuthenticated: boolean;
   signin: (data: SigninRequest) => Promise<void>;
   signup: (data: SignupRequest) => Promise<void>;
@@ -20,9 +20,9 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>()(
   devtools(
     (set) => ({
-      user: null,
-      token: localStorage.getItem("token"), // 초기값 설정
-      isAuthenticated: false,
+      user: JSON.parse(localStorage.getItem("user") || "null"),
+      token: localStorage.getItem("token"),
+      isAuthenticated: !!localStorage.getItem("user"),
 
       signin: async (data) => {
         try {
@@ -30,10 +30,13 @@ export const useAuthStore = create<AuthStore>()(
           if (response) {
             set({
               user: response,
-              token: null, // 새 API에서는 token이 없으므로 null로 설정
-              isAuthenticated: true,
+              token: response.token || null,
+              isAuthenticated: true, // 로그인 성공시 true로 설정
             });
             localStorage.setItem("user", JSON.stringify(response));
+            if (response.token) {
+              localStorage.setItem("token", response.token);
+            }
           }
         } catch (error) {
           console.error("Signin failed:", error);
@@ -44,13 +47,14 @@ export const useAuthStore = create<AuthStore>()(
       signup: async (data) => {
         try {
           const response: AuthResponse = await authApi.signup(data);
+          set({
+            user: response,
+            token: response.token || null,
+            isAuthenticated: true, // 회원가입 성공시 true로 설정
+          });
+          localStorage.setItem("user", JSON.stringify(response));
           if (response.token) {
             localStorage.setItem("token", response.token);
-            set({
-              user: response,
-              token: response.token,
-              isAuthenticated: true,
-            });
           }
         } catch (error) {
           console.error("Signup failed:", error);
@@ -61,6 +65,10 @@ export const useAuthStore = create<AuthStore>()(
       logout: async () => {
         try {
           await authApi.logout();
+        } catch (error) {
+          console.error("Logout failed:", error);
+        } finally {
+          // 항상 로컬 상태를 초기화
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           set({
@@ -68,9 +76,6 @@ export const useAuthStore = create<AuthStore>()(
             token: null,
             isAuthenticated: false,
           });
-        } catch (error) {
-          console.error("Logout failed:", error);
-          throw error;
         }
       },
     }),
