@@ -58,7 +58,8 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/configuration/ui",
                                 "/configuration/security",
-                                "/api/v1/project/new"
+                                "/api/v1/project/new",
+                                "/api/v1/project/info/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/admin/**").authenticated()
                         // 나머지 요청은 인증 필요

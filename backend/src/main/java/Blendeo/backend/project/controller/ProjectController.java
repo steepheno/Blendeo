@@ -92,7 +92,7 @@ public class ProjectController {
     @Operation(
             summary = "프로젝트 조회"
     )
-    @GetMapping("/{id}")
+    @GetMapping("/info/{id}")
     public ResponseEntity<ProjectInfoRes> getProject(@PathVariable Long id) {
         ProjectInfoRes projectInfo = projectService.getProjectInfo(id);
 

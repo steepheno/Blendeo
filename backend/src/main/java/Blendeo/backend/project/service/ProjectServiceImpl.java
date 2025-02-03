@@ -81,6 +81,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .createdAt(project.getCreatedAt())
                 .contents(project.getContents())
                 .thumbnail(project.getThumbnail())
+                .videoUrl(project.getVideoUrl().toString())
                 .viewCnt(project.getViewCnt())
                 .build();
     }
