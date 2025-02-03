@@ -63,7 +63,9 @@ public class UserController {
                 .id(userLoginPostResWithToken.getId())
                 .email(userLoginPostResWithToken.getEmail())
                 .nickname(userLoginPostResWithToken.getNickname())
-                .profileImage(userLoginPostResWithToken.getProfileImage()).build();
+                .profileImage(userLoginPostResWithToken.getProfileImage())
+                .accessToken(userLoginPostResWithToken.getAccessToken())
+                .refreshToken(userLoginPostResWithToken.getRefreshToken()).build();
 
         Cookie accessTokenCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
         accessTokenCookie.setHttpOnly(true);
