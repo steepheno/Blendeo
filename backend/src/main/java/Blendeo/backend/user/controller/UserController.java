@@ -18,9 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RequestMapping("/api/v1/user")
 @RestController
 @Slf4j
@@ -86,20 +83,18 @@ public class UserController {
         session.setAttribute("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         session.setMaxInactiveInterval(15 * 60); // 15분
 
-
-
         // 세션 ID를 쿠키에 저장
         Cookie accessCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
         accessCookie.setMaxAge(15 * 60); // 15분
         accessCookie.setPath("/");
-        accessCookie.setDomain("localhost");
+        accessCookie.setDomain("i12a602.p.ssafy.io"); // 클라이언트 측 도메인: 배포 후 바꿔야함.
         accessCookie.setHttpOnly(true);
 //        accessCookie.setSecure(true); // 배포 하고 해야함.
 
         Cookie refreshCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         refreshCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
         refreshCookie.setPath("/");
-        refreshCookie.setDomain("localhost");
+        refreshCookie.setDomain("i12a602.p.ssafy.io"); // 클라이언트 측 도메인: 배포 후 바꿔야함.
         refreshCookie.setHttpOnly(true);
 //        refreshCookie.setSecure(true); // 배포 하고 해야함.
 
@@ -110,6 +105,12 @@ public class UserController {
                 + "; Max-Age=" + accessCookie.getMaxAge()
                 + "; Path=" + accessCookie.getPath()
                 + "; Domain=" + accessCookie.getDomain()
+                + "; HttpOnly"
+                + "; SameSite=Lax");
+        response.setHeader("Set-Cookie", refreshCookie.getName() + "=" + refreshCookie.getValue()
+                + "; Max-Age=" + refreshCookie.getMaxAge()
+                + "; Path=" + refreshCookie.getPath()
+                + "; Domain=" + refreshCookie.getDomain()
                 + "; HttpOnly"
                 + "; SameSite=Lax");
 
