@@ -99,7 +99,7 @@ public class UserController {
         Cookie refreshCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         refreshCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
         refreshCookie.setPath("/");
-        accessCookie.setDomain("localhost");
+        refreshCookie.setDomain("localhost");
         refreshCookie.setHttpOnly(true);
 //        refreshCookie.setSecure(true); // 배포 하고 해야함.
 
