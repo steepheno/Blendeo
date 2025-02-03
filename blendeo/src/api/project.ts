@@ -1,6 +1,11 @@
 // src/api/project.ts
 import axiosInstance from "@/api/axios";
-import { Project, CreateProjectRequest, Comment } from "@/types/api/project";
+import {
+  Project,
+  CreateProjectRequest,
+  Comment,
+  ProjectListItem,
+} from "@/types/api/project";
 
 // 프로젝트 CRUD
 export const createProject = async (data: CreateProjectRequest) => {
@@ -60,4 +65,8 @@ export const uploadBlendedVideo = async (
     forkedUrl,
     videoFile,
   });
+};
+
+export const getNewProjects = async () => {
+  return axiosInstance.get<ProjectListItem[]>("/project/new");
 };

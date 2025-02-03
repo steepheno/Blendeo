@@ -6,11 +6,13 @@ import type {
   Project,
   CreateProjectRequest,
   Comment,
+  ProjectListItem,
 } from "@/types/api/project";
 
 interface ProjectStore {
   currentProject: Project | null;
   comments: Comment[];
+  newProjects: ProjectListItem[];
   createProject: (data: CreateProjectRequest) => Promise<void>;
   getProject: (projectId: number) => Promise<void>;
   updateProjectState: (projectId: number, state: boolean) => Promise<void>;
@@ -23,6 +25,7 @@ interface ProjectStore {
   deleteComment: (commentId: number, projectId: number) => Promise<void>;
   forkProject: (forkedUrl: string, videoFile: string) => Promise<void>;
   uploadBlendedVideo: (forkedUrl: string, videoFile: string) => Promise<void>;
+  getNewProjects: () => Promise<ProjectListItem[]>; // 반환 타입을 ProjectListItem[]로 변경
 }
 
 export const useProjectStore = create<ProjectStore>()(
@@ -30,6 +33,7 @@ export const useProjectStore = create<ProjectStore>()(
     (set) => ({
       currentProject: null,
       comments: [],
+      newProjects: [],
 
       createProject: async (data) => {
         await projectApi.createProject(data);
@@ -81,7 +85,6 @@ export const useProjectStore = create<ProjectStore>()(
       },
 
       deleteComment: async (commentId, projectId) => {
-        // projectId 매개변수 추가
         try {
           await projectApi.deleteComment(commentId);
           const comments = await projectApi.getComments(projectId);
@@ -98,6 +101,12 @@ export const useProjectStore = create<ProjectStore>()(
 
       uploadBlendedVideo: async (forkedUrl, videoFile) => {
         await projectApi.uploadBlendedVideo(forkedUrl, videoFile);
+      },
+
+      getNewProjects: async () => {
+        const projects = await projectApi.getNewProjects();
+        set({ newProjects: projects });
+        return projects;
       },
     }),
     { name: "project-store" }

@@ -1,12 +1,12 @@
 import Layout from "@/components/layout/Layout";
-
 import VideoPlayer from "@/components/detail/VideoPlayer";
 import InteractionButton from "@/components/detail/InteractionButton";
 import CommentsSection from "@/components/detail/CommentsSection";
 import ContributorsSection from "@/components/detail/ContributorsSection";
 import SidePanel from "@/components/detail/SidePanel";
-
-import { useState } from "react";
+import { useProjectStore } from "@/stores/projectStore";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   MessageSquare,
   Heart,
@@ -15,15 +15,32 @@ import {
   Music,
   Users,
 } from "lucide-react";
-
 import { TabType } from "@/types/components/video/videoDetail";
 
-const Main = () => {
+const ProjectDetailPage = () => {
+  const { id } = useParams();
+  const { getProject, currentProject, getComments, comments } =
+    useProjectStore(); // getComments와 comments 추가
   const [activeTab, setActiveTab] = useState<TabType>(null);
+
+  // 프로젝트 데이터 로드
+  useEffect(() => {
+    if (id) {
+      const projectId = Number(id);
+      getProject(projectId);
+      getComments(projectId); // 댓글 데이터 로드
+    }
+  }, [id, getProject, getComments]);
 
   const handleTabClick = (tab: TabType) => {
     setActiveTab(activeTab === tab ? null : tab);
   };
+
+  // 로딩 상태 처리
+  if (!currentProject) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <Layout showNotification={true}>
       <div className="flex h-screen bg-white">
@@ -35,36 +52,46 @@ const Main = () => {
           >
             <div className="relative h-full">
               <VideoPlayer
-                videoUrl="video_url_here"
-                thumbnail="/thumbnail.jpg"
+                videoUrl={currentProject.videoUrl}
+                thumbnail={currentProject.thumbnail}
                 metadata={{
-                  title: "그거 아세요? +숨겨왔던 이거 올리미다..ㅎㅅㅎ",
-                  content: "상세 설명이 여기 들어갑니다...",
+                  title: currentProject.title,
+                  content: currentProject.contents,
                   author: {
-                    name: "Cathy",
-                    profileImage: "/profile.jpg",
+                    name: currentProject.author.nickname,
+                    profileImage: "/profile.jpg", // 기본 프로필 이미지
                   },
                 }}
                 isPortrait={true}
               />
 
               <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center space-y-4">
-                <InteractionButton icon={Music} count="157" label="Blendit!" />
-                <InteractionButton icon={Heart} count="158.5K" />
+                <InteractionButton
+                  icon={Music}
+                  count={currentProject.contributorCnt.toString()}
+                  label="Blendit!"
+                />
+                <InteractionButton
+                  icon={Heart}
+                  count={currentProject.likeCnt.toString()}
+                />
                 <InteractionButton
                   icon={MessageSquare}
-                  count="716"
+                  count={comments.length.toString()}
                   isActive={activeTab === "comments"}
                   onClick={() => handleTabClick("comments")}
                 />
                 <InteractionButton
                   icon={Users}
-                  count="24"
+                  count={currentProject.contributorCnt.toString()}
                   isActive={activeTab === "contributors"}
                   onClick={() => handleTabClick("contributors")}
                 />
-                <InteractionButton icon={Bookmark} count="17.5K" />
-                <InteractionButton icon={Share2} count="5082" />
+                <InteractionButton icon={Bookmark} count="0" />
+                <InteractionButton
+                  icon={Share2}
+                  count={currentProject.viewCnt.toString()}
+                />
               </div>
             </div>
           </div>
@@ -73,9 +100,9 @@ const Main = () => {
             activeTab={activeTab}
             content={
               activeTab === "comments" ? (
-                <CommentsSection />
+                <CommentsSection projectId={Number(id)} />
               ) : (
-                <ContributorsSection />
+                <ContributorsSection projectId={Number(id)} />
               )
             }
           />
@@ -85,4 +112,4 @@ const Main = () => {
   );
 };
 
-export default Main;
+export default ProjectDetailPage;
