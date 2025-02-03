@@ -91,13 +91,13 @@ public class UserController {
         accessCookie.setMaxAge(15 * 60); // 15분
         accessCookie.setPath("/");
         accessCookie.setHttpOnly(true);
-        accessCookie.setSecure(true);
+//        accessCookie.setSecure(true); // 배포 하고 해야함.
 
         Cookie refreshCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         refreshCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
         refreshCookie.setPath("/");
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+//        refreshCookie.setSecure(true); // 배포 하고 해야함.
 
         response.addCookie(accessCookie);
         response.addCookie(refreshCookie);
