@@ -2,9 +2,11 @@ package Blendeo.backend.project.controller;
 
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
+import Blendeo.backend.project.dto.ProjectListDto;
 import Blendeo.backend.project.service.ProjectService;
 import Blendeo.backend.project.service.VideoEditorService;
 import io.swagger.v3.oas.annotations.Operation;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -90,7 +92,7 @@ public class ProjectController {
     @Operation(
             summary = "프로젝트 조회"
     )
-    @GetMapping("/{id}")
+    @GetMapping("/info/{id}")
     public ResponseEntity<ProjectInfoRes> getProject(@PathVariable Long id) {
         ProjectInfoRes projectInfo = projectService.getProjectInfo(id);
 
@@ -125,5 +127,15 @@ public class ProjectController {
         projectService.modifyProjectContents(projectId, contents);
 
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "최신 프로젝트 목록 조회"
+    )
+    @GetMapping("/new")
+    public ResponseEntity<List<ProjectListDto>> getNewProjectList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        return ResponseEntity.ok().body(projectService.getNewProjectList(page, size));
     }
 }
