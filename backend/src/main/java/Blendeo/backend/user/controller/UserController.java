@@ -133,8 +133,20 @@ public class UserController {
 
     @Operation(summary = "로그아웃", description = "accessToken, refreshToken 제거됩니다.")
     @PostMapping("/auth/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") final String token) {
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") final String token, HttpServletResponse response) {
         userService.logout(token);
+        response.setHeader("Set-Cookie", "AccessToken="
+                + "; Max-Age=0"  // 즉시 만료
+                + "; Path=/"
+                + "; Domain=" + frontDomain
+                + "; HttpOnly"
+                + "; SameSite=Lax");
+        response.setHeader("Set-Cookie", "RefreshToken="
+                + "; Max-Age=0"  // 즉시 만료
+                + "; Path=/"
+                + "; Domain=" + frontDomain
+                + "; HttpOnly"
+                + "; SameSite=Lax");
         return ResponseEntity.ok().body("로그아웃 되었습니다");
     }
 
