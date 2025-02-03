@@ -1,21 +1,20 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
 
 const Navbar = () => {
   const navigate = useNavigate();
 
   const goToMain = () => {
-    navigate('/');
-  }
+    navigate("/");
+  };
 
   const goToMypage = () => {
-    navigate('/mypage');
-  }
+    navigate("/mypage");
+  };
 
   const goToUpload = () => {
-    navigate('/upload');
-  }
+    navigate("/upload");
+  };
 
   return (
     <>
@@ -23,15 +22,15 @@ const Navbar = () => {
       <div className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-200">
         <div className="flex justify-between items-center px-10 py-4 w-full max-w-[1921px] min-h-[65px] max-md:px-5 mx-auto">
           {/* 좌측 로고 */}
-          <div 
-            onClick={goToMain} 
+          <div
+            onClick={goToMain}
             className="flex items-center gap-2 cursor-pointer"
           >
-            <img 
-              loading="lazy" 
+            <img
+              loading="lazy"
               src="https://cdn.builder.io/api/v1/image/assets/TEMP/ec1bac5572379625521291a5a2be7bd8cec2e72569fbc49d76a7c45bd2f1676f"
-              alt="Logo" 
-              className="w-8 h-8 object-contain" 
+              alt="Logo"
+              className="w-8 h-8 object-contain"
             />
             <span className="text-lg font-bold text-neutral-900">BLENDEO</span>
           </div>
@@ -63,15 +62,15 @@ const Navbar = () => {
             {/* 프로필 사진 */}
             <img
               onClick={goToMypage}
-              loading="lazy" 
+              loading="lazy"
               src="https://cdn.builder.io/api/v1/image/assets/TEMP/0800ab8a61203407fbdf0957de80f1dcf45222f5193a48567fbc5c3e7b6eb14b"
-              alt="User profile" 
-              className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+              alt="User profile"
+              className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
             />
           </div>
         </div>
       </div>
-      
+
       {/* Navbar의 높이만큼 빈 공간을 만들어주는 스페이서 */}
       <div className="h-[81px]" />
     </>

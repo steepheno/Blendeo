@@ -12,6 +12,8 @@ import UserProfilePage from "@/pages/profile/UserProfilePage";
 import MyProfilePage from "@/pages/profile/MyProfilePage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
+import ChatPage from "@/pages/chat/ChatPage";
+import VideoCallPage from "@/pages/chat/VideoCallPage";
 
 export const router = createBrowserRouter([
   {
@@ -78,6 +80,28 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <MyProfilePage />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+  // 채팅 관련 라우트 추가
+  {
+    path: "/chat",
+    children: [
+      {
+        path: "", // /chat
+        element: (
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "video", // /chat/video
+        element: (
+          <ProtectedRoute>
+            <VideoCallPage />
           </ProtectedRoute>
         ),
       },

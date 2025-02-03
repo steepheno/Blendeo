@@ -1,5 +1,5 @@
 import * as React from "react";
-import SignupInput from "./SignUpInput";
+import SignupInput from "./SignupInput";
 import { VerificationInputProps } from "@/types/components/Input";
 
 const VerificationInput = React.forwardRef<

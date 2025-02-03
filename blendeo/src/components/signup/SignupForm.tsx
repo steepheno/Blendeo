@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signup } from "@/api/auth";
 import { sendVerificationEmail, verifyEmailCode } from "@/api/mail";
-import SignUpInput from "./SignUpInput";
+import SignupInput from "./SignupInput";
 import VerificationInput from "@/components/signup/VerificationInput";
 
 interface ApiError {
@@ -184,7 +184,7 @@ const SignUpForm = () => {
         name="verificationCode"
       />
 
-      <SignUpInput
+      <SignupInput
         type="text"
         placeholder="닉네임을 입력해주세요"
         className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] max-md:w-full mb-4"
@@ -195,7 +195,7 @@ const SignUpForm = () => {
         name="nickname"
       />
 
-      <SignUpInput
+      <SignupInput
         type="password"
         placeholder="••••••••"
         className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] max-md:w-full"
@@ -211,7 +211,7 @@ const SignUpForm = () => {
         작성해야 합니다.
       </div>
 
-      <SignUpInput
+      <SignupInput
         type="password"
         placeholder="••••••••"
         className="px-4 py-0 text-base rounded-md border border-gray-200 border-solid h-[72px] w-[533px] max-md:w-full"
