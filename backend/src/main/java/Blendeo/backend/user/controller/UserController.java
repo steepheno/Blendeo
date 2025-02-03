@@ -55,7 +55,8 @@ public class UserController {
         return ResponseEntity.ok().body(authCode);
     }
 
-    @Operation(summary = "로그인")
+    @Operation(summary = "로그인",
+    description = "쿠키에 만료시간 포함하여 accessToken, refreshToken 반환. (swagger에서 쉽게 확인하기 위해 response에도 값 추가함.)")
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq, HttpServletResponse response) {
         UserLoginPostResWithToken userLoginPostResWithToken = userService.login(userLoginPostReq);
@@ -85,9 +86,9 @@ public class UserController {
     }
 
     @Operation(summary = "refreshToken으로 accessToken 갱신",
-        description = "Bearer + refreshToken 보내기")
+        description = "Bearer + refreshToken 보내기, [반환값] 새로 갱신된 accessToken 반환")
     @PostMapping("/auth/refresh")
-    public ResponseEntity<?> refresh(@RequestHeader("Authorization") final String Authorization, HttpServletResponse response) {
+    public ResponseEntity<?> refresh(@RequestHeader("Authorization") final String Authorization) {
         log.warn(Authorization);
 
         String newAccessToken = userService.findByRefreshToken(Authorization);
@@ -103,7 +104,7 @@ public class UserController {
                 .body("accessToken이 재생되었습니다.");
     }
 
-    @Operation(summary = "로그아웃")
+    @Operation(summary = "로그아웃", description = "accessToken, refreshToken 제거됩니다.")
     @PostMapping("/auth/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") final String token) {
         userService.logout(token);
