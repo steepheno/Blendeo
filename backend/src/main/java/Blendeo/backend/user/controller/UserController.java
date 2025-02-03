@@ -90,14 +90,14 @@ public class UserController {
         Cookie accessCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
         accessCookie.setMaxAge(15 * 60); // 15분
         accessCookie.setPath("/");
-        accessCookie.setDomain("i12a602.p.ssafy.io");
+        accessCookie.setDomain("localhost");
         accessCookie.setHttpOnly(true);
 //        accessCookie.setSecure(true); // 배포 하고 해야함.
 
         Cookie refreshCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         refreshCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
         refreshCookie.setPath("/");
-        accessCookie.setDomain("i12a602.p.ssafy.io");
+        accessCookie.setDomain("localhost");
         refreshCookie.setHttpOnly(true);
 //        refreshCookie.setSecure(true); // 배포 하고 해야함.
 
