@@ -89,13 +89,13 @@ public class UserController {
         // 세션 ID를 쿠키에 저장
         Cookie accessCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
         accessCookie.setMaxAge(15 * 60); // 15분
-        accessCookie.setPath("/api/v1/user/auth/login");
+        accessCookie.setPath("/");
         accessCookie.setHttpOnly(true);
         accessCookie.setSecure(true);
 
         Cookie refreshCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         refreshCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
-        refreshCookie.setPath("/api/v1/user/auth/login");
+        refreshCookie.setPath("/");
         refreshCookie.setHttpOnly(true);
         refreshCookie.setSecure(true);
 
