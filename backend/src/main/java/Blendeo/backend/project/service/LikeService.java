@@ -72,6 +72,7 @@ public class LikeService {
             redisLockManager.unlock(lockKey);
         }
     }
+
     @Transactional
     public void removeLike(long projectId, int userId) {
         String lockKey = "lock:project:" + projectId;
