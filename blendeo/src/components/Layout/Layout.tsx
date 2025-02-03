@@ -1,4 +1,4 @@
-// components/Layout/Layout.tsx
+// components/layout/Layout.tsx
 import { ReactNode } from "react";
 import Navbar from "./Searchbar";
 import Sidebar from "./Sidebar";
