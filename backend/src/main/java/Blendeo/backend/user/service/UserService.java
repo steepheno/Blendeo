@@ -9,7 +9,7 @@ public interface UserService {
 
     UserLoginPostResWithToken login(UserLoginPostReq userRegisterPostReq);
 
-    String findByAccessToken(String accessToken);
+    String findByRefreshToken(String accessToken);
 
     void logout(String accessToken);
 

@@ -1,21 +1,21 @@
 package Blendeo.backend.user.controller;
 
 import Blendeo.backend.user.dto.*;
-import Blendeo.backend.user.entity.RefreshToken;
 import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
-import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.http.HttpResponse;
 
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RequestMapping("/api/v1/user")
@@ -55,7 +55,8 @@ public class UserController {
         return ResponseEntity.ok().body(authCode);
     }
 
-    @Operation(summary = "로그인")
+    @Operation(summary = "로그인",
+    description = "쿠키에 만료시간 포함하여 accessToken, refreshToken 반환. (swagger에서 쉽게 확인하기 위해 response에도 값 추가함.)")
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq, HttpServletResponse response) {
         UserLoginPostResWithToken userLoginPostResWithToken = userService.login(userLoginPostReq);
@@ -63,27 +64,47 @@ public class UserController {
                 .id(userLoginPostResWithToken.getId())
                 .email(userLoginPostResWithToken.getEmail())
                 .nickname(userLoginPostResWithToken.getNickname())
-                .profileImage(userLoginPostResWithToken.getProfileImage()).build();
+                .profileImage(userLoginPostResWithToken.getProfileImage())
+                .accessToken(userLoginPostResWithToken.getAccessToken())
+                .refreshToken(userLoginPostResWithToken.getRefreshToken()).build();
 
         Cookie accessTokenCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
-        accessTokenCookie.setPath("/");
+        accessTokenCookie.setPath("/api/v1/user/auth");
+        accessTokenCookie.setMaxAge(15 * 60); // 15분
         Cookie refreshTokenCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setPath("/api/v1/user/auth");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
+
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
+
         return ResponseEntity.ok().body(userLoginPostRes);
     }
 
+    @Operation(summary = "refreshToken으로 accessToken 갱신",
+        description = "Bearer + refreshToken 보내기, [반환값] 새로 갱신된 accessToken 반환")
     @PostMapping("/auth/refresh")
-    public ResponseEntity<?> refresh(@RequestHeader("Authorization") final String token) {
-        return ResponseEntity.ok().body(userService.findByAccessToken(token));
+    public ResponseEntity<?> refresh(@RequestHeader("Authorization") final String Authorization) {
+        log.warn(Authorization);
+
+        String newAccessToken = userService.findByRefreshToken(Authorization);
+        ResponseCookie accessTokenCookie = ResponseCookie.from("AccessToken", newAccessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/api/v1/user/auth")
+                .maxAge(60 * 15) // 15분
+                .sameSite("Strict")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .body("accessToken이 재생되었습니다.");
     }
 
-    @Operation(summary = "로그아웃")
+    @Operation(summary = "로그아웃", description = "accessToken, refreshToken 제거됩니다.")
     @PostMapping("/auth/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") final String token) {
         userService.logout(token);

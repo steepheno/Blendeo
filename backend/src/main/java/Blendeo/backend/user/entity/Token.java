@@ -10,14 +10,13 @@ import java.io.Serializable;
 
 @Getter
 @AllArgsConstructor
-@RedisHash(value="jwtToken", timeToLive=60 * 60 * 24 * 14) // 14 일
-public class RefreshToken implements Serializable {
+@RedisHash(value="Token", timeToLive=60 * 60 * 24 * 14) // 14 일
+public class Token implements Serializable {
     @Id
     private int id;
 
-    @Indexed
     private String accessToken;
-
+    @Indexed
     private String refreshToken;
 
     public void updateAccessToken(String accessToken) {
