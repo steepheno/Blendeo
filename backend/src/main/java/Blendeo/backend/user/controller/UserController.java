@@ -5,14 +5,10 @@ import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -23,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class UserController {
 
+    private final String frontDomain = "localhost";
     private final UserService userService;
     private final MailService mailService;
 
@@ -66,8 +63,26 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
+    /**
+     * 주요 변경사항:
+     *
+     * SameSite=Lax를 SameSite=None으로 변경
+     * Secure 옵션 추가 (SameSite=None 사용 시 필수)
+     * response.addHeader 사용 (두 번째 쿠키 설정 시)
+     *
+     * 주의사항:
+     *
+     * SameSite=None과 Secure 옵션을 사용하려면 HTTPS가 필수입니다
+     * 프론트엔드와 백엔드의 도메인이 다른 경우 CORS 설정도 확인해야 합니다
+     *
+     * 이렇게 수정하면 새로고침 시에도 두 토큰이 모두 유지될 것입니다.
+     * @param userLoginPostReq
+     * @param response
+     * @param session
+     * @return
+     */
     @Operation(summary = "로그인",
-    description = "쿠키에 만료시간 포함하여 accessToken, refreshToken 반환. (swagger에서 쉽게 확인하기 위해 response에도 값 추가함.)")
+    description = "쿠키에 만료시간 포함하여 accessToken, refreshToken 반환.")
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq, HttpServletResponse response, HttpSession session) {
         UserLoginPostResWithToken userLoginPostResWithToken = userService.login(userLoginPostReq);
@@ -79,40 +94,20 @@ public class UserController {
                 .accessToken(userLoginPostResWithToken.getAccessToken())
                 .refreshToken(userLoginPostResWithToken.getRefreshToken()).build();
 
-        session.setAttribute("AccessToken", userLoginPostResWithToken.getAccessToken());
-        session.setAttribute("RefreshToken", userLoginPostResWithToken.getRefreshToken());
-        session.setMaxInactiveInterval(15 * 60); // 15분
-
-        // 세션 ID를 쿠키에 저장
-        Cookie accessCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
-        accessCookie.setMaxAge(15 * 60); // 15분
-        accessCookie.setPath("/");
-        accessCookie.setDomain("i12a602.p.ssafy.io"); // 클라이언트 측 도메인: 배포 후 바꿔야함.
-        accessCookie.setHttpOnly(true);
-//        accessCookie.setSecure(true); // 배포 하고 해야함.
-
-        Cookie refreshCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
-        refreshCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
-        refreshCookie.setPath("/");
-        refreshCookie.setDomain("i12a602.p.ssafy.io"); // 클라이언트 측 도메인: 배포 후 바꿔야함.
-        refreshCookie.setHttpOnly(true);
-//        refreshCookie.setSecure(true); // 배포 하고 해야함.
-
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
-
-        response.setHeader("Set-Cookie", accessCookie.getName() + "=" + accessCookie.getValue()
-                + "; Max-Age=" + accessCookie.getMaxAge()
-                + "; Path=" + accessCookie.getPath()
-                + "; Domain=" + accessCookie.getDomain()
-                + "; HttpOnly"
-                + "; SameSite=Lax");
-        response.setHeader("Set-Cookie", refreshCookie.getName() + "=" + refreshCookie.getValue()
-                + "; Max-Age=" + refreshCookie.getMaxAge()
-                + "; Path=" + refreshCookie.getPath()
-                + "; Domain=" + refreshCookie.getDomain()
-                + "; HttpOnly"
-                + "; SameSite=Lax");
+        response.setHeader("Set-Cookie", "AccessToken=" + userLoginPostResWithToken.getAccessToken()
+                + "; Max-Age=" + (15 * 60) // 15분
+                + "; Path=/"
+                + "; Domain=" + frontDomain
+                + "; HttpOnly" // JavaScript에서 쿠키에 접근할 수 없게 하여 XSS 공격 방지
+                + "; SameSite=Lax"); // CSRF 공격 방지를 위해 같은 도메인의 요청에서만 쿠키 전송
+        // https: 이거 필요함 -> + "; Secure"
+        response.addHeader("Set-Cookie", "RefreshToken=" + userLoginPostResWithToken.getRefreshToken()
+                + "; Max-Age=" + (60 * 60 * 24 * 7) // 7일
+                + "; Path=/"
+                + "; Domain=" + frontDomain
+                + "; HttpOnly" // JavaScript에서 쿠키에 접근할 수 없게 하여 XSS 공격 방지
+                + "; SameSite=Lax"); // CSRF 공격 방지를 위해 같은 도메인의 요청에서만 쿠키 전송
+        // https: 이거 필요함 -> + "; Secure"
 
         return ResponseEntity.ok().body(userLoginPostRes);
     }
@@ -120,19 +115,19 @@ public class UserController {
     @Operation(summary = "refreshToken으로 accessToken 갱신",
         description = "Bearer + refreshToken 보내기, [반환값] 새로 갱신된 accessToken 반환")
     @PostMapping("/auth/refresh")
-    public ResponseEntity<?> refresh(@RequestHeader("Authorization") final String Authorization) {
+    public ResponseEntity<?> refresh(@RequestHeader("Authorization") final String Authorization, HttpServletResponse response) {
         log.warn(Authorization);
 
         String newAccessToken = userService.findByRefreshToken(Authorization);
-        ResponseCookie accessTokenCookie = ResponseCookie.from("AccessToken", newAccessToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/api/v1/user/auth/login")
-                .maxAge(60 * 15) // 15분
-                .sameSite("Strict")
-                .build();
+
+        response.setHeader("Set-Cookie", "AccessToken=" + newAccessToken
+                + "; Max-Age=" + (15 * 60) // 15분
+                + "; Path=/"
+                + "; Domain=" + frontDomain
+                + "; HttpOnly" // JavaScript에서 쿠키에 접근할 수 없게 하여 XSS 공격 방지
+                + "; SameSite=Lax"); // CSRF 공격 방지를 위해 같은 도메인의 요청에서만 쿠키 전송
+        // https: 이거 필요함 -> + "; Secure"
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
                 .body("accessToken이 재생되었습니다.");
     }
 
@@ -146,8 +141,13 @@ public class UserController {
     @Operation(summary = "회원정보 단일건 조회")
     @GetMapping("/get-user/{id}")
     public ResponseEntity<?> getUser(@PathVariable("id") int id) {
-        UserInfoGetRes user = userService.getUser(id);
-        return ResponseEntity.ok().body(user);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        // 해당 유저가 아니라면
+        if (Integer.parseInt(user.getUsername()) != id) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        UserInfoGetRes userInfoGetRes = userService.getUser(id);
+        return ResponseEntity.ok().body(userInfoGetRes);
     }
 
     // 전체 조회?
