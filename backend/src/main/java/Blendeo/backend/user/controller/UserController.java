@@ -41,7 +41,7 @@ public class UserController {
         return ResponseEntity.ok().body(userId);
     }
 
-    @Operation(summary = "이메일 존재 유무 확인 / 인증번호 발송")
+    @Operation(summary = "[STEP1] : 이메일 존재 유무 확인 / 인증번호 발송")
     @PostMapping("/auth/mail/check")
     public ResponseEntity<?> MailSend(@RequestParam("email") String email) {
         String authCode = null;
@@ -57,7 +57,7 @@ public class UserController {
         return ResponseEntity.ok().body("인증번호가 발급되었습니다.");
     }
 
-    @Operation(summary = "이메일 존재 유무 확인 / 인증번호 발송")
+    @Operation(summary = "[STEP2] : 이메일 존재 유무 확인 / 인증번호 일치 확인")
     @PostMapping("/auth/auth/code/check")
     public ResponseEntity<?> authCodeCheck(@RequestParam("email") String email, @RequestParam("authCode") String authCode) {
         userService.emailExist(email);
