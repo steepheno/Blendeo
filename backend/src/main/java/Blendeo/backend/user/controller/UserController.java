@@ -7,9 +7,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -18,7 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.http.HttpResponse;
+import java.time.LocalDateTime;
 
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RequestMapping("/api/v1/user")
@@ -28,7 +28,6 @@ public class UserController {
 
     private final UserService userService;
     private final MailService mailService;
-
 
     public UserController(UserService userService, MailService mailService) {
         this.userService = userService;
@@ -73,7 +72,7 @@ public class UserController {
     @Operation(summary = "로그인",
     description = "쿠키에 만료시간 포함하여 accessToken, refreshToken 반환. (swagger에서 쉽게 확인하기 위해 response에도 값 추가함.)")
     @PostMapping("/auth/login")
-    public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq, HttpServletResponse response, HttpSession session) {
         UserLoginPostResWithToken userLoginPostResWithToken = userService.login(userLoginPostReq);
         UserLoginPostRes userLoginPostRes = UserLoginPostRes.builder()
                 .id(userLoginPostResWithToken.getId())
@@ -83,19 +82,25 @@ public class UserController {
                 .accessToken(userLoginPostResWithToken.getAccessToken())
                 .refreshToken(userLoginPostResWithToken.getRefreshToken()).build();
 
-        Cookie accessTokenCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(15 * 60); // 15분
-        Cookie refreshTokenCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
+        session.setAttribute("AccessToken", userLoginPostResWithToken.getAccessToken());
+        session.setAttribute("RefreshToken", userLoginPostResWithToken.getRefreshToken());
+        session.setMaxInactiveInterval(15 * 60); // 15분
 
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        // 세션 ID를 쿠키에 저장
+        Cookie accessCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
+        accessCookie.setMaxAge(15 * 60); // 15분
+        accessCookie.setPath("/");
+        accessCookie.setHttpOnly(true);
+        accessCookie.setSecure(true);
+
+        Cookie refreshCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
+        refreshCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
+        refreshCookie.setPath("/");
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(true);
+
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
 
         return ResponseEntity.ok().body(userLoginPostRes);
     }
