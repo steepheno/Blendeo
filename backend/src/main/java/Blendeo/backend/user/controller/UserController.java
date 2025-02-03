@@ -86,6 +86,8 @@ public class UserController {
         session.setAttribute("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         session.setMaxInactiveInterval(15 * 60); // 15분
 
+
+
         // 세션 ID를 쿠키에 저장
         Cookie accessCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
         accessCookie.setMaxAge(15 * 60); // 15분
@@ -103,6 +105,13 @@ public class UserController {
 
         response.addCookie(accessCookie);
         response.addCookie(refreshCookie);
+
+        response.setHeader("Set-Cookie", accessCookie.getName() + "=" + accessCookie.getValue()
+                + "; Max-Age=" + accessCookie.getMaxAge()
+                + "; Path=" + accessCookie.getPath()
+                + "; Domain=" + accessCookie.getDomain()
+                + "; HttpOnly"
+                + "; SameSite=Lax");
 
         return ResponseEntity.ok().body(userLoginPostRes);
     }
