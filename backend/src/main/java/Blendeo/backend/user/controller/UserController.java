@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -49,10 +50,22 @@ public class UserController {
         try {
             log.warn("mail 서비스 시작");
             authCode = mailService.sendMail(email);
+            log.info(authCode);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
-        return ResponseEntity.ok().body(authCode);
+        return ResponseEntity.ok().body("인증번호가 발급되었습니다.");
+    }
+
+    @Operation(summary = "이메일 존재 유무 확인 / 인증번호 발송")
+    @PostMapping("/auth/auth/code/check")
+    public ResponseEntity<?> authCodeCheck(@RequestParam("email") String email, @RequestParam("authCode") String authCode) {
+        userService.emailExist(email);
+        log.warn("mail 서비스 시작");
+        if (mailService.checkAuthCode(email, authCode)) {
+            return ResponseEntity.ok().body("인증번호가 일치합니다.");
+        }
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
     @Operation(summary = "로그인")
