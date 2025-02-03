@@ -5,6 +5,8 @@ import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -115,10 +117,18 @@ public class UserController {
     @Operation(summary = "refreshToken으로 accessToken 갱신",
         description = "Bearer + refreshToken 보내기, [반환값] 새로 갱신된 accessToken 반환")
     @PostMapping("/auth/refresh")
-    public ResponseEntity<?> refresh(@RequestHeader("Authorization") final String Authorization, HttpServletResponse response) {
-        log.warn(Authorization);
-
-        String newAccessToken = userService.findByRefreshToken(Authorization);
+    public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        String newAccessToken = null;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("RefreshToken".equals(cookie.getName())) {
+                    String token = cookie.getValue();
+                    log.info(token);
+                    newAccessToken = userService.findByRefreshToken(token);
+                }
+            }
+        }
 
         response.setHeader("Set-Cookie", "AccessToken=" + newAccessToken
                 + "; Max-Age=" + (15 * 60) // 15분
@@ -133,15 +143,25 @@ public class UserController {
 
     @Operation(summary = "로그아웃", description = "accessToken, refreshToken 제거됩니다.")
     @PostMapping("/auth/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") final String token, HttpServletResponse response) {
-        userService.logout(token);
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("AccessToken".equals(cookie.getName())) {
+                    String token = cookie.getValue();
+                    // 토큰 검증 로직
+                    log.info(token);
+                    userService.logout(token);
+                }
+            }
+        }
         response.setHeader("Set-Cookie", "AccessToken="
                 + "; Max-Age=0"  // 즉시 만료
                 + "; Path=/"
                 + "; Domain=" + frontDomain
                 + "; HttpOnly"
                 + "; SameSite=Lax");
-        response.setHeader("Set-Cookie", "RefreshToken="
+        response.addHeader("Set-Cookie", "RefreshToken="
                 + "; Max-Age=0"  // 즉시 만료
                 + "; Path=/"
                 + "; Domain=" + frontDomain
