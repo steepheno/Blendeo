@@ -4,6 +4,7 @@ import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
+import Blendeo.backend.project.dto.ProjectListDto;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.entity.ProjectNode;
 import Blendeo.backend.project.repository.ProjectNodeRepository;
@@ -11,13 +12,22 @@ import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
@@ -99,5 +109,25 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
         project.updateContents(contents);
+    }
+
+    @Override
+    public List<ProjectListDto> getNewProjectList(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Project> projectPage = projectRepository.findAllByOrderByCreatedAtDesc(pageRequest);
+        // 페이지 내용 출력
+        List<Project> projects = projectPage.getContent();
+
+        return projects.stream()
+                .map(project -> ProjectListDto.builder()
+                        .projectId(project.getId())
+                        .projectTitle(project.getTitle())
+                        .thumbnail(project.getThumbnail())
+                        .viewCnt(project.getViewCnt())
+                        .contributionCnt(project.getContributorCnt())
+                        .authorId(project.getAuthor().getId())
+                        .authorNickame(project.getAuthor().getNickname())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
