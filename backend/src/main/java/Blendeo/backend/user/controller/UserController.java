@@ -1,16 +1,14 @@
 package Blendeo.backend.user.controller;
 
-import Blendeo.backend.user.dto.FollowerListRes;
-import Blendeo.backend.user.dto.FollowingListRes;
-import Blendeo.backend.user.dto.UserInfoGetRes;
-import Blendeo.backend.user.dto.UserLoginPostReq;
-import Blendeo.backend.user.dto.UserRegisterPostReq;
-import Blendeo.backend.user.dto.UserUpdatePutReq;
+import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.entity.RefreshToken;
 import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
+import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +57,25 @@ public class UserController {
 
     @Operation(summary = "로그인")
     @PostMapping("/auth/login")
-    public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq) {
-        return ResponseEntity.ok().body(userService.login(userLoginPostReq));
+    public ResponseEntity<?> login(@RequestBody UserLoginPostReq userLoginPostReq, HttpServletResponse response) {
+        UserLoginPostResWithToken userLoginPostResWithToken = userService.login(userLoginPostReq);
+        UserLoginPostRes userLoginPostRes = UserLoginPostRes.builder()
+                .id(userLoginPostResWithToken.getId())
+                .email(userLoginPostResWithToken.getEmail())
+                .nickname(userLoginPostResWithToken.getNickname())
+                .profileImage(userLoginPostResWithToken.getProfileImage()).build();
+
+        Cookie accessTokenCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setPath("/");
+        Cookie refreshTokenCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+        return ResponseEntity.ok().body(userLoginPostRes);
     }
 
     @PostMapping("/auth/refresh")
@@ -93,14 +108,14 @@ public class UserController {
 
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/delete-user/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable int id) {
+    public ResponseEntity<?> deleteUser(@PathVariable("id") int id) {
         userService.deleteUser(id);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "팔로우")
     @PostMapping("/following/{targetId}")
-    public ResponseEntity<?> follow(@PathVariable int targetId) {
+    public ResponseEntity<?> follow(@PathVariable("targetId") int targetId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String strUserId = user.getUsername();
         int userId = Integer.parseInt(strUserId);
@@ -110,7 +125,7 @@ public class UserController {
 
     @Operation(summary = "언팔로우")
     @DeleteMapping("/following/{targetId}")
-    public ResponseEntity<?> unfollow(@PathVariable int targetId) {
+    public ResponseEntity<?> unfollow(@PathVariable("targetId") int targetId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String strUserId = user.getUsername();
         int userId = Integer.parseInt(strUserId);
@@ -120,14 +135,14 @@ public class UserController {
 
     @Operation(summary = "유저의 팔로우 목록 조회")
     @GetMapping("/get-followings/{userId}")
-    public ResponseEntity<FollowingListRes> getFollowings(@PathVariable int userId) {
+    public ResponseEntity<FollowingListRes> getFollowings(@PathVariable("userId") int userId) {
         FollowingListRes followingList = userService.getFollowings(userId);
         return ResponseEntity.ok().body(followingList);
     }
 
     @Operation(summary = "유저의 팔로워 목록 조회")
     @GetMapping("/get-followers/{userId}")
-    public ResponseEntity<FollowerListRes> getFollowers(@PathVariable int userId) {
+    public ResponseEntity<FollowerListRes> getFollowers(@PathVariable("userId") int userId) {
         FollowerListRes followerList = userService.getFollowers(userId);
         return ResponseEntity.ok().body(followerList);
     }

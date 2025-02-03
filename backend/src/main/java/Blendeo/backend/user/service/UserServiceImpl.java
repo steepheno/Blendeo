@@ -2,13 +2,7 @@ package Blendeo.backend.user.service;
 
 import Blendeo.backend.exception.EmailAlreadyExistsException;
 import Blendeo.backend.exception.EntityNotFoundException;
-import Blendeo.backend.user.dto.FollowerListRes;
-import Blendeo.backend.user.dto.FollowingListRes;
-import Blendeo.backend.user.dto.UserInfoGetRes;
-import Blendeo.backend.user.dto.UserLoginPostReq;
-import Blendeo.backend.user.dto.UserLoginPostRes;
-import Blendeo.backend.user.dto.UserRegisterPostReq;
-import Blendeo.backend.user.dto.UserUpdatePutReq;
+import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.entity.Follow;
 import Blendeo.backend.user.entity.RefreshToken;
 import Blendeo.backend.user.entity.User;
@@ -64,10 +58,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserLoginPostRes login(UserLoginPostReq userLoginPostReq) {
+    public UserLoginPostResWithToken login(UserLoginPostReq userLoginPostReq) {
         String email = userLoginPostReq.getEmail();
         Optional<User> user = userRepository.findByEmail(email);
-        UserLoginPostRes userLoginPostRes;
+        UserLoginPostResWithToken userLoginPostResWithToken = null;
 
         if (user.isPresent()) {
             if (!user.get().checkPassword(userLoginPostReq.getPassword(), passwordEncoder)) {
@@ -77,11 +71,12 @@ public class UserServiceImpl implements UserService {
             String accessToken = jwtUtil.generateAccessToken(user.get().getId());
             String refreshToken = jwtUtil.generateRefreshToken();
 
-            userLoginPostRes = UserLoginPostRes.builder()
+            userLoginPostResWithToken = UserLoginPostResWithToken.builder()
                     .id(user.get().getId())
                     .email(user.get().getEmail())
                     .nickname(user.get().getNickname())
-                    .accessToken(accessToken).build();
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken).build();
 
             // Redis에 저장
             refreshTokenRepository.save(new RefreshToken(user.get().getId(), accessToken, refreshToken));
@@ -90,7 +85,7 @@ public class UserServiceImpl implements UserService {
             throw new EntityNotFoundException("아이디 혹은 비밀번호가 일치하지 않습니다.");
         }
 
-        return userLoginPostRes;
+        return userLoginPostResWithToken;
     }
 
     @Override
