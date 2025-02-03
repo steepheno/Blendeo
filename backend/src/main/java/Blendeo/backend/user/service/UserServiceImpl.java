@@ -4,7 +4,7 @@ import Blendeo.backend.exception.EmailAlreadyExistsException;
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.entity.Follow;
-import Blendeo.backend.user.entity.RefreshToken;
+import Blendeo.backend.user.entity.Token;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.FollowRepository;
 import Blendeo.backend.user.repository.RefreshTokenRepository;
@@ -12,11 +12,14 @@ import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
 import java.util.List;
 import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -79,7 +82,7 @@ public class UserServiceImpl implements UserService {
                     .refreshToken(refreshToken).build();
 
             // Redis에 저장
-            refreshTokenRepository.save(new RefreshToken(user.get().getId(), accessToken, refreshToken));
+            refreshTokenRepository.save(new Token(user.get().getId(), accessToken, refreshToken));
 
         } else {
             throw new EntityNotFoundException("아이디 혹은 비밀번호가 일치하지 않습니다.");
@@ -89,15 +92,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String findByAccessToken(String token) {
+    public String findByRefreshToken(String token) {
         if (!token.startsWith("Bearer ")) {
             throw new IllegalArgumentException();
         }
-        String accessToken = token.substring(7);
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByAccessToken(accessToken);
+        String refreshToken = token.substring(7);
+        Optional<Token> newToken = refreshTokenRepository.findByRefreshToken(refreshToken);
 
-        if (refreshToken.isPresent() && jwtUtil.validateToken(refreshToken.get().getRefreshToken())) {
-            RefreshToken resultToken = refreshToken.get();
+        if (newToken.isPresent() && jwtUtil.validateToken(newToken.get().getRefreshToken())) {
+            Token resultToken = newToken.get();
 
             String newAccessToken = jwtUtil.generateAccessToken(resultToken.getId());
 
@@ -121,7 +124,7 @@ public class UserServiceImpl implements UserService {
 
             int userId = jwtUtil.getIdFromToken(accessToken);
 
-            Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(String.valueOf(userId));
+            Optional<Token> refreshToken = refreshTokenRepository.findById(String.valueOf(userId));
 
             refreshTokenRepository.delete(refreshToken.get());
 
