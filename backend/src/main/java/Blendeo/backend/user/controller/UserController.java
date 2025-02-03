@@ -86,12 +86,12 @@ public class UserController {
         Cookie accessTokenCookie = new Cookie("AccessToken", userLoginPostResWithToken.getAccessToken());
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
-        accessTokenCookie.setPath("/api/v1/user/auth");
+        accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(15 * 60); // 15분
         Cookie refreshTokenCookie = new Cookie("RefreshToken", userLoginPostResWithToken.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/api/v1/user/auth");
+        refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
 
         response.addCookie(accessTokenCookie);
@@ -110,7 +110,7 @@ public class UserController {
         ResponseCookie accessTokenCookie = ResponseCookie.from("AccessToken", newAccessToken)
                 .httpOnly(true)
                 .secure(true)
-                .path("/api/v1/user/auth")
+                .path("/")
                 .maxAge(60 * 15) // 15분
                 .sameSite("Strict")
                 .build();
