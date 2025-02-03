@@ -24,6 +24,7 @@ axiosInstance.interceptors.request.use(
       "/mail/verify",
       "/user/auth/signup",
       "/user/auth/login",
+      "/api/v1/project/info",
     ];
     const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
     console.log("Is public API:", isPublicAPI);
@@ -60,6 +61,7 @@ axiosInstance.interceptors.response.use(
       "/mail/verify",
       "/user/auth/signup",
       "/user/auth/login",
+      "/api/v1/project/info",
     ];
     const isPublicAPI = publicPaths.some((path) =>
       error.config.url?.includes(path)

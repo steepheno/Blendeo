@@ -32,11 +32,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: ":projectId",
-        element: (
-          <ProtectedRoute>
-            <ProjectDetailPage />
-          </ProtectedRoute>
-        ),
+        element: <ProjectDetailPage />,
       },
       {
         path: "record",

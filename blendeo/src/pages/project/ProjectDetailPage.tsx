@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import VideoPlayer from "@/components/detail/VideoPlayer";
 import InteractionButton from "@/components/detail/InteractionButton";
@@ -18,27 +19,51 @@ import {
 import { TabType } from "@/types/components/video/videoDetail";
 
 const ProjectDetailPage = () => {
-  const { id } = useParams();
+  const { projectId } = useParams();
   const { getProject, currentProject, getComments, comments } =
-    useProjectStore(); // getComments와 comments 추가
+    useProjectStore();
   const [activeTab, setActiveTab] = useState<TabType>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // 프로젝트 데이터 로드
   useEffect(() => {
-    if (id) {
-      const projectId = Number(id);
-      getProject(projectId);
-      getComments(projectId); // 댓글 데이터 로드
-    }
-  }, [id, getProject, getComments]);
+    console.log("ProjectDetailPage useEffect triggered, id:", projectId);
+    const fetchProjectData = async () => {
+      if (!projectId) return;
+
+      try {
+        const numericProjectId = Number(projectId);
+        console.log("Attempting to fetch project with id:", numericProjectId);
+        await getProject(numericProjectId);
+        await getComments(numericProjectId);
+      } catch (err) {
+        console.error("Error fetching project:", err);
+        setError("Failed to load project data");
+      }
+    };
+
+    fetchProjectData();
+  }, [projectId, getProject, getComments]);
 
   const handleTabClick = (tab: TabType) => {
     setActiveTab(activeTab === tab ? null : tab);
   };
 
-  // 로딩 상태 처리
+  if (error) {
+    return (
+      <Layout showNotification={true}>
+        <div className="text-red-500 p-4">{error}</div>
+      </Layout>
+    );
+  }
+
   if (!currentProject) {
-    return <div>Loading...</div>;
+    return (
+      <Layout showNotification={true}>
+        <div className="flex items-center justify-center h-screen">
+          <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+        </div>
+      </Layout>
+    );
   }
 
   return (
@@ -59,7 +84,7 @@ const ProjectDetailPage = () => {
                   content: currentProject.contents,
                   author: {
                     name: currentProject.author.nickname,
-                    profileImage: "/profile.jpg", // 기본 프로필 이미지
+                    profileImage: "/profile.jpg",
                   },
                 }}
                 isPortrait={true}
@@ -100,9 +125,9 @@ const ProjectDetailPage = () => {
             activeTab={activeTab}
             content={
               activeTab === "comments" ? (
-                <CommentsSection projectId={Number(id)} />
+                <CommentsSection projectId={Number(projectId)} />
               ) : (
-                <ContributorsSection projectId={Number(id)} />
+                <ContributorsSection projectId={Number(projectId)} />
               )
             }
           />

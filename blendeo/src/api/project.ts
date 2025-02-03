@@ -1,5 +1,6 @@
 // src/api/project.ts
 import axiosInstance from "@/api/axios";
+import type { User } from "@/types/api/user";
 import {
   Project,
   CreateProjectRequest,
@@ -12,8 +13,9 @@ export const createProject = async (data: CreateProjectRequest) => {
   return axiosInstance.post<void>("/project/create", data);
 };
 
+// src/api/project.ts
 export const getProject = async (projectId: number) => {
-  return axiosInstance.get<Project>(`/project/${projectId}`);
+  return axiosInstance.get<Project>(`/api/v1/project/info/${projectId}`);
 };
 
 export const updateProjectState = async (projectId: number, state: boolean) => {
@@ -69,4 +71,8 @@ export const uploadBlendedVideo = async (
 
 export const getNewProjects = async () => {
   return axiosInstance.get<ProjectListItem[]>("/project/new");
+};
+
+export const getProjectContributors = async (projectId: number) => {
+  return axiosInstance.get<User[]>(`/project/contributors/${projectId}`);
 };
