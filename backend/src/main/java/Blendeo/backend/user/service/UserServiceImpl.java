@@ -93,16 +93,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String findByRefreshToken(String token) {
-        if (!token.startsWith("Bearer ")) {
-            throw new IllegalArgumentException();
-        }
-        String refreshToken = token.substring(7);
-        Optional<Token> newToken = refreshTokenRepository.findByRefreshToken(refreshToken);
+        Optional<Token> newToken = refreshTokenRepository.findByRefreshToken(token);
 
         if (newToken.isPresent() && jwtUtil.validateToken(newToken.get().getRefreshToken())) {
             Token resultToken = newToken.get();
 
-            String newAccessToken = jwtUtil.generateAccessToken(resultToken.getId());
+            int id = jwtUtil.getIdFromToken(resultToken.getAccessToken());
+            String newAccessToken = jwtUtil.generateAccessToken(id);
 
             resultToken.updateAccessToken(newAccessToken);
             refreshTokenRepository.save(resultToken);
@@ -115,19 +112,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void logout(String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            String accessToken = token.substring(7);
-
-            if (!jwtUtil.validateToken(accessToken)) {
+        if (token != null) {
+            if (!jwtUtil.validateToken(token)) {
                 throw new IllegalArgumentException("Invalid or expired access token");
             }
-
-            int userId = jwtUtil.getIdFromToken(accessToken);
-
-            Optional<Token> refreshToken = refreshTokenRepository.findById(String.valueOf(userId));
-
-            refreshTokenRepository.delete(refreshToken.get());
-
+            Optional<Token> tokenInfo = refreshTokenRepository.findByAccessToken(token);
+            if (tokenInfo.isPresent()) {
+                refreshTokenRepository.delete(tokenInfo.get());
+            }
 //            SecurityContextHolder.clearContext(); // SecurityContext에서 인증 정보 제거
         }
     }
