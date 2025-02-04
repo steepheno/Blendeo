@@ -1,13 +1,20 @@
 import { useRef, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { useLocation, useNavigate } from "react-router-dom";
 import Searchbar from "@/components/layout/Searchbar";
-
 import { useProjectStore, useEditStore } from '@/stores/projectStore';
 import { uploadBlendedVideo } from "@/api/project";
 
+interface LocationState {
+  recordedVideoURL: string;
+  forkedVideo: string;
+  forkedEndTime: number;
+}
+
 const ForkedEdit = () => {
+  const location = useLocation();
   const navigate = useNavigate();
+  const { recordedVideoURL, forkedVideo: forkedVideoUrl, forkedEndTime } = location.state as LocationState;
+
   const forkedVideoRef = useRef<HTMLVideoElement>(null);
   const recordedVideoRef = useRef<HTMLVideoElement>(null);
   const [forkedVolume, setForkedVolume] = useState(1);
@@ -28,9 +35,8 @@ const ForkedEdit = () => {
 
         // 녹화된 영상 설정
         const recordedVideo = recordedVideoRef.current;
-        const recordedVideoData = sessionStorage.getItem("recordedVideo");
-        if (recordedVideo && recordedVideoData) {
-          recordedVideo.src = recordedVideoData;
+        if (recordedVideo && recordedVideoURL) {
+          recordedVideo.src = recordedVideoURL;
           await new Promise((resolve) => {
             recordedVideo.onloadedmetadata = () => {
               console.log("녹화된 영상 메타데이터 로드 완료");
@@ -43,63 +49,46 @@ const ForkedEdit = () => {
           });
         }
 
-        // 포크된 영상 불러오기
-        try {
-          const data = getRedirectState('project-fork');
+        // 포크된 영상 설정
+        const forkedVideo = forkedVideoRef.current;
+        if (forkedVideo && forkedVideoUrl) {
+          forkedVideo.src = forkedVideoUrl;
 
-          const videoUrl = data?.videoUrl;
-          // const videoId = data.id;
-
-          const forkedVideo = forkedVideoRef.current;
-          const forkedEndTime = parseFloat(
-            sessionStorage.getItem("forkedEndTime") || "0"
-          );
-
-          if (forkedVideo) {
-            forkedVideo.src = videoUrl;
-
-            await new Promise((resolve) => {
-              forkedVideo.onloadedmetadata = () => {
-                console.log("포크된 영상 메타데이터 로드 완료");
-                resolve(true);
-              };
-              forkedVideo.onerror = () => {
-                console.error("포크된 비디오 로드 실패");
-                resolve(false);
-              };
-            });
-
-            const handleTimeUpdate = () => {
-              if (forkedVideo.currentTime >= forkedEndTime) {
-                forkedVideo.pause();
-                forkedVideo.currentTime = forkedEndTime;
-              }
+          await new Promise((resolve) => {
+            forkedVideo.onloadedmetadata = () => {
+              console.log("포크된 영상 메타데이터 로드 완료");
+              resolve(true);
             };
+            forkedVideo.onerror = () => {
+              console.error("포크된 비디오 로드 실패");
+              resolve(false);
+            };
+          });
 
-            forkedVideo.addEventListener("timeupdate", handleTimeUpdate);
-
-            if (isMounted) {
-              setVideosLoaded(true);
-              console.log("비디오 초기화 완료, videosLoaded 설정됨");
+          const handleTimeUpdate = () => {
+            if (forkedVideo.currentTime >= forkedEndTime) {
+              forkedVideo.pause();
+              forkedVideo.currentTime = forkedEndTime;
             }
+          };
 
-            // cleanup 함수 등록
-            if (isMounted) {
-              return () => {
-                forkedVideo.removeEventListener("timeupdate", handleTimeUpdate);
-              };
-            }
-          }
-        } catch (error) {
-          console.error("비디오 초기화 에러: ", error);
+          forkedVideo.addEventListener("timeupdate", handleTimeUpdate);
+
           if (isMounted) {
-            setError("비디오를 불러오는데 실패했습니다.");
+            setVideosLoaded(true);
+            console.log("비디오 초기화 완료, videosLoaded 설정됨");
           }
+
+          return () => {
+            forkedVideo.removeEventListener("timeupdate", handleTimeUpdate);
+            // Cleanup: revoke object URL
+            URL.revokeObjectURL(recordedVideoURL);
+          };
         }
       } catch (error) {
-        console.error("전체 초기화 에러: ", error);
+        console.error("비디오 초기화 에러: ", error);
         if (isMounted) {
-          setError("초기화 중 오류가 발생했습니다.");
+          setError("비디오를 불러오는데 실패했습니다.");
         }
       }
     };
@@ -109,7 +98,7 @@ const ForkedEdit = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [recordedVideoURL, forkedVideoUrl, forkedEndTime]);
 
   const playBothVideos = async () => {
     try {
@@ -135,18 +124,10 @@ const ForkedEdit = () => {
       recordedVideo.currentTime = 0;
 
       try {
-        // Promise.all을 사용하여 두 비디오를 동시에 재생
         await Promise.all([
-          forkedVideo.play().catch((error) => {
-            console.error("포크된 비디오 재생 실패:", error);
-            throw new Error("포크된 비디오 재생 실패");
-          }),
-          recordedVideo.play().catch((error) => {
-            console.error("녹화된 비디오 재생 실패:", error);
-            throw new Error("녹화된 비디오 재생 실패");
-          }),
+          forkedVideo.play(),
+          recordedVideo.play()
         ]);
-
         console.log("두 비디오 모두 재생 시작됨");
       } catch (error) {
         if (error instanceof Error) {
@@ -162,7 +143,6 @@ const ForkedEdit = () => {
     }
   };
 
-  // 영상 정지
   const pauseBothVideos = () => {
     const forkedVideo = forkedVideoRef.current;
     const recordedVideo = recordedVideoRef.current;
@@ -175,7 +155,6 @@ const ForkedEdit = () => {
     }
   };
 
-  // 볼륨 조정
   const handleForkedVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const volume = parseFloat(e.target.value);
     setForkedVolume(volume);
@@ -184,9 +163,7 @@ const ForkedEdit = () => {
     }
   };
 
-  const handleRecordedVolumeChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleRecordedVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const volume = parseFloat(e.target.value);
     setRecordedVolume(volume);
     if (recordedVideoRef.current) {
@@ -194,39 +171,18 @@ const ForkedEdit = () => {
     }
   };
 
-  // 편집 완료
   const handleComplete = async () => {
     try {
       setIsUploading(true);
 
-      // 볼륨 설정 저장
-      sessionStorage.setItem(
-        "videoSettings",
-        JSON.stringify({
-          forkedVolume,
-          recordedVolume,
-        })
-      );
-
-      // 포크된 영상 URL 가져오기
-      const forkedData = getRedirectState('project-fork');
-      const forkedUrl = forkedData?.videoUrl;
-
-      // 녹화된 영상 데이터 가져오기 (Base64)
-      const recordedVideoBase64 = sessionStorage.getItem("recordedVideo");
-
-      if (!forkedUrl || !recordedVideoBase64) {
-        throw new Error("필요한 비디오 데이터가 없습니다.");
-      }
-
-      // Base64를 Blob으로 변환
-      const base64Response = await fetch(recordedVideoBase64);
-      const recordedBlob = await base64Response.blob();
+      // URL에서 Blob 가져오기
+      const response = await fetch(recordedVideoURL);
+      const recordedBlob = await response.blob();
 
       // Blob을 File로 변환
       const recordedFile = new File(
         [recordedBlob],
-        'recorded-video.webm',  // 파일명
+        'recorded-video.webm',
         {
           type: 'video/webm',
           lastModified: Date.now()
@@ -236,17 +192,10 @@ const ForkedEdit = () => {
       console.log("File size:", recordedFile.size);
 
       // API 호출
-      const response = await uploadBlendedVideo(forkedUrl, recordedFile);
-      console.log(response);
-      
+      const result = await uploadBlendedVideo(forkedVideoUrl, recordedFile);
+      console.log(result);
 
-      // 응답 데이터 저장
-      sessionStorage.setItem('forked-project', response);
-      setUrl(response);
-
-      // 세션 스토리지 정리
-      sessionStorage.removeItem("recordedVideo");
-      sessionStorage.removeItem("forkedEndTime");
+      setUrl(result);
 
       // 페이지 전환
       navigate("/project/forkupload");
@@ -259,7 +208,6 @@ const ForkedEdit = () => {
   };
 
   return (
-
     <div className="flex flex-col bg-black min-h-screen items-center p-4">
       {isUploading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -272,7 +220,7 @@ const ForkedEdit = () => {
       )}
       <Searchbar />
       <div className="w-full max-w-4xl">
-        <h1 className="text-2xl font-bold mb-4 text-center">영상 편집</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center text-white">영상 편집</h1>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -282,7 +230,7 @@ const ForkedEdit = () => {
 
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="space-y-2">
-            <p className="text-lg font-semibold">포크한 영상</p>
+            <p className="text-lg font-semibold text-white">포크한 영상</p>
             <div className="aspect-video bg-black rounded overflow-hidden">
               <video
                 ref={forkedVideoRef}
@@ -290,7 +238,7 @@ const ForkedEdit = () => {
                 playsInline
               />
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 text-white">
               <span>볼륨:</span>
               <input
                 type="range"
@@ -306,7 +254,7 @@ const ForkedEdit = () => {
           </div>
 
           <div className="space-y-2">
-            <p className="text-lg font-semibold">녹화된 영상</p>
+            <p className="text-lg font-semibold text-white">녹화된 영상</p>
             <div className="aspect-video bg-black rounded overflow-hidden">
               <video
                 ref={recordedVideoRef}
@@ -314,7 +262,7 @@ const ForkedEdit = () => {
                 playsInline
               />
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 text-white">
               <span>볼륨:</span>
               <input
                 type="range"
@@ -334,16 +282,18 @@ const ForkedEdit = () => {
           <button
             onClick={playBothVideos}
             disabled={!videosLoaded}
-            className={`px-6 py-2 rounded-lg font-semibold text-white ${videosLoaded ? "bg-green-500 hover:bg-green-600" : "bg-gray-400"
-              }`}
+            className={`px-6 py-2 rounded-lg font-semibold text-white ${
+              videosLoaded ? "bg-green-500 hover:bg-green-600" : "bg-gray-400"
+            }`}
           >
             동시 재생
           </button>
           <button
             onClick={pauseBothVideos}
             disabled={!videosLoaded}
-            className={`px-6 py-2 rounded-lg font-semibold text-white ${videosLoaded ? "bg-yellow-500 hover:bg-yellow-600" : "bg-gray-400"
-              }`}
+            className={`px-6 py-2 rounded-lg font-semibold text-white ${
+              videosLoaded ? "bg-yellow-500 hover:bg-yellow-600" : "bg-gray-400"
+            }`}
           >
             일시 정지
           </button>
@@ -357,7 +307,7 @@ const ForkedEdit = () => {
             편집 완료
           </button>
           <button
-            onClick={() => navigate("/forkrecord")}
+            onClick={() => navigate(-1)}
             className="px-6 py-3 rounded-lg font-semibold bg-gray-500 hover:bg-gray-600 text-white"
           >
             다시 촬영하기

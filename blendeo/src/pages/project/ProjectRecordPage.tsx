@@ -3,21 +3,17 @@ import Searchbar from '@/components/layout/Searchbar';
 import recordStop from "@/assets/stop.png";
 
 import { useRef, useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
-
-// 영상 상세 페이지로부터 영상 정보 받아오기
-
 
 const ProjectRecordPage = () => {
   const { getRedirectState } = useProjectStore();
-
   const currentProject = getRedirectState('project-fork');
   const navigate = useNavigate();
 
-  const [recordingTime, setRecordingTime] = useState(0);  // 초 단위 녹화시간
-  const timeRef = useRef<NodeJS.Timeout | null>(null);  // setInterval 참조 저장
-  const startTimeRef = useRef<number | null>(null);  // 녹화 시작 타임스탬프
+  const [recordingTime, setRecordingTime] = useState(0);
+  const timeRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -25,8 +21,14 @@ const ProjectRecordPage = () => {
   const [isRecording, setIsRecording] = useState(false);
   const forkedVideoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string>("");
-  // const forkedVideoPath = "../../test-video.mp4";
   const recordedChunksRef = useRef<Blob[]>([]);
+
+  // cleanup function to handle URL revocation
+  const cleanup = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+  };
 
   useEffect(() => {
     const initializeVideo = async () => {
@@ -53,20 +55,14 @@ const ProjectRecordPage = () => {
     };
 
     initializeVideo();
-
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-    };
+    return cleanup;
   }, [currentProject]);
 
   const startRecording = async () => {
     if (!streamRef.current || !forkedVideoRef.current) return;
 
     try {
-      recordedChunksRef.current = []; // ref만 초기화
-
+      recordedChunksRef.current = [];
       const forkedVideo = forkedVideoRef.current;
       forkedVideo.currentTime = 0;
 
@@ -78,10 +74,9 @@ const ProjectRecordPage = () => {
 
       mediaRecorder.onstart = async () => {
         setIsRecording(true);
-        startTimeRef.current = Date.now();  // 녹화 시작 시간 저장
-        setRecordingTime(0);  // 초기화
+        startTimeRef.current = Date.now();
+        setRecordingTime(0);
 
-        // 1초마다 녹화 시간 갱신
         timeRef.current = setInterval(() => {
           if (startTimeRef.current) {
             const elapsedTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
@@ -93,63 +88,46 @@ const ProjectRecordPage = () => {
           await forkedVideo.play();
         } catch (err) {
           setError("포크된 비디오 재생 실패");
-          console.log(err);
-          
+          console.error(err);
           stopRecording();
         }
       };
 
       mediaRecorder.ondataavailable = (event) => {
-        console.log("데이터 수집:", event.data.size);
         if (event.data && event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
-          console.log(
-            "청크 추가. 현재 청크 수:",
-            recordedChunksRef.current.length
-          );
         }
       };
 
       mediaRecorder.onstop = () => {
         setIsRecording(false);
         if (timeRef.current) {
-          clearInterval(timeRef.current);  // 타이머 종료
+          clearInterval(timeRef.current);
         }
+        
         try {
           const endTime = forkedVideo.currentTime;
           forkedVideo.pause();
 
-          console.log("녹화 종료시 청크 수:", recordedChunksRef.current.length);
-
           const recordedBlob = new Blob(recordedChunksRef.current, {
             type: "video/webm",
           });
-          console.log("생성된 Blob:", recordedBlob);
 
           if (recordedBlob.size === 0) {
             throw new Error("녹화된 데이터가 없습니다.");
           }
 
-          // Blob을 Base64로 변환
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            if (reader.result && currentProject) {
-              // Base64 문자열에서 실제 데이터 부분만 추출
-              const base64data = reader.result.toString();
-              sessionStorage.setItem("recordedVideo", base64data);
-              sessionStorage.setItem("forkedVideo", currentProject.videoUrl);
-              sessionStorage.setItem("forkedEndTime", endTime.toString());
+          // Create object URL for the recorded video
+          const recordedVideoURL = URL.createObjectURL(recordedBlob);
 
-              console.log("세션스토리지 저장 완료:", {
-                forkedVideo: currentProject.videoUrl,
-                forkedEndTime: endTime,
-                recordedVideoSize: recordedBlob.size,
-              });
-
-              navigate("/project/forkedit");
-            }
-          };
-          reader.readAsDataURL(recordedBlob);
+          // Navigate with state containing the video URL
+          navigate("/project/forkedit", {
+            state: {
+              recordedVideoURL,
+              forkedVideo: currentProject?.videoUrl,
+              forkedEndTime: endTime,
+            },
+          });
         } catch (err) {
           setError("비디오 저장 실패");
           console.error("비디오 처리 에러:", err);
@@ -169,7 +147,6 @@ const ProjectRecordPage = () => {
     }
   };
 
-  // 시간 형식 변환
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
@@ -215,7 +192,7 @@ const ProjectRecordPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="text-white my-[20px] self-start" >
+              <div className="text-white my-[20px] self-start">
                 <p className='text-left'>{formatTime(recordingTime)}</p>
               </div>
               <div className="flex overflow-hidden flex-wrap gap-2.5 justify-center items-center max-w-full w-[816px]">
