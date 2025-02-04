@@ -12,17 +12,13 @@ import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -49,20 +45,19 @@ public class ProjectServiceImpl implements ProjectService {
                 .runningTime(projectCreateReq.getDuration())
                 .videoUrl(projectCreateReq.getVideoUrl())
                 .build();
+        project = projectRepository.save(project);
 
         ProjectNode projectNode = ProjectNode.builder()
                 .projectId(project.getId())
                 .build();
 
         projectNodeRepository.save(projectNode);
-        if (projectCreateReq.getForkProjectId() != null) {
-            ProjectNode parentNode = projectNodeRepository.findByProjectId(projectCreateReq.getForkProjectId())
-                    .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
-            projectNodeRepository.createForkRelation(projectNode.getProjectId(), parentNode.getProjectId());
+        if (projectCreateReq.getForkProjectId() != null) {
+            projectNodeRepository.createForkRelation(project.getId(), projectCreateReq.getForkProjectId());
         }
 
-        return Math.toIntExact(projectRepository.save(project).getId());
+        return Math.toIntExact(project.getId());
     }
 
     @Override
@@ -116,7 +111,7 @@ public class ProjectServiceImpl implements ProjectService {
     public List<ProjectListDto> getNewProjectList(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Project> projectPage = projectRepository.findAllByOrderByCreatedAtDesc(pageRequest);
-        // 페이지 내용 출력
+
         List<Project> projects = projectPage.getContent();
 
         return projects.stream()

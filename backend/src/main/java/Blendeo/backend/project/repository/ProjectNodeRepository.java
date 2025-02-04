@@ -1,6 +1,9 @@
 package Blendeo.backend.project.repository;
 
+import Blendeo.backend.project.dto.ProjectHierarchyRes;
 import Blendeo.backend.project.entity.ProjectNode;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
@@ -26,4 +29,11 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
     @Query("MATCH (child:ProjectNode {projectId: $childId}), (parent:ProjectNode {projectId: $parentId}) " +
             "CREATE (child)-[:FORK]->(parent)")
     void createForkRelation(@Param("childId") Long childId, @Param("parentId") Long parentId);
+
+    @Query("MATCH (start:ProjectNode {projectId: $projectId})-[:FORK*0..]->(connected) " +
+            "WITH connected " +
+            "OPTIONAL MATCH (connected)<-[:FORK]-(child) " +
+            "WITH connected, COLLECT({projectId: child.projectId, children: []}) as children " +
+            "RETURN {projectId: connected.projectId, children: children} as result")
+    Optional<List<Map<String, Object>>> getProjectHierarchy(@Param("projectId") Long projectId);
 }
