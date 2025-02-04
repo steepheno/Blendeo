@@ -19,9 +19,11 @@ public class VideoInfoGetter {
     public class Info {
         public int width;
         public int height;
-        Info(int width, int height) {
+        public int rotation;
+        Info(int width, int height, int rotation) {
             this.width = width;
             this.height = height;
+            this.rotation = rotation;
         }
     }
 
@@ -54,7 +56,15 @@ public class VideoInfoGetter {
 
         int width = stream.get("width").asInt();
         int height = stream.get("height").asInt();
+        // rotation 정보 추가
+        int rotation = -1;
+        if (stream.has("side_data_list")) {
+            JsonNode sideData = stream.get("side_data_list").get(0);
+            if (sideData.has("rotation")) {
+                rotation = sideData.get("rotation").asInt();
+            }
+        }
 
-        return new Info(width, height);
+        return new Info(width, height, rotation);
     }
 }
