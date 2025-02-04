@@ -2,6 +2,7 @@ package Blendeo.backend.project.repository;
 
 import Blendeo.backend.project.dto.ProjectRankRes;
 import Blendeo.backend.project.entity.Project;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,4 +18,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<ProjectRankRes> findProjectsWithAuthorByIds(@Param("projectIds") List<Long> projectIds);
     @Query("SELECT p FROM Project p ORDER BY p.createdAt DESC")
     Page<Project> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    @Query("SELECT p FROM Project p WHERE p.id IN :ids")
+    List<Project> findAllByIdIn(@Param("ids") List<Long> ids);
 }
