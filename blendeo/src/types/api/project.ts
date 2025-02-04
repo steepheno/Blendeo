@@ -4,16 +4,16 @@ export interface Project {
   id: number;
   forkId: number;
   author: User; // 추가
-  title: string; // projectTitle → title
+  projectTitle: string; // projectTitle → title
   contents: string;
   contributorCnt: number;
   createdAt: string;
   state: boolean;
   thumbnail: string;
+  videoUrl: string; // 추가
   runningTime: number;
   viewCnt: number;
   likeCnt: number;
-  videoUrl: string; // 추가
 }
 
 export interface CreateProjectRequest {

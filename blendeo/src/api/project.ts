@@ -15,7 +15,7 @@ export const createProject = async (data: CreateProjectRequest) => {
 
 // src/api/project.ts
 export const getProject = async (projectId: number) => {
-  return axiosInstance.get<Project>(`/api/v1/project/info/${projectId}`);
+  return axiosInstance.get<Project>(`/project/info/${projectId}`);
 };
 
 export const updateProjectState = async (projectId: number, state: boolean) => {
