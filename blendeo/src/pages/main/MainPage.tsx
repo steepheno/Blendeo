@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import MusicCard from "@/components/common/MusicCard";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
 import GenreTag from "@/components/common/GenreTag";
 import Layout from "@/components/layout/Layout";
 import { useProjectStore } from "@/stores/projectStore";
-import { Project } from "@/types/api/project";
+import { Project, ProjectListItem } from "@/types/api/project";
+import VideoSection from "@/components/profile/VideoSection";
 
 const genreTags = [
   { label: "All", width: "50px" },
@@ -20,60 +21,85 @@ const genreTags = [
 ];
 
 const MainPage = () => {
-  // 상태 관리
+  const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<
     "forYou" | "ranking" | "latest"
   >("forYou");
   const [selectedGenre, setSelectedGenre] = useState<string>("All");
   const [projects, setProjects] = useState<Project[]>([]);
 
-  // Project Store에서 필요한 메서드들을 가져옵니다
-  const { getProject } = useProjectStore();
+  const { getNewProjects } = useProjectStore();
 
-  // 프로젝트 목록을 가져오는 함수
-  const fetchProjects = async () => {
+  const convertProjectToVideoProps = (project: Project) => ({
+    thumbnailSrc: project.thumbnail,
+    title: project.projectTitle,
+    username: project.author.nickname,
+    views: formatViews(project.viewCnt),
+    timeAgo: getTimeAgo(project.createdAt),
+    tags: [], // 태그 정보가 없는 경우 빈 배열 사용
+  });
+
+  const fetchProjects = useCallback(async () => {
     try {
-      // 실제 API 연동시에는 여기서 프로젝트 목록을 가져오는 API를 호출해야 합니다
-      // 현재 API에는 프로젝트 목록을 가져오는 엔드포인트가 없어 보이므로,
-      // 백엔드 팀과 협의하여 추가가 필요합니다
-
-      // 임시로 프로젝트 데이터를 하드코딩합니다
-      const mockProjects: Project[] = [
-        {
-          id: 1,
-          forkId: 0,
-          author: {
+      if (selectedTab === "latest") {
+        const response = await getNewProjects();
+        const convertedProjects: Project[] = response.map(
+          (item: ProjectListItem) => ({
+            id: item.projectId,
+            projectTitle: item.projectTitle,
+            thumbnail: item.thumbnail,
+            viewCnt: item.viewCnt,
+            contributorCnt: item.contributionCnt,
+            author: {
+              id: item.authorId,
+              nickname: item.authorNickname,
+              email: "",
+            },
+            forkId: 0,
+            contents: "",
+            createdAt: new Date().toISOString(),
+            state: true,
+            runningTime: 0,
+            likeCnt: 0,
+            videoUrl: "",
+          })
+        );
+        setProjects(convertedProjects);
+      } else {
+        const mockProjects: Project[] = [
+          {
             id: 1,
-            email: "user@example.com",
-            nickname: "Lady Gaga & Ariana Grande",
+            forkId: 0,
+            author: {
+              id: 1,
+              email: "user@example.com",
+              nickname: "Lady Gaga & Ariana Grande",
+            },
+            projectTitle: "Rain on Me",
+            contents: "Project description",
+            contributorCnt: 2,
+            createdAt: new Date(
+              Date.now() - 2 * 30 * 24 * 60 * 60 * 1000
+            ).toISOString(),
+            state: true,
+            thumbnail: "https://example.com/thumbnail1.jpg",
+            runningTime: 180,
+            viewCnt: 3200000,
+            likeCnt: 15000,
+            videoUrl: "https://example.com/video1.mp4",
           },
-          title: "Rain on Me",
-          contents: "Project description",
-          contributorCnt: 2,
-          createdAt: new Date(
-            Date.now() - 2 * 30 * 24 * 60 * 60 * 1000
-          ).toISOString(),
-          state: true,
-          thumbnail: "https://example.com/thumbnail1.jpg",
-          runningTime: 180,
-          viewCnt: 3200000,
-          likeCnt: 15000,
-          videoUrl: "https://example.com/video1.mp4",
-        },
-        // ... 더 많은 mock 데이터
-      ];
-
-      setProjects(mockProjects);
+        ];
+        setProjects(mockProjects);
+      }
     } catch (error) {
       console.error("Failed to fetch projects:", error);
     }
-  };
+  }, [selectedTab, getNewProjects]);
 
   useEffect(() => {
     fetchProjects();
-  }, [selectedTab, selectedGenre]);
+  }, [fetchProjects, selectedGenre]);
 
-  // 조회수를 포맷팅하는 함수
   const formatViews = (views: number): string => {
     if (views >= 1000000) {
       return `${(views / 1000000).toFixed(1)}M`;
@@ -84,7 +110,6 @@ const MainPage = () => {
     return views.toString();
   };
 
-  // 경과 시간을 계산하는 함수
   const getTimeAgo = (createdAt: string): string => {
     const diff = Date.now() - new Date(createdAt).getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -97,6 +122,10 @@ const MainPage = () => {
       return `${days} day${days > 1 ? "s" : ""} ago`;
     }
     return "Today";
+  };
+
+  const handleProjectClick = (projectId: number) => {
+    navigate(`/project/${projectId}`); // 프로젝트 상세 페이지로 이동
   };
 
   return (
@@ -154,19 +183,20 @@ const MainPage = () => {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-3 items-start p-4 mt-2.5 w-full max-md:max-w-full">
-              <div className="flex flex-wrap flex-1 shrink gap-3 items-start w-full basis-0 min-w-[240px] max-md:max-w-full">
-                {projects.map((project) => (
-                  <MusicCard
-                    key={project.id}
-                    imageUrl={project.thumbnail}
-                    title={`${project.title} | ${project.author.nickname}`}
-                    timeAgo={getTimeAgo(project.createdAt)}
-                    views={formatViews(project.viewCnt)}
-                    onClick={() => getProject(project.id)}
-                  />
-                ))}
-              </div>
+            <div className="mt-2.5 w-full max-md:max-w-full">
+              <VideoSection
+                title={
+                  selectedTab === "forYou"
+                    ? "For You"
+                    : selectedTab === "ranking"
+                      ? "Ranking"
+                      : "Latest Projects"
+                }
+                videos={projects.map((project) => ({
+                  ...convertProjectToVideoProps(project),
+                  onClick: () => handleProjectClick(project.id),
+                }))}
+              />
             </div>
           </div>
         </div>
