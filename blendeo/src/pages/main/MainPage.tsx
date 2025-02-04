@@ -52,7 +52,9 @@ const MainPage = () => {
   const fetchProjects = useCallback(async () => {
     try {
       if (selectedTab === "latest") {
+        console.log("Fetching latest projects...");
         const response = await getNewProjects();
+        console.log("API Response:", response);
         const convertedProjects: Project[] = response.map(
           (item: ProjectListItem) => ({
             id: item.projectId,
@@ -74,6 +76,7 @@ const MainPage = () => {
             videoUrl: "",
           })
         );
+        console.log("Converted Projects:", convertedProjects);
         setProjects(convertedProjects);
       } else {
         const mockProjects: Project[] = [

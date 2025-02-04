@@ -114,8 +114,8 @@ export const useProjectStore = create<ProjectStore>()(
         await projectApi.uploadBlendedVideo(forkedUrl, videoFile);
       },
 
-      getNewProjects: async () => {
-        const projects = await projectApi.getNewProjects();
+      getNewProjects: async (page = 0, size = 10) => {
+        const projects = await projectApi.getNewProjects(page, size);
         set({ newProjects: projects });
         return projects;
       },
