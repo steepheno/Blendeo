@@ -6,7 +6,7 @@ import ContributorsSection from "@/components/detail/ContributorsSection";
 import SidePanel from "@/components/detail/SidePanel";
 import { getProject } from "@/api/project";
 import { Project } from "@/types/api/project";
-import { TabType } from "@/types/components/video/videoDetail";
+
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import {
@@ -18,10 +18,14 @@ import {
   Users,
 } from "lucide-react";
 
+import { TabType } from "@/types/components/video/videoDetail";
+
 const ProjectDetailPage = () => {
+  // params 전체를 로깅하여 디버깅
   const params = useParams();
   const { projectId } = params;
   const location = useLocation();
+
   const [activeTab, setActiveTab] = useState<TabType>(null);
   const [projectData, setProjectData] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,6 +33,11 @@ const ProjectDetailPage = () => {
 
   useEffect(() => {
     const fetchProjectData = async () => {
+      // 디버깅을 위한 로깅 추가
+      console.log("All params:", params);
+      console.log("projectId:", projectId);
+      console.log("Current path:", location.pathname);
+
       if (!projectId) {
         setError("잘못된 프로젝트 ID입니다.");
         setIsLoading(false);
@@ -62,7 +71,7 @@ const ProjectDetailPage = () => {
     };
 
     fetchProjectData();
-  }, [projectId]);
+  }, [projectId, location.pathname]);
 
   const handleTabClick = (tab: TabType) => {
     setActiveTab(activeTab === tab ? null : tab);
@@ -71,7 +80,7 @@ const ProjectDetailPage = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div>로딩 중...</div>
+        <div>로딩 중....</div>
         <div className="text-sm text-gray-500">Project ID: {projectId}</div>
       </div>
     );
@@ -89,30 +98,27 @@ const ProjectDetailPage = () => {
   }
 
   return (
-    <Layout showNotification={true}>
-      <div className="flex h-screen bg-white">
+    <Layout showRightSidebar={false}>
+      <div className="flex h-screen bg-white w-full">
         <div className="flex-1 flex">
-          <div
-            className={`transition-all duration-300 ease-in-out p-4 ${
-              activeTab ? "w-3/4" : "w-full"
-            }`}
-          >
-            <div className="relative h-full">
-              <VideoPlayer
-                videoUrl={projectData.videoUrl}
-                thumbnail={projectData.thumbnail || "/thumbnail.jpg"}
-                metadata={{
-                  title: projectData.projectTitle,
-                  content: projectData.contents,
-                  author: {
-                    name: "Cathy",
-                    profileImage: "/profile.jpg",
-                  },
-                }}
-                isPortrait={true}
-              />
+          <div className="relative h-full flex items-start pt-10">
+            <div className="flex items-end">
+              <div className="flex-1">
+                <VideoPlayer
+                  videoUrl={projectData.videoUrl}
+                  metadata={{
+                    title: projectData.projectTitle,
+                    content: projectData.contents,
+                    author: {
+                      name: "Cathy",
+                      profileImage: "/profile.jpg",
+                    },
+                  }}
+                  isPortrait={true}
+                />
+              </div>
 
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center space-y-4">
+              <div className="ml-4 flex flex-col items-center space-y-4">
                 <InteractionButton
                   icon={Music}
                   count={projectData.viewCnt.toString()}
@@ -141,10 +147,10 @@ const ProjectDetailPage = () => {
             activeTab={activeTab}
             content={
               activeTab === "comments" ? (
-                <CommentsSection projectId={Number(projectId)} /> // projectId prop 추가
-              ) : activeTab === "contributors" ? (
-                <ContributorsSection projectId={Number(projectId)} /> // projectId prop 추가
-              ) : null
+                <CommentsSection />
+              ) : (
+                <ContributorsSection />
+              )
             }
           />
         </div>
