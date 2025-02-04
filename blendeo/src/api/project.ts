@@ -8,12 +8,10 @@ import {
   ProjectListItem,
 } from "@/types/api/project";
 
-// 프로젝트 CRUD
 export const createProject = async (data: CreateProjectRequest) => {
   return axiosInstance.post<void>("/project/create", data);
 };
 
-// src/api/project.ts
 export const getProject = async (projectId: number) => {
   return axiosInstance.get<Project>(`/project/info/${projectId}`);
 };

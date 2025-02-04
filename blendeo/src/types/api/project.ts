@@ -3,14 +3,14 @@ import type { User } from "./user";
 export interface Project {
   id: number;
   forkId: number;
-  author: User; // 추가
-  projectTitle: string; // projectTitle → title
+  author: User;
+  projectTitle: string;
   contents: string;
   contributorCnt: number;
   createdAt: string;
   state: boolean;
   thumbnail: string;
-  videoUrl: string; // 추가
+  videoUrl: string;
   runningTime: number;
   viewCnt: number;
   likeCnt: number;

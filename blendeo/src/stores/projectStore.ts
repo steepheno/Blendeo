@@ -26,7 +26,7 @@ interface ProjectStore {
   deleteComment: (commentId: number, projectId: number) => Promise<void>;
   forkProject: (forkedUrl: string, videoFile: string) => Promise<void>;
   uploadBlendedVideo: (forkedUrl: string, videoFile: string) => Promise<void>;
-  getNewProjects: () => Promise<ProjectListItem[]>; // 반환 타입을 ProjectListItem[]로 변경
+  getNewProjects: () => Promise<ProjectListItem[]>;
   contributors: User[];
   getProjectContributors: (projectId: number) => Promise<void>;
 }
@@ -43,8 +43,6 @@ export const useProjectStore = create<ProjectStore>()(
         await projectApi.createProject(data);
       },
 
-      // src/stores/projectStore.ts에서
-      // src/stores/projectStore.ts
       getProject: async (projectId) => {
         try {
           console.log("Attempting to fetch project:", projectId);
