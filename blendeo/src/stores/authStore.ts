@@ -1,6 +1,6 @@
 // src/stores/authStore.ts
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { persist, devtools } from "zustand/middleware";
 import * as authApi from "@/api/auth";
 import type {
   AuthResponse,
@@ -12,73 +12,137 @@ interface AuthStore {
   user: AuthResponse | null;
   token: string | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+
+  // 기본 인증 관련 액션
   signin: (data: SigninRequest) => Promise<void>;
   signup: (data: SignupRequest) => Promise<void>;
   logout: () => Promise<void>;
+
+  // 추가 기능
+  googleLogin: () => Promise<void>;
+  clearError: () => void;
+  setUser: (user: AuthResponse | null) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
   devtools(
-    (set) => ({
-      user: JSON.parse(localStorage.getItem("user") || "null"),
-      token: localStorage.getItem("token"),
-      isAuthenticated: !!localStorage.getItem("user"),
+    persist(
+      (set) => ({
+        user: JSON.parse(localStorage.getItem("user") || "null"),
+        token: localStorage.getItem("token"),
+        isAuthenticated: !!localStorage.getItem("user"),
+        isLoading: false,
+        error: null,
 
-      signin: async (data) => {
-        try {
-          const response = await authApi.signin(data);
-          if (response) {
+        setUser: (user) => set({ user }),
+
+        signin: async (data) => {
+          set({ isLoading: true, error: null });
+          try {
+            const response = await authApi.signin(data);
+            if (response) {
+              set({
+                user: response,
+                token: response.token || null,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+              localStorage.setItem("user", JSON.stringify(response));
+              if (response.token) {
+                localStorage.setItem("token", response.token);
+              }
+            }
+          } catch (error) {
+            const err = error as Error;
+            set({ error: err.message, isLoading: false });
+            console.error("Signin failed:", error);
+            throw error;
+          }
+        },
+
+        signup: async (data) => {
+          set({ isLoading: true, error: null });
+          try {
+            const response = await authApi.signup(data);
             set({
               user: response,
               token: response.token || null,
-              isAuthenticated: true, // 로그인 성공시 true로 설정
+              isAuthenticated: true,
+              isLoading: false,
             });
             localStorage.setItem("user", JSON.stringify(response));
             if (response.token) {
               localStorage.setItem("token", response.token);
             }
+          } catch (error) {
+            const err = error as Error;
+            set({ error: err.message, isLoading: false });
+            console.error("Signup failed:", error);
+            throw error;
           }
-        } catch (error) {
-          console.error("Signin failed:", error);
-          throw error;
-        }
-      },
+        },
 
-      signup: async (data) => {
-        try {
-          const response: AuthResponse = await authApi.signup(data);
-          set({
-            user: response,
-            token: response.token || null,
-            isAuthenticated: true, // 회원가입 성공시 true로 설정
-          });
-          localStorage.setItem("user", JSON.stringify(response));
-          if (response.token) {
-            localStorage.setItem("token", response.token);
+        logout: async () => {
+          set({ isLoading: true, error: null });
+          try {
+            await authApi.logout();
+          } catch (error) {
+            const err = error as Error;
+            set({ error: err.message });
+            console.error("Logout failed:", error);
+          } finally {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            set({
+              user: null,
+              token: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
           }
-        } catch (error) {
-          console.error("Signup failed:", error);
-          throw error;
-        }
-      },
+        },
 
-      logout: async () => {
-        try {
-          await authApi.logout();
-        } catch (error) {
-          console.error("Logout failed:", error);
-        } finally {
-          // 항상 로컬 상태를 초기화
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-          });
-        }
-      },
-    }),
+        googleLogin: async () => {
+          set({ isLoading: true, error: null });
+          try {
+            // 구글 로그인은 별도의 API 엔드포인트를 사용하도록 수정
+            const response = await authApi.signin({
+              email: "",
+              password: "",
+            });
+            set({
+              user: response,
+              isAuthenticated: true,
+              token: response.token || null,
+              isLoading: false,
+            });
+          } catch (error) {
+            const err = error as Error;
+            set({ error: err.message, isLoading: false });
+            throw error;
+          }
+        },
+
+        clearError: () => set({ error: null }),
+      }),
+      {
+        name: "auth-storage",
+        partialize: (state) => ({
+          user: state.user,
+          token: state.token,
+          isAuthenticated: state.isAuthenticated,
+        }),
+      }
+    ),
     { name: "auth-store" }
   )
 );
+
+// Selector hooks
+export const useUser = () => useAuthStore((state) => state.user);
+export const useIsAuthenticated = () =>
+  useAuthStore((state) => state.isAuthenticated);
+export const useAuthError = () => useAuthStore((state) => state.error);
+export const useIsLoading = () => useAuthStore((state) => state.isLoading);

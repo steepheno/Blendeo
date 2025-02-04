@@ -8,6 +8,7 @@ export interface SignupRequest {
 export interface SigninRequest {
   email: string;
   password: string;
+  provider?: string; // 소셜 로그인을 위한 옵셔널 필드 추가
 }
 
 export interface AuthResponse {
@@ -15,7 +16,8 @@ export interface AuthResponse {
   email: string;
   nickname: string | null;
   profileImage: string | null;
-  token?: string; // 기존 token 필드도 유지
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface EmailVerification {

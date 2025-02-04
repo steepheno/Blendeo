@@ -42,7 +42,6 @@ export interface VideoMetadata {
 
 export interface VideoPlayerProps {
   videoUrl: string;
-  thumbnail: string;
   metadata: VideoMetadata;
   isPortrait?: boolean;
 }

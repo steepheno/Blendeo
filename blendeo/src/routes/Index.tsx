@@ -32,11 +32,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: ":projectId",
-        element: (
-          <ProtectedRoute>
-            <ProjectDetailPage />
-          </ProtectedRoute>
-        ),
+        element: <ProjectDetailPage />,
       },
       {
         path: "record",
@@ -56,6 +52,30 @@ export const router = createBrowserRouter([
       },
       {
         path: "upload",
+        element: (
+          <ProtectedRoute>
+            <ProjectUploadPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "forkrecord",
+        element: (
+          <ProtectedRoute>
+            <ProjectRecordPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "forkedit",
+        element: (
+          <ProtectedRoute>
+            <ProjectEditPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "forkupload",
         element: (
           <ProtectedRoute>
             <ProjectUploadPage />

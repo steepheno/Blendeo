@@ -1,10 +1,12 @@
+// src/components/common/VideoCard.tsx
 type VideoCardProps = {
   thumbnailSrc: string;
   title: string;
   username: string;
   views: string;
   timeAgo: string;
-  tags: string[];
+  tags?: string[]; // 태그는 선택적으로 변경
+  onClick?: () => void; // 클릭 이벤트 추가
 };
 
 function VideoCard({
@@ -13,10 +15,14 @@ function VideoCard({
   username,
   views,
   timeAgo,
-  tags,
+  tags = [], // 기본값 빈 배열
+  onClick,
 }: VideoCardProps) {
   return (
-    <div className="flex flex-col self-stretch my-auto bg-white rounded-md min-h-[218px] min-w-[240px] w-[301px]">
+    <div
+      className="flex flex-col self-stretch my-auto bg-white rounded-md min-h-[218px] min-w-[240px] w-[301px] cursor-pointer"
+      onClick={onClick}
+    >
       <div className="flex gap-2.5 justify-center items-center pl-px w-full bg-white rounded-md min-h-[147px]">
         <img
           loading="lazy"

@@ -41,7 +41,7 @@ const SignUpForm = () => {
       ...prev,
       [name]: value,
     }));
-    setError(""); // 입력값이 변경되면 에러 메시지 초기화
+    setError("");
   };
 
   const handleEmailVerification = async () => {
@@ -50,7 +50,6 @@ const SignUpForm = () => {
       return;
     }
 
-    // 이메일 형식 검사
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError("올바른 이메일 형식이 아닙니다.");
@@ -58,7 +57,7 @@ const SignUpForm = () => {
     }
 
     try {
-      setIsLoading(true); // 로딩 상태 추가
+      setIsLoading(true);
       await sendVerificationEmail(formData.email);
       setEmailSent(true);
       setError("");
@@ -81,6 +80,7 @@ const SignUpForm = () => {
     }
 
     try {
+      // API 파라미터 이름을 authCode로 변경
       await verifyEmailCode(formData.email, formData.verificationCode);
       setVerificationStatus("success");
       setError("");
@@ -96,19 +96,16 @@ const SignUpForm = () => {
     e.preventDefault();
     setError("");
 
-    // 모든 필수 필드 검사
     if (!formData.email || !formData.password || !formData.nickname) {
       setError("모든 필드를 입력해주세요.");
       return;
     }
 
-    // 이메일 인증 확인
     if (verificationStatus !== "success") {
       setError("이메일 인증을 완료해주세요.");
       return;
     }
 
-    // 비밀번호 유효성 검사
     if (!validatePassword(formData.password)) {
       setError(
         "비밀번호는 영문 대/소문자, 숫자, 특수문자를 포함하여 8자 이상이어야 합니다."
@@ -116,7 +113,6 @@ const SignUpForm = () => {
       return;
     }
 
-    // 비밀번호 일치 확인
     if (formData.password !== formData.confirmPassword) {
       setError("비밀번호가 일치하지 않습니다.");
       return;
