@@ -10,6 +10,20 @@ import type {
   ProjectListItem,
 } from "@/types/api/project";
 
+type RedirectSource = 'project-edit' | 'project-create' | 'project-detail' | 'project-fork';
+
+interface RedirectState {
+  project: Project | null;
+  source: RedirectSource | null;
+}
+
+interface BlendedUrl {
+  url: string | null;
+  getUrl: () => string | null;
+  setUrl: (url: string | null) => void;
+  clear: () => void;
+}
+
 interface ProjectStore {
   currentProject: Project | null;
   comments: Comment[];
@@ -29,11 +43,15 @@ interface ProjectStore {
   getNewProjects: () => Promise<ProjectListItem[]>;
   contributors: User[];
   getProjectContributors: (projectId: number) => Promise<void>;
+  redirectState: RedirectState;
+  setRedirectState: (project: Project, source: RedirectSource) => void;
+  clearRedirectState: () => void;
+  getRedirectState: (source: RedirectSource) => Project | null;
 }
 
 export const useProjectStore = create<ProjectStore>()(
   devtools(
-    (set) => ({
+    (set, get: () => ProjectStore) => ({
       currentProject: null,
       comments: [],
       newProjects: [],
@@ -124,7 +142,50 @@ export const useProjectStore = create<ProjectStore>()(
         const contributors = await projectApi.getProjectContributors(projectId);
         set({ contributors });
       },
+
+      redirectState: {
+        project: null,
+        source: null
+      },
+
+      setRedirectState: (project: Project, source: RedirectSource) => {
+        set({
+          redirectState: {
+            project,
+            source
+          }
+        });
+      },
+
+      clearRedirectState: () => {
+        set({
+          redirectState: {
+            project: null,
+            source: null
+          }
+        });
+      },
+
+      getRedirectState: (source: RedirectSource) => {
+        const { redirectState } = get();
+        if (redirectState.source === source) {
+          return redirectState.project;
+        }
+        return null;
+      },
     }),
     { name: "project-store" }
+  )
+);
+
+export const useEditStore = create<BlendedUrl>()(
+  devtools(
+    (set, get) => ({
+      url: null,
+      getUrl: () => get().url,
+      setUrl: (url) => set({ url }),
+      clear: () => set({ url: null }),
+    }),
+    { name: "edit-store" }
   )
 );

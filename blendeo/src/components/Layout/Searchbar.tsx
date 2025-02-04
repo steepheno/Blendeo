@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 
-const Navbar = () => {
+const Searchbar = () => {
   const navigate = useNavigate();
 
   const goToMain = () => {
@@ -77,4 +77,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Searchbar;
