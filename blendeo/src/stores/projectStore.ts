@@ -10,6 +10,13 @@ import type {
   ProjectListItem,
 } from "@/types/api/project";
 
+type RedirectSource = 'project-edit' | 'project-create' | 'project-detail' | 'project-fork';
+
+interface RedirectState {
+  project: Project | null;
+  source: RedirectSource | null;
+}
+
 interface ProjectStore {
   currentProject: Project | null;
   comments: Comment[];
@@ -29,11 +36,17 @@ interface ProjectStore {
   getNewProjects: () => Promise<ProjectListItem[]>; // 반환 타입을 ProjectListItem[]로 변경
   contributors: User[];
   getProjectContributors: (projectId: number) => Promise<void>;
+
+  // Redirect 관련 상태와 메서드
+  redirectState: RedirectState;
+  setRedirectState: (project: Project, source: RedirectSource) => void;
+  clearRedirectState: () => void;
+  getRedirectState: (source: RedirectSource) => Project | null;
 }
 
 export const useProjectStore = create<ProjectStore>()(
   devtools(
-    (set) => ({
+    (set, get: () => ProjectStore ) => ({
       currentProject: null,
       comments: [],
       newProjects: [],
@@ -43,7 +56,6 @@ export const useProjectStore = create<ProjectStore>()(
         await projectApi.createProject(data);
       },
 
-      // src/stores/projectStore.ts에서
       // src/stores/projectStore.ts
       getProject: async (projectId) => {
         try {
@@ -125,6 +137,39 @@ export const useProjectStore = create<ProjectStore>()(
       getProjectContributors: async (projectId) => {
         const contributors = await projectApi.getProjectContributors(projectId);
         set({ contributors });
+      },
+
+      // Redirect 관련 
+
+      redirectState: {
+        project: null,
+        source: null
+      },
+
+      setRedirectState: (project: Project, source: RedirectSource) => {
+        set({
+          redirectState: {
+            project,
+            source
+          }
+        });
+      },
+
+      clearRedirectState: () => {
+        set({
+          redirectState: {
+            project: null,
+            source: null
+          }
+        });
+      },
+
+      getRedirectState: (source: RedirectSource) => {
+        const { redirectState } = get();
+        if (redirectState.source === source) {
+          return redirectState.project;
+        }
+        return null;
       },
     }),
     { name: "project-store" }

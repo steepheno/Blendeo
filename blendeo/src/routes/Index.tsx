@@ -59,6 +59,12 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "forkrecord",
+        element: (
+          <h1>hiiii</h1>
+        ),
+      },
+      {
         path: "tree/:projectId",
         element: <ProjectTreePage />,
       },
