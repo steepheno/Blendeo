@@ -39,13 +39,11 @@ const ProjectDetailPage = () => {
 
   useEffect(() => {
     const fetchProjectData = async () => {
-      // 디버깅을 위한 로깅 추가
-      console.log('All params:', params);
-      console.log('projectId:', projectId);
-      console.log('Current path:', location.pathname);
+      console.log("projectId:", projectId);
+      console.log("Current path:", location.pathname);
 
       if (!projectId) {
-        setError('잘못된 프로젝트 ID입니다.');
+        setError("잘못된 프로젝트 ID입니다.");
         setIsLoading(false);
         return;
       }
@@ -55,20 +53,23 @@ const ProjectDetailPage = () => {
         const projectIdNumber = parseInt(projectId, 10);
 
         if (isNaN(projectIdNumber)) {
-          throw new Error('유효하지 않은 프로젝트 ID 형식입니다.');
+          throw new Error("유효하지 않은 프로젝트 ID 형식입니다.");
         }
 
         const response = await getProject(projectIdNumber);
         if (!response) {
-          throw new Error('프로젝트를 찾을 수 없습니다.');
+          throw new Error("프로젝트를 찾을 수 없습니다.");
         }
         setProjectData(response);
         console.log(response);
         setError(null);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : '프로젝트 정보를 불러오는데 실패했습니다.';
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "프로젝트 정보를 불러오는데 실패했습니다.";
         setError(errorMessage);
-        console.error('Error fetching project data:', err);
+        console.error("Error fetching project data:", err);
       } finally {
         setIsLoading(false);
       }

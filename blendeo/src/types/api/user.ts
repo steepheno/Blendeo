@@ -21,9 +21,9 @@ export interface FollowResponse {
   followingIdList: number[];
   followingNicknameList: string[];
   followingCount: number;
-  followerIdList?: number[]; // 추가
-  followerNicknameList?: string[]; // 추가
-  followerCount?: number; // 추가
+  followerIdList?: number[];
+  followerNicknameList?: string[];
+  followerCount?: number;
 }
 
 export interface UpdateUserRequest {

@@ -10,7 +10,7 @@ export interface Project {
   createdAt: string;
   state: boolean;
   thumbnail: string;
-  videoUrl: string; // 추가
+  videoUrl: string;
   runningTime: number;
   viewCnt: number;
   likeCnt: number;

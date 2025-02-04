@@ -20,15 +20,25 @@ const genreTags = [
   { label: "Indie", width: "73px" },
 ];
 
+const SELECTED_TAB_KEY = "selectedMainPageTab";
+
 const MainPage = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<
     "forYou" | "ranking" | "latest"
-  >("forYou");
+  >(() => {
+    const savedTab = localStorage.getItem(SELECTED_TAB_KEY);
+    return (savedTab as "forYou" | "ranking" | "latest") || "forYou";
+  });
   const [selectedGenre, setSelectedGenre] = useState<string>("All");
   const [projects, setProjects] = useState<Project[]>([]);
 
   const { getNewProjects } = useProjectStore();
+
+  const handleTabSelect = (tab: "forYou" | "ranking" | "latest") => {
+    setSelectedTab(tab);
+    localStorage.setItem(SELECTED_TAB_KEY, tab);
+  };
 
   const convertProjectToVideoProps = (project: Project) => ({
     thumbnailSrc: project.thumbnail,
@@ -36,7 +46,7 @@ const MainPage = () => {
     username: project.author.nickname,
     views: formatViews(project.viewCnt),
     timeAgo: getTimeAgo(project.createdAt),
-    tags: [], // 태그 정보가 없는 경우 빈 배열 사용
+    tags: [],
   });
 
   const fetchProjects = useCallback(async () => {
@@ -125,7 +135,7 @@ const MainPage = () => {
   };
 
   const handleProjectClick = (projectId: number) => {
-    navigate(`/project/${projectId}`); // 프로젝트 상세 페이지로 이동
+    navigate(`/project/${projectId}`);
   };
 
   return (
@@ -149,21 +159,21 @@ const MainPage = () => {
             <div className="flex flex-col pb-3 mt-2.5 w-full text-sm font-bold text-slate-500 max-md:max-w-full">
               <div className="flex flex-wrap justify-between items-start px-4 w-full border-b border-zinc-200 max-md:max-w-full">
                 <div
-                  onClick={() => setSelectedTab("forYou")}
+                  onClick={() => handleTabSelect("forYou")}
                   className={`flex flex-col flex-1 shrink justify-center items-center pt-4 pb-3.5 border-gray-200 basis-0 border-b-[3px] min-w-[240px] cursor-pointer
                     ${selectedTab === "forYou" ? "text-neutral-900 border-neutral-900" : ""}`}
                 >
                   <div className="w-[53px]">For you</div>
                 </div>
                 <div
-                  onClick={() => setSelectedTab("ranking")}
+                  onClick={() => handleTabSelect("ranking")}
                   className={`flex flex-col flex-1 shrink justify-center items-center pt-4 pb-3.5 whitespace-nowrap border-gray-200 basis-0 border-b-[3px] min-w-[240px] cursor-pointer
                     ${selectedTab === "ranking" ? "text-neutral-900 border-neutral-900" : ""}`}
                 >
                   <div className="w-[57px]">Ranking</div>
                 </div>
                 <div
-                  onClick={() => setSelectedTab("latest")}
+                  onClick={() => handleTabSelect("latest")}
                   className={`flex flex-col flex-1 shrink justify-center items-center pt-4 pb-3.5 whitespace-nowrap border-gray-200 basis-0 border-b-[3px] min-w-[240px] cursor-pointer
                     ${selectedTab === "latest" ? "text-neutral-900 border-neutral-900" : ""}`}
                 >
