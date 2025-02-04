@@ -25,7 +25,7 @@ const ProjectDetailPage = () => {
   const params = useParams();
   const { projectId } = params;
   const location = useLocation();
-  
+
   const [activeTab, setActiveTab] = useState<TabType>(null);
   const [projectData, setProjectData] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,11 +47,11 @@ const ProjectDetailPage = () => {
       try {
         setIsLoading(true);
         const projectIdNumber = parseInt(projectId, 10);
-        
+
         if (isNaN(projectIdNumber)) {
           throw new Error('유효하지 않은 프로젝트 ID 형식입니다.');
         }
-        
+
         const response = await getProject(projectIdNumber);
         if (!response) {
           throw new Error('프로젝트를 찾을 수 없습니다.');
@@ -77,7 +77,7 @@ const ProjectDetailPage = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div>로딩 중...</div>
+        <div>로딩 중....</div>
         <div className="text-sm text-gray-500">Project ID: {projectId}</div>
       </div>
     );
@@ -95,18 +95,14 @@ const ProjectDetailPage = () => {
   }
 
   return (
-    <Layout showNotification={true}>
-      <div className="flex h-screen bg-white">
+    <Layout showRightSidebar={false}>
+      <div className="flex h-screen bg-white w-full">
         <div className="flex-1 flex">
-          <div
-            className={`transition-all duration-300 ease-in-out p-4 ${
-              activeTab ? "w-3/4" : "w-full"
-            }`}
-          >
-            <div className="relative h-full">
+          <div className="relative h-full flex items-start pt-10">
+            <div className="flex items-end">
+            <div className="flex-1">
               <VideoPlayer
                 videoUrl={projectData.videoUrl}
-                thumbnail={projectData.thumbnail || "/thumbnail.jpg"}
                 metadata={{
                   title: projectData.projectTitle,
                   content: projectData.contents,
@@ -117,25 +113,26 @@ const ProjectDetailPage = () => {
                 }}
                 isPortrait={true}
               />
+            </div>
 
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center space-y-4">
-                <InteractionButton icon={Music} count={projectData.viewCnt.toString()} label="Blendit!" />
-                <InteractionButton icon={Heart} count="0" />
-                <InteractionButton
-                  icon={MessageSquare}
-                  count="0"
-                  isActive={activeTab === "comments"}
-                  onClick={() => handleTabClick("comments")}
-                />
-                <InteractionButton
-                  icon={Users}
-                  count={projectData.contributorCnt.toString()}
-                  isActive={activeTab === "contributors"}
-                  onClick={() => handleTabClick("contributors")}
-                />
-                <InteractionButton icon={Bookmark} count="0" />
-                <InteractionButton icon={Share2} count="0" />
-              </div>
+            <div className="ml-4 flex flex-col items-center space-y-4">
+              <InteractionButton icon={Music} count={projectData.viewCnt.toString()} label="Blendit!" />
+              <InteractionButton icon={Heart} count="0" />
+              <InteractionButton
+                icon={MessageSquare}
+                count="0"
+                isActive={activeTab === "comments"}
+                onClick={() => handleTabClick("comments")}
+              />
+              <InteractionButton
+                icon={Users}
+                count={projectData.contributorCnt.toString()}
+                isActive={activeTab === "contributors"}
+                onClick={() => handleTabClick("contributors")}
+              />
+              <InteractionButton icon={Bookmark} count="0" />
+              <InteractionButton icon={Share2} count="0" />
+            </div>
             </div>
           </div>
 
