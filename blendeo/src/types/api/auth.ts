@@ -16,7 +16,8 @@ export interface AuthResponse {
   email: string;
   nickname: string | null;
   profileImage: string | null;
-  token?: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface EmailVerification {

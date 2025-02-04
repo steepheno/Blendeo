@@ -22,54 +22,43 @@ interface UserData {
 }
 
 // Request Interceptor
-axiosInstance.interceptors.request.use(
-  (config) => {
-    config.headers["Access-Control-Allow-Origin"] = "*";
-    config.headers["Access-Control-Allow-Methods"] =
-      "GET,PUT,POST,DELETE,PATCH,OPTIONS";
+axiosInstance.interceptors.request.use((config) => {
+  console.log("Request config:", config);
+  const publicPaths = [
+    "/mail/check",
+    "/mail/verify",
+    "/user/auth/signup",
+    "/user/auth/login",
+    "/api/v1/project/info",
+  ];
+
+  const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
+
+  if (import.meta.env.DEV) {
     console.log("Request config:", config);
-    const publicPaths = [
-      "/mail/check",
-      "/mail/verify",
-      "/user/auth/signup",
-      "/user/auth/login",
-      "/api/v1/project/info",
-    ];
+    console.log("Is public API:", isPublicAPI);
+  }
 
-    const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
+  if (!isPublicAPI) {
+    // 쿠키에서 accessToken 읽기
+    const cookies = document.cookie.split(";");
+    const accessToken = cookies
+      .find((cookie) => cookie.trim().startsWith("accessToken="))
+      ?.split("=")[1];
 
-    if (import.meta.env.DEV) {
-      console.log("Request config:", config);
-      console.log("Is public API:", isPublicAPI);
-    }
-
-    if (!isPublicAPI) {
-      // 1. 쿠키에서 토큰 추출 시도
-      const cookies = document.cookie.split(";");
-      const accessToken = cookies
-        .find((cookie) => cookie.trim().startsWith("AccessToken="))
-        ?.split("=")[1];
-
-      if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      } else {
-        // 2. localStorage에서 토큰 추출 시도
-        console.log("trying local...");
-
-        const localData = localStorage.getItem("user");
-        if (localData) {
-          const userData: UserData = JSON.parse(localData);
-          console.log("Access Token is:", userData.accessToken);
-          config.headers.Authorization = `Bearer ${userData.accessToken}`;
-        }
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    } else {
+      // 쿠키에 없으면 localStorage에서 시도
+      const localData = localStorage.getItem("user");
+      if (localData) {
+        const userData: UserData = JSON.parse(localData);
+        config.headers.Authorization = `Bearer ${userData.accessToken}`;
       }
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
   }
-);
+  return config;
+});
 
 // Response Interceptor
 axiosInstance.interceptors.response.use(

@@ -33,8 +33,6 @@ const ProjectDetailPage = () => {
 
   useEffect(() => {
     const fetchProjectData = async () => {
-      // 디버깅을 위한 로깅 추가
-      console.log("All params:", params);
       console.log("projectId:", projectId);
       console.log("Current path:", location.pathname);
 
