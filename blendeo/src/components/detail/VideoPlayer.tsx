@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoPlayerProps } from "@/types/components/video/videoDetail";
+import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 
 function VideoPlayer({
   videoUrl,
@@ -83,6 +84,32 @@ function VideoPlayer({
           </div>
         )}
       </div>
+
+      {/* Video Controls */}
+      {videoUrl && (
+        <div className="absolute bottom-20 left-0 right-0 flex justify-center space-x-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={handlePlayPause}
+            className="p-2 bg-white bg-opacity-20 rounded-full hover:bg-opacity-30 transition-all"
+          >
+            {isPlaying ? (
+              <Pause className="w-6 h-6 text-white" />
+            ) : (
+              <Play className="w-6 h-6 text-white" />
+            )}
+          </button>
+          <button
+            onClick={handleMuteToggle}
+            className="p-2 bg-white bg-opacity-20 rounded-full hover:bg-opacity-30 transition-all"
+          >
+            {isMuted ? (
+              <VolumeX className="w-6 h-6 text-white" />
+            ) : (
+              <Volume2 className="w-6 h-6 text-white" />
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Hover Overlay */}
       <div

@@ -12,15 +12,6 @@ const axiosInstance = axios.create({
   },
 }) as CustomAxiosInstance;
 
-const publicPaths = [
-  "/mail/check",
-  "/mail/verify",
-  "/user/auth/signup",
-  "/user/auth/login",
-  "/project/new",
-  "/project/",
-];
-
 interface UserData {
   id: number;
   email: string;
@@ -36,6 +27,14 @@ axiosInstance.interceptors.request.use(
     config.headers["Access-Control-Allow-Origin"] = "*";
     config.headers["Access-Control-Allow-Methods"] =
       "GET,PUT,POST,DELETE,PATCH,OPTIONS";
+    console.log("Request config:", config);
+    const publicPaths = [
+      "/mail/check",
+      "/mail/verify",
+      "/user/auth/signup",
+      "/user/auth/login",
+      "/api/v1/project/info",
+    ];
 
     const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
 
@@ -84,6 +83,14 @@ axiosInstance.interceptors.response.use(
     ) {
       return Promise.resolve();
     }
+
+    const publicPaths = [
+      "/mail/check",
+      "/mail/verify",
+      "/user/auth/signup",
+      "/user/auth/login",
+      "/api/v1/project/info",
+    ];
 
     const isPublicAPI = publicPaths.some((path) =>
       error.config.url?.includes(path)

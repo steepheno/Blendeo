@@ -31,3 +31,14 @@ export interface Comment {
   user: User;
   project: Project;
 }
+
+export interface ProjectListItem {
+  projectId: number;
+  projectTitle: string;
+  thumbnail: string;
+  viewCnt: number;
+  forkCnt: number;
+  contributionCnt: number;
+  authorId: number;
+  authorNickname: string;
+}
