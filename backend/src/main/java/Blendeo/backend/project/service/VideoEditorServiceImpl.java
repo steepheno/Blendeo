@@ -88,8 +88,10 @@ public class VideoEditorServiceImpl implements VideoEditorService {
             VideoInfoGetter.Info info = videoInfo.getVideoInfo(tempVideo1.getPath());
 
             if (info.width > info.height) { // 너비가 더 길다
+
                 // 비디오 아래로 합치기
-                mergedVideoPath = videoMerger.mergeVideosVertically(
+                mergedVideoPath = videoMerger.mergeVideosVertically
+                        (
                         tempVideo1.getAbsolutePath(),
                         tempVideo2.getAbsolutePath()
                 );
