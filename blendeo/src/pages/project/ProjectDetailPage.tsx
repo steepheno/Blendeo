@@ -77,7 +77,7 @@ const ProjectDetailPage = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div>로딩 중...</div>
+        <div>로딩 중....</div>
         <div className="text-sm text-gray-500">Project ID: {projectId}</div>
       </div>
     );
