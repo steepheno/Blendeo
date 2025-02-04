@@ -13,6 +13,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -22,115 +23,140 @@ public class VideoMerger {
     @Value("${ffmpeg.path}")
     private String ffmpegPath;
 
+    // 동기 메소드로 변경
     public String mergeVideosHorizontally(String video1Path, String video2Path) {
-        try {
-            String outputFileName = "merged_" + UUID.randomUUID().toString() + ".mp4";
-            // System.getProperty("java.io.tmpdir") : 현재 운영체제의 임시 디렉토리 경로 반환.
-            String outputFilePath = System.getProperty("java.io.tmpdir") + File.separator + outputFileName;
+        validateInputFiles(video1Path, video2Path);
+        return mergeVideos(video1Path, video2Path, true);
+    }
 
-            // FFmpeg 명령어 구성
-            List<String> command = new ArrayList<>();
-            command.add(ffmpegPath);
-            command.add("-i");
-            command.add(video1Path);
-            command.add("-i");
-            command.add(video2Path);
-            command.add("-filter_complex");
-            command.add("[0:v][1:v]scale2ref=oh*mdar:ih[v0][v1];[v0][v1]hstack=inputs=2[v]");
-            command.add("-map");
-            command.add("[v]");
-            command.add("-c:v");
-            command.add("libx264");
-            command.add("-c:a");
-            command.add("aac");
-            command.add(outputFilePath);
+    public String mergeVideosVertically(String video1Path, String video2Path) {
+        validateInputFiles(video1Path, video2Path);
+        return mergeVideos(video1Path, video2Path, false);
+    }
 
-            // ProcessBuilder를 사용하여 FFmpeg 실행
-            ProcessBuilder pb = new ProcessBuilder(command);
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
+    private void validateInputFiles(String video1Path, String video2Path) {
+        File video1File = new File(video1Path);
+        File video2File = new File(video2Path);
 
-            // 프로세스 출력 로그 기록
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    log.info(line);
-                }
-            }
-
-            // 프로세스 완료 대기
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("FFmpeg process failed with exit code: " + exitCode);
-            }
-
-            return outputFilePath;
-
-        } catch (IOException | InterruptedException e) {
-            log.error("Error merging videos", e);
-            throw new RuntimeException("Failed to merge videos", e);
+        if (!video1File.exists()) {
+            throw new IllegalArgumentException("First video file not found: " + video1Path);
+        }
+        if (!video2File.exists()) {
+            throw new IllegalArgumentException("Second video file not found: " + video2Path);
+        }
+        if (!video1File.canRead()) {
+            throw new IllegalArgumentException("Cannot read first video file: " + video1Path);
+        }
+        if (!video2File.canRead()) {
+            throw new IllegalArgumentException("Cannot read second video file: " + video2Path);
         }
     }
 
-
-    public String mergeVideosVertically(String video1Path, String video2Path) {
+    private String mergeVideos(String video1Path, String video2Path, boolean horizontal) {
         try {
             String outputFileName = "merged_" + UUID.randomUUID().toString() + ".mp4";
-            // System.getProperty("java.io.tmpdir") : 현재 운영체제의 임시 디렉토리 경로 반환.
             String outputFilePath = System.getProperty("java.io.tmpdir") + File.separator + outputFileName;
+            File outputFile = new File(outputFilePath);
 
-            // FFmpeg 명령어 구성
-            List<String> command = new ArrayList<>();
-            command.add(ffmpegPath);
-            command.add("-i");
-            command.add(video1Path);
-            command.add("-i");
-            command.add(video2Path);
-            command.add("-filter_complex");
-            command.add("[0:v][1:v]scale2ref=oh*mdar:ih[v0][v1];[v0][v1]vstack=inputs=2[v]");
-            command.add("-map");
-            command.add("[v]");
-            command.add("-c:v");
-            command.add("libx264");
-            command.add("-c:a");
-            command.add("aac");
-            command.add(outputFilePath);
+            // FFmpeg 명령 실행
+            List<String> command = buildFFmpegCommand(video1Path, video2Path, outputFilePath, horizontal);
+            log.info("Executing FFmpeg command: {}", String.join(" ", command));
 
-            // ProcessBuilder를 사용하여 FFmpeg 실행
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
-            // 프로세스 출력 로그 기록
+            // 로그 처리
+            StringBuilder output = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    log.info(line);
+                    output.append(line).append("\n");
+                    log.info("FFmpeg: {}", line);
                 }
             }
 
-            // 프로세스 완료 대기
-            int exitCode = process.waitFor();
+            // 프로세스 완료 대기 (타임아웃 10분 설정)
+            if (!process.waitFor(10, TimeUnit.MINUTES)) {
+                process.destroy();
+                throw new RuntimeException("FFmpeg process timed out after 10 minutes");
+            }
+
+            int exitCode = process.exitValue();
             if (exitCode != 0) {
-                throw new RuntimeException("FFmpeg process failed with exit code: " + exitCode);
+                throw new RuntimeException("FFmpeg process failed with exit code: " + exitCode + "\nOutput: " + output);
+            }
+
+            if (!outputFile.exists()) {
+                throw new RuntimeException("Output file was not created: " + outputFilePath);
             }
 
             return outputFilePath;
 
         } catch (IOException | InterruptedException e) {
             log.error("Error merging videos", e);
-            throw new RuntimeException("Failed to merge videos", e);
+            throw new RuntimeException("Failed to merge videos: " + e.getMessage(), e);
         }
+    }
+
+    private List<String> buildFFmpegCommand(String video1Path, String video2Path, String outputFilePath, boolean horizontal) {
+        List<String> command = new ArrayList<>();
+        command.add(ffmpegPath);
+
+        // 첫 번째 입력에 대한 하드웨어 가속 설정
+        command.add("-hwaccel");
+        command.add("cuda");     // NVIDIA GPU 사용시
+        command.add("-i");
+        command.add(video1Path);
+
+        // 두 번째 입력에 대한 하드웨어 가속 설정
+        command.add("-hwaccel");
+        command.add("cuda");     // NVIDIA GPU 사용시
+        command.add("-i");
+        command.add(video2Path);
+
+        // 인코딩 성능 최적화 설정
+        command.add("-preset");
+        command.add("p1");      // NVIDIA용 가장 빠른 프리셋
+
+        // 필터 설정
+        command.add("-filter_complex");
+        String stackFilter = horizontal ? "hstack" : "vstack";
+        command.add("[0:v][1:v]scale2ref=oh*mdar:ih[v0][v1];[v0][v1]" + stackFilter + "=inputs=2[v]");
+
+        command.add("-map");
+        command.add("[v]");
+
+        // 출력 인코더 설정
+        command.add("-c:v");
+        command.add("h264_nvenc");
+
+        // 최적화된 인코딩 설정
+        command.add("-rc:v");
+        command.add("constqp");
+        command.add("-qp");
+        command.add("27");
+
+        command.add("-c:a");
+        command.add("aac");
+
+        command.add(outputFilePath);
+
+        // 디버깅을 위한 전체 명령어 출력
+        log.info("FFmpeg command: {}", String.join(" ", command));
+
+        return command;
     }
 
     public void cleanupTempFiles(File... files) {
         for (File file : files) {
             if (file != null && file.exists()) {
-                file.delete();
+                boolean deleted = file.delete();
+                if (!deleted) {
+                    log.warn("Failed to delete temporary file: {}", file.getAbsolutePath());
+                }
             }
         }
     }
-
 }
