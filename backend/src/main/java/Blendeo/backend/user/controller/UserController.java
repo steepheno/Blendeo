@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @Operation(summary = "[STEP2] : 이메일 존재 유무 확인 / 인증번호 일치 확인")
-    @PostMapping("/auth/auth/code/check")
+    @PostMapping("/auth/code/check")
     public ResponseEntity<?> authCodeCheck(@RequestParam("email") String email, @RequestParam("authCode") String authCode) {
         userService.emailExist(email);
         log.warn("mail 서비스 시작");
