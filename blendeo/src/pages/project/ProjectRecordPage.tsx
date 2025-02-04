@@ -10,8 +10,9 @@ import { useProjectStore } from '@/stores/projectStore';
 
 
 const ProjectRecordPage = () => {
+  const { getRedirectState } = useProjectStore();
 
-  const currentProject = useProjectStore((state) => state.currentProject);
+  const currentProject = getRedirectState('project-fork');
   const navigate = useNavigate();
 
   const [recordingTime, setRecordingTime] = useState(0);  // 초 단위 녹화시간
@@ -92,6 +93,8 @@ const ProjectRecordPage = () => {
           await forkedVideo.play();
         } catch (err) {
           setError("포크된 비디오 재생 실패");
+          console.log(err);
+          
           stopRecording();
         }
       };

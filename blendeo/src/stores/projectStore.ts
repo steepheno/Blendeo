@@ -17,6 +17,13 @@ interface RedirectState {
   source: RedirectSource | null;
 }
 
+interface BlendedUrl {
+  url: string | null;
+  getUrl: () => string | null;
+  setUrl: (url: string | null) => void;
+  clear: () => void;
+}
+
 interface ProjectStore {
   currentProject: Project | null;
   comments: Comment[];
@@ -33,11 +40,9 @@ interface ProjectStore {
   deleteComment: (commentId: number, projectId: number) => Promise<void>;
   forkProject: (forkedUrl: string, videoFile: string) => Promise<void>;
   uploadBlendedVideo: (forkedUrl: string, videoFile: string) => Promise<void>;
-  getNewProjects: () => Promise<ProjectListItem[]>; // 반환 타입을 ProjectListItem[]로 변경
+  getNewProjects: () => Promise<ProjectListItem[]>;
   contributors: User[];
   getProjectContributors: (projectId: number) => Promise<void>;
-
-  // Redirect 관련 상태와 메서드
   redirectState: RedirectState;
   setRedirectState: (project: Project, source: RedirectSource) => void;
   clearRedirectState: () => void;
@@ -46,7 +51,7 @@ interface ProjectStore {
 
 export const useProjectStore = create<ProjectStore>()(
   devtools(
-    (set, get: () => ProjectStore ) => ({
+    (set, get: () => ProjectStore) => ({
       currentProject: null,
       comments: [],
       newProjects: [],
@@ -56,7 +61,6 @@ export const useProjectStore = create<ProjectStore>()(
         await projectApi.createProject(data);
       },
 
-      // src/stores/projectStore.ts
       getProject: async (projectId) => {
         try {
           console.log("Attempting to fetch project:", projectId);
@@ -139,8 +143,6 @@ export const useProjectStore = create<ProjectStore>()(
         set({ contributors });
       },
 
-      // Redirect 관련 
-
       redirectState: {
         project: null,
         source: null
@@ -173,5 +175,17 @@ export const useProjectStore = create<ProjectStore>()(
       },
     }),
     { name: "project-store" }
+  )
+);
+
+export const useEditStore = create<BlendedUrl>()(
+  devtools(
+    (set, get) => ({
+      url: null,
+      getUrl: () => get().url,
+      setUrl: (url) => set({ url }),
+      clear: () => set({ url: null }),
+    }),
+    { name: "edit-store" }
   )
 );

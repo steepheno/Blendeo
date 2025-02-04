@@ -4,7 +4,7 @@ export interface Project {
   id: number;
   forkId: number;
   author: User; // 추가
-  projectTitle: string; // projectTitle → title
+  title: string; // title
   contents: string;
   contributorCnt: number;
   createdAt: string;
@@ -34,7 +34,7 @@ export interface Comment {
 
 export interface ProjectListItem {
   projectId: number;
-  projectTitle: string;
+  title: string;
   thumbnail: string;
   viewCnt: number;
   forkCnt: number;

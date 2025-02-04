@@ -8,9 +8,25 @@ import {
   ProjectListItem,
 } from "@/types/api/project";
 
+interface CreateProjectResponse {
+  projectId: number;  // 또는 실제 API 응답 구조에 맞게 수정
+}
+
 // 프로젝트 CRUD
 export const createProject = async (data: CreateProjectRequest) => {
-  return axiosInstance.post<void>("/project/create", data);
+  const params = new URLSearchParams({
+    title: data.title,
+    content: data.content,
+    state: data.state.toString(),
+    videoUrl: data.videoUrl
+  });
+
+  if (data.forkProjectId !== undefined) {
+    params.append('forkProjectId', data.forkProjectId.toString());
+  }
+
+  // void를 CreateProjectResponse로 변경
+  return axiosInstance.post<CreateProjectResponse>(`/project/create?${params.toString()}`);
 };
 
 // src/api/project.ts
@@ -61,11 +77,44 @@ export const forkProject = async (forkedUrl: string, videoFile: string) => {
 
 export const uploadBlendedVideo = async (
   forkedUrl: string,
-  videoFile: string
+  videoFile: File
 ) => {
-  return axiosInstance.post<void>("/project/create/video/blend/upload", {
-    forkedUrl,
-    videoFile,
+  // 파일 크기 확인 (바이트 단위)
+  const fileSizeInBytes = videoFile.size;
+  const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+  
+  console.log('File Information:', {
+    name: videoFile.name,
+    type: videoFile.type,
+    sizeInBytes: fileSizeInBytes,
+    sizeInMB: fileSizeInMB.toFixed(2) + ' MB'
+  });
+
+  const formData = new FormData();
+  formData.append('forkedUrl', forkedUrl);
+  formData.append('videoFile', videoFile);
+
+  // FormData 전체 크기 추정
+  let totalSize = fileSizeInBytes;
+  totalSize += new Blob([forkedUrl]).size; // forkedUrl 문자열의 크기
+
+  console.log('Total FormData Information:', {
+    estimatedSizeInBytes: totalSize,
+    estimatedSizeInMB: (totalSize / (1024 * 1024)).toFixed(2) + ' MB'
+  });
+
+  return axiosInstance.post<void>("/project/create/video/blend/upload", formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    onUploadProgress: (progressEvent: { loaded: number; total?: number }) => {
+      if (progressEvent.total) {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        console.log(`Upload Progress: ${percentCompleted}%`);
+      } else {
+        console.log(`Uploaded: ${(progressEvent.loaded / (1024 * 1024)).toFixed(2)} MB`);
+      }
+    }
   });
 };
 

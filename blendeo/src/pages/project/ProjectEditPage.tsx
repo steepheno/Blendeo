@@ -2,7 +2,9 @@ import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Searchbar from "@/components/layout/Searchbar";
-const API_URL = "http://i12a602.p.ssafy.io:8080/api/v1";
+
+import { useProjectStore, useEditStore } from '@/stores/projectStore';
+import { uploadBlendedVideo } from "@/api/project";
 
 const ForkedEdit = () => {
   const navigate = useNavigate();
@@ -12,14 +14,18 @@ const ForkedEdit = () => {
   const [recordedVolume, setRecordedVolume] = useState(1);
   const [error, setError] = useState<string>("");
   const [videosLoaded, setVideosLoaded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const { getRedirectState } = useProjectStore();
+  const { setUrl } = useEditStore();
 
   useEffect(() => {
     let isMounted = true;
-  
+
     const initializeVideos = async () => {
       try {
         console.log("VideoEditPage 초기화 시작");
-  
+
         // 녹화된 영상 설정
         const recordedVideo = recordedVideoRef.current;
         const recordedVideoData = sessionStorage.getItem("recordedVideo");
@@ -36,23 +42,22 @@ const ForkedEdit = () => {
             };
           });
         }
-  
+
         // 포크된 영상 불러오기
         try {
-          const response = await fetch(`${API_URL}/project/2`);
-          const data = await response.json();
-  
-          const videoUrl = data.url;
+          const data = getRedirectState('project-fork');
+
+          const videoUrl = data?.videoUrl;
           // const videoId = data.id;
-  
+
           const forkedVideo = forkedVideoRef.current;
           const forkedEndTime = parseFloat(
             sessionStorage.getItem("forkedEndTime") || "0"
           );
-  
+
           if (forkedVideo) {
             forkedVideo.src = videoUrl;
-  
+
             await new Promise((resolve) => {
               forkedVideo.onloadedmetadata = () => {
                 console.log("포크된 영상 메타데이터 로드 완료");
@@ -63,21 +68,21 @@ const ForkedEdit = () => {
                 resolve(false);
               };
             });
-  
+
             const handleTimeUpdate = () => {
               if (forkedVideo.currentTime >= forkedEndTime) {
                 forkedVideo.pause();
                 forkedVideo.currentTime = forkedEndTime;
               }
             };
-  
+
             forkedVideo.addEventListener("timeupdate", handleTimeUpdate);
-  
+
             if (isMounted) {
               setVideosLoaded(true);
               console.log("비디오 초기화 완료, videosLoaded 설정됨");
             }
-  
+
             // cleanup 함수 등록
             if (isMounted) {
               return () => {
@@ -98,9 +103,9 @@ const ForkedEdit = () => {
         }
       }
     };
-  
+
     initializeVideos();
-  
+
     return () => {
       isMounted = false;
     };
@@ -190,8 +195,11 @@ const ForkedEdit = () => {
   };
 
   // 편집 완료
-  const handleComplete = () => {
+  const handleComplete = async () => {
     try {
+      setIsUploading(true);
+
+      // 볼륨 설정 저장
       sessionStorage.setItem(
         "videoSettings",
         JSON.stringify({
@@ -200,19 +208,68 @@ const ForkedEdit = () => {
         })
       );
 
-      // 데이터 전송
+      // 포크된 영상 URL 가져오기
+      const forkedData = getRedirectState('project-fork');
+      const forkedUrl = forkedData?.videoUrl;
+
+      // 녹화된 영상 데이터 가져오기 (Base64)
+      const recordedVideoBase64 = sessionStorage.getItem("recordedVideo");
+
+      if (!forkedUrl || !recordedVideoBase64) {
+        throw new Error("필요한 비디오 데이터가 없습니다.");
+      }
+
+      // Base64를 Blob으로 변환
+      const base64Response = await fetch(recordedVideoBase64);
+      const recordedBlob = await base64Response.blob();
+
+      // Blob을 File로 변환
+      const recordedFile = new File(
+        [recordedBlob],
+        'recorded-video.webm',  // 파일명
+        {
+          type: 'video/webm',
+          lastModified: Date.now()
+        }
+      );
+
+      console.log("File size:", recordedFile.size);
+
+      // API 호출
+      const response = await uploadBlendedVideo(forkedUrl, recordedFile);
+      console.log(response);
       
 
+      // 응답 데이터 저장
+      sessionStorage.setItem('forked-project', response);
+      setUrl(response);
+
+      // 세션 스토리지 정리
+      sessionStorage.removeItem("recordedVideo");
+      sessionStorage.removeItem("forkedEndTime");
+
       // 페이지 전환
-      navigate("/forkupload");
+      navigate("/project/forkupload");
     } catch (err) {
-      console.error("설정 저장 에러:", err);
-      setError("설정을 저장하는데 실패했습니다.");
+      console.error("프로젝트 포크 에러:", err);
+      setError("프로젝트 포크에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
   return (
+
     <div className="flex flex-col bg-black min-h-screen items-center p-4">
+      {isUploading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg flex flex-col items-center">
+            <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin mb-4"></div>
+            <p className="text-lg font-semibold">편집된 영상을 저장하는 중...</p>
+            <p className="text-sm text-gray-500 mt-2">잠시만 기다려주세요</p>
+          </div>
+        </div>
+      )}
       <Searchbar />
       <div className="w-full max-w-4xl">
         <h1 className="text-2xl font-bold mb-4 text-center">영상 편집</h1>
@@ -277,18 +334,16 @@ const ForkedEdit = () => {
           <button
             onClick={playBothVideos}
             disabled={!videosLoaded}
-            className={`px-6 py-2 rounded-lg font-semibold text-white ${
-              videosLoaded ? "bg-green-500 hover:bg-green-600" : "bg-gray-400"
-            }`}
+            className={`px-6 py-2 rounded-lg font-semibold text-white ${videosLoaded ? "bg-green-500 hover:bg-green-600" : "bg-gray-400"
+              }`}
           >
             동시 재생
           </button>
           <button
             onClick={pauseBothVideos}
             disabled={!videosLoaded}
-            className={`px-6 py-2 rounded-lg font-semibold text-white ${
-              videosLoaded ? "bg-yellow-500 hover:bg-yellow-600" : "bg-gray-400"
-            }`}
+            className={`px-6 py-2 rounded-lg font-semibold text-white ${videosLoaded ? "bg-yellow-500 hover:bg-yellow-600" : "bg-gray-400"
+              }`}
           >
             일시 정지
           </button>

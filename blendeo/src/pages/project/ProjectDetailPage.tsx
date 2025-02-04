@@ -63,6 +63,7 @@ const ProjectDetailPage = () => {
           throw new Error('프로젝트를 찾을 수 없습니다.');
         }
         setProjectData(response);
+        console.log(response);
         setError(null);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : '프로젝트 정보를 불러오는데 실패했습니다.';
@@ -118,7 +119,7 @@ const ProjectDetailPage = () => {
               <VideoPlayer
                 videoUrl={projectData.videoUrl}
                 metadata={{
-                  title: projectData.projectTitle,
+                  title: projectData.title,
                   content: projectData.contents,
                   author: {
                     name: "Cathy",
