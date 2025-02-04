@@ -11,7 +11,7 @@ const sidebarItems = [
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/12210756f538fe6fa67316f5c82ddd736cfb12ec1ffb4a3e944e8b34a0eb4370",
-    label: "탐색",
+    label: "촬영",
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/89a0072ef0dbff743855d5c27a472bde87b46dbf1c2df85532ab140f348af1d3",

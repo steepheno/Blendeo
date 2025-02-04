@@ -63,6 +63,30 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "forkrecord",
+        element: (
+          <ProtectedRoute>
+            <ProjectRecordPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "forkedit",
+        element: (
+          <ProtectedRoute>
+            <ProjectEditPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "forkupload",
+        element: (
+          <ProtectedRoute>
+            <ProjectUploadPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "tree/:projectId",
         element: <ProjectTreePage />,
       },
