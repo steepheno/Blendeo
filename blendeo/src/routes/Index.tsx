@@ -61,7 +61,25 @@ export const router = createBrowserRouter([
       {
         path: "forkrecord",
         element: (
-          <h1>hiiii</h1>
+          <ProtectedRoute>
+            <ProjectRecordPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "forkedit",
+        element: (
+          <ProtectedRoute>
+            <ProjectEditPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "forkupload",
+        element: (
+          <ProtectedRoute>
+            <ProjectUploadPage />
+          </ProtectedRoute>
         ),
       },
       {
