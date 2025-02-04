@@ -3,8 +3,8 @@ import type { User } from "./user";
 export interface Project {
   id: number;
   forkId: number;
-  author: User;
-  projectTitle: string;
+  author: User; // 추가
+  title: string; // title
   contents: string;
   contributorCnt: number;
   createdAt: string;
@@ -34,7 +34,7 @@ export interface Comment {
 
 export interface ProjectListItem {
   projectId: number;
-  projectTitle: string;
+  title: string;
   thumbnail: string;
   viewCnt: number;
   forkCnt: number;

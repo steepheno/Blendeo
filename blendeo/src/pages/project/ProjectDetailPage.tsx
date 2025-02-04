@@ -6,9 +6,10 @@ import ContributorsSection from "@/components/detail/ContributorsSection";
 import SidePanel from "@/components/detail/SidePanel";
 import { getProject } from "@/api/project";
 import { Project } from "@/types/api/project";
+import { useProjectStore } from "@/stores/projectStore";
 
 import { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   MessageSquare,
   Heart,
@@ -20,6 +21,8 @@ import {
 
 import { TabType } from "@/types/components/video/videoDetail";
 
+type RedirectSource = 'project-edit' | 'project-create' | 'project-detail' | 'project-fork';
+
 const ProjectDetailPage = () => {
   // params 전체를 로깅하여 디버깅
   const params = useParams();
@@ -30,6 +33,9 @@ const ProjectDetailPage = () => {
   const [projectData, setProjectData] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { setRedirectState } = useProjectStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProjectData = async () => {
@@ -55,6 +61,7 @@ const ProjectDetailPage = () => {
           throw new Error("프로젝트를 찾을 수 없습니다.");
         }
         setProjectData(response);
+        console.log(response);
         setError(null);
       } catch (err) {
         const errorMessage =
@@ -74,6 +81,14 @@ const ProjectDetailPage = () => {
   const handleTabClick = (tab: TabType) => {
     setActiveTab(activeTab === tab ? null : tab);
   };
+  
+  const handleForkClick = (type : RedirectSource) => {
+    if (projectData) {  // null 체크
+        alert("Blend 페이지로 이동합니다!");
+        setRedirectState(projectData, type);
+        navigate('/project/forkrecord');
+    }
+};
 
   if (isLoading) {
     return (
@@ -101,43 +116,39 @@ const ProjectDetailPage = () => {
         <div className="flex-1 flex">
           <div className="relative h-full flex items-start pt-10">
             <div className="flex items-end">
-              <div className="flex-1">
-                <VideoPlayer
-                  videoUrl={projectData.videoUrl}
-                  metadata={{
-                    title: projectData.projectTitle,
-                    content: projectData.contents,
-                    author: {
-                      name: "Cathy",
-                      profileImage: "/profile.jpg",
-                    },
-                  }}
-                  isPortrait={true}
-                />
-              </div>
+            <div className="flex-1">
+              <VideoPlayer
+                videoUrl={projectData.videoUrl}
+                metadata={{
+                  title: projectData.title,
+                  content: projectData.contents,
+                  author: {
+                    name: "Cathy",
+                    profileImage: "/profile.jpg",
+                  },
+                }}
+                isPortrait={true}
+              />
+            </div>
 
-              <div className="ml-4 flex flex-col items-center space-y-4">
-                <InteractionButton
-                  icon={Music}
-                  count={projectData.viewCnt.toString()}
-                  label="Blendit!"
-                />
-                <InteractionButton icon={Heart} count="0" />
-                <InteractionButton
-                  icon={MessageSquare}
-                  count="0"
-                  isActive={activeTab === "comments"}
-                  onClick={() => handleTabClick("comments")}
-                />
-                <InteractionButton
-                  icon={Users}
-                  count={projectData.contributorCnt.toString()}
-                  isActive={activeTab === "contributors"}
-                  onClick={() => handleTabClick("contributors")}
-                />
-                <InteractionButton icon={Bookmark} count="0" />
-                <InteractionButton icon={Share2} count="0" />
-              </div>
+            <div className="ml-4 flex flex-col items-center space-y-4">
+              <InteractionButton icon={Music} count={projectData.viewCnt.toString()} label="Blendit!" onClick={()=>handleForkClick("project-fork")}/>
+              <InteractionButton icon={Heart} count="0" />
+              <InteractionButton
+                icon={MessageSquare}
+                count="0"
+                isActive={activeTab === "comments"}
+                onClick={() => handleTabClick("comments")}
+              />
+              <InteractionButton
+                icon={Users}
+                count={projectData.contributorCnt.toString()}
+                isActive={activeTab === "contributors"}
+                onClick={() => handleTabClick("contributors")}
+              />
+              <InteractionButton icon={Bookmark} count="0" />
+              <InteractionButton icon={Share2} count="0" />
+            </div>
             </div>
           </div>
 

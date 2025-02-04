@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoPlayerProps } from "@/types/components/video/videoDetail";
+import { Volume2, VolumeX } from "lucide-react";
 
 function VideoPlayer({
   videoUrl,
@@ -9,6 +10,7 @@ function VideoPlayer({
   const [isHovered, setIsHovered] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);  // 초기값은 음소거 상태
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -38,6 +40,14 @@ function VideoPlayer({
     }
   };
 
+  const handleVolumeToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
   return (
     <div
       className="relative w-[676px] h-[676px] bg-black rounded-lg overflow-hidden group cursor-pointer"
@@ -58,7 +68,7 @@ function VideoPlayer({
           onClick={handlePlayPause}
           controls={false}
           playsInline
-          muted
+          muted={isMuted}
           autoPlay
           loop
           preload="auto"
@@ -80,6 +90,21 @@ function VideoPlayer({
               <div className="w-0 h-0 border-t-8 border-b-8 border-l-12 
                 border-transparent border-l-black ml-1" />
             </div>
+          </div>
+        )}
+
+        {/* Volume Control - show when hovered */}
+        {isHovered && (
+          <div 
+            className="absolute bottom-4 right-4 p-2 rounded-full 
+              bg-black bg-opacity-60 cursor-pointer z-30"
+            onClick={handleVolumeToggle}
+          >
+            {isMuted ? (
+              <VolumeX className="w-6 h-6 text-white" />
+            ) : (
+              <Volume2 className="w-6 h-6 text-white" />
+            )}
           </div>
         )}
       </div>
