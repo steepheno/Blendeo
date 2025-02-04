@@ -39,7 +39,6 @@ public class ProjectController {
     )
     public ResponseEntity<?> blendVideo(
             @RequestParam(value = "forkedUrl", required = false) String forkedUrl,
-            @RequestParam(value = "direction", required = false) String direction,
             @RequestParam("videoFile") MultipartFile videoFile
     ) {
         String uploadedUrl = null;
