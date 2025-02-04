@@ -50,14 +50,14 @@ public class Project {
 
     @Builder
     public Project(Long forkId, User author, String title, String contents,
-                   String thumbnail, URL videoUrl, int runningTime) {
+                   String thumbnail, int contributorCnt, URL videoUrl, int runningTime) {
         this.forkId = forkId;
         this.author = author;
         this.title = title;
         this.contents = contents;
         this.thumbnail = thumbnail;
         this.videoUrl = videoUrl;
-        this.contributorCnt = 0;
+        this.contributorCnt = contributorCnt;
         this.createdAt = LocalDateTime.now();
         this.state = true;
         this.runningTime = runningTime;

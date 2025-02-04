@@ -37,14 +37,23 @@ public class ProjectServiceImpl implements ProjectService {
         User user = userRepository.findById(projectCreateReq.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 
+        int contributorCnt = 1;
+
+        if (projectCreateReq.getForkProjectId() != null) {
+            long forkedId = projectCreateReq.getForkProjectId();
+            contributorCnt = getProjectInfo(forkedId).getContributorCnt() + 1;
+        }
+
         Project project = Project.builder()
                 .title(projectCreateReq.getTitle())
                 .author(user)
                 .forkId(projectCreateReq.getForkProjectId())
                 .contents(projectCreateReq.getContent())
                 .runningTime(projectCreateReq.getDuration())
+                .contributorCnt(contributorCnt)
                 .videoUrl(projectCreateReq.getVideoUrl())
                 .build();
+
         project = projectRepository.save(project);
 
         ProjectNode projectNode = ProjectNode.builder()
