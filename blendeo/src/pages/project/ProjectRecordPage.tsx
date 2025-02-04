@@ -3,10 +3,23 @@ import Searchbar from '@/components/layout/Searchbar';
 import recordStop from "@/assets/stop.png";
 
 import { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Project } from "@/types/api/project"
+
+// 영상 상세 페이지로부터 영상 정보 받아오기
+interface LocationState {
+  projectData: Project;
+}
+
+const useVideoInfo = () => {
+  const location = useLocation();
+  const { projectData } = location.state as LocationState;
+  return projectData;
+}
 
 const ProjectRecordPage = () => {
-  
+
+  const projectData = useVideoInfo();
   const navigate = useNavigate();
   const [recordingTime, setRecordingTime] = useState(0);  // 초 단위 녹화시간
   const timeRef = useRef<NodeJS.Timeout | null>(null);  // setInterval 참조 저장
@@ -18,14 +31,14 @@ const ProjectRecordPage = () => {
   const [isRecording, setIsRecording] = useState(false);
   const forkedVideoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string>("");
-  const forkedVideoPath = "../../test-video.mp4";
+  // const forkedVideoPath = "../../test-video.mp4";
   const recordedChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     const initializeVideo = async () => {
       try {
         if (forkedVideoRef.current) {
-          forkedVideoRef.current.src = forkedVideoPath;
+          forkedVideoRef.current.src = projectData.videoUrl;
           forkedVideoRef.current.muted = false;
           await forkedVideoRef.current.load();
         }
@@ -128,11 +141,11 @@ const ProjectRecordPage = () => {
               // Base64 문자열에서 실제 데이터 부분만 추출
               const base64data = reader.result.toString();
               sessionStorage.setItem("recordedVideo", base64data);
-              sessionStorage.setItem("forkedVideo", forkedVideoPath);
+              sessionStorage.setItem("forkedVideo", projectData.videoUrl);
               sessionStorage.setItem("forkedEndTime", endTime.toString());
 
               console.log("세션스토리지 저장 완료:", {
-                forkedVideo: forkedVideoPath,
+                forkedVideo: projectData.videoUrl,
                 forkedEndTime: endTime,
                 recordedVideoSize: recordedBlob.size,
               });
