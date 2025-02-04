@@ -87,14 +87,9 @@ public class VideoEditorServiceImpl implements VideoEditorService {
             /* forkedFile 영상의 너비와 높이 구해서 세로, 가로 방향 정하기 => 반복 적용 후 수정 필요함!! */
             VideoInfoGetter.Info info = videoInfo.getVideoInfo(tempVideo1.getPath());
 
-            boolean isRotated = info.rotation == -90 || info.rotation == 90;
-            int actualWidth = isRotated ? info.height : info.width;
-            int actualHeight = isRotated ? info.width : info.height;
-
-            log.warn("isRotated {}", isRotated);
-            log.warn("actualWidth {}", actualWidth);
-            log.warn("actualHeight {}", actualHeight);
-            if (actualWidth > actualHeight) { // 너비가 더 길다
+            log.warn("actualWidth {}", info.width);
+            log.warn("actualHeight {}", info.height);
+            if (info.width > info.height) { // 너비가 더 길다
 
                 // 비디오 아래로 합치기
                 mergedVideoPath = videoMerger.mergeVideosVertically
