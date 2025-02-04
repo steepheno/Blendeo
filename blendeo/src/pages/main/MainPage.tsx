@@ -32,7 +32,7 @@ const MainPage = () => {
 
   const convertProjectToVideoProps = (project: Project) => ({
     thumbnailSrc: project.thumbnail,
-    title: project.title,
+    title: project.projectTitle,
     username: project.author.nickname,
     views: formatViews(project.viewCnt),
     timeAgo: getTimeAgo(project.createdAt),
@@ -46,7 +46,7 @@ const MainPage = () => {
         const convertedProjects: Project[] = response.map(
           (item: ProjectListItem) => ({
             id: item.projectId,
-            title: item.projectTitle,
+            projectTitle: item.projectTitle,
             thumbnail: item.thumbnail,
             viewCnt: item.viewCnt,
             contributorCnt: item.contributionCnt,
@@ -75,7 +75,7 @@ const MainPage = () => {
               email: "user@example.com",
               nickname: "Lady Gaga & Ariana Grande",
             },
-            title: "Rain on Me",
+            projectTitle: "Rain on Me",
             contents: "Project description",
             contributorCnt: 2,
             createdAt: new Date(
