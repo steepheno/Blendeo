@@ -7,8 +7,8 @@ export const sendVerificationEmail = async (email: string) => {
   );
 };
 
-export const verifyEmailCode = async (email: string, code: string) => {
+export const verifyEmailCode = async (email: string, authCode: string) => {
   return axiosInstance.post<void>(
-    `/user/auth/mail/verify?email=${encodeURIComponent(email)}&code=${code}`
+    `/user/auth/auth/code/check?email=${encodeURIComponent(email)}&authCode=${authCode}`
   );
 };
