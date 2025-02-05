@@ -189,18 +189,20 @@ public class UserController {
     @Operation(summary = "회원정보 수정")
     @PutMapping(value = "/update-user",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateUser(@RequestParam("userId") int userId,
-                                        @RequestParam("nickname") String nickname,
-                                        @RequestParam("videoFile") MultipartFile profileImage) {
-        log.warn("Are you here");
-        userService.updateUser(userId, nickname, profileImage);
+    public ResponseEntity<?> updateUser(@RequestParam("nickname") String nickname,
+                                        @RequestParam("profileImage") MultipartFile profileImage) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        userService.updateUser(Integer.parseInt(user.getUsername()), nickname, profileImage);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "회원 탈퇴")
-    @DeleteMapping("/delete-user/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable("id") int id) {
-        userService.deleteUser(id);
+    @DeleteMapping("/delete-user")
+    public ResponseEntity<?> deleteUser() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        userService.deleteUser(Integer.parseInt(user.getUsername()));
         return ResponseEntity.ok().build();
     }
 
