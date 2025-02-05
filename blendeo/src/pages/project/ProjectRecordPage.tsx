@@ -114,7 +114,7 @@ const ProjectRecordPage = () => {
           });
 
           if (recordedBlob.size === 0) {
-            throw new Error("녹화된 데이터가 없습니다.");
+            throw new Error("녹화된 데이터가 없습니다."+error);
           }
 
           // Create object URL for the recorded video

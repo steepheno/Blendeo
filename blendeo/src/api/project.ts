@@ -77,7 +77,7 @@ export const forkProject = async (forkedUrl: string, videoFile: string) => {
 export const uploadBlendedVideo = async (
   forkedUrl: string,
   videoFile: File
-) => {
+): Promise<string> => {
   // 파일 크기 확인 (바이트 단위)
   const fileSizeInBytes = videoFile.size;
   const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
@@ -102,7 +102,7 @@ export const uploadBlendedVideo = async (
     estimatedSizeInMB: (totalSize / (1024 * 1024)).toFixed(2) + ' MB'
   });
 
-  return axiosInstance.post<void>("/project/create/video/blend/upload", formData, {
+  const response = await axiosInstance.post<string>("/project/create/video/blend/upload", formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -115,6 +115,8 @@ export const uploadBlendedVideo = async (
       }
     }
   });
+
+  return response;
 };
 
 export const getNewProjects = async (page: number = 0, size: number = 10) => {

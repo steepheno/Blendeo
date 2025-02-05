@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Searchbar from "@/components/layout/Searchbar";
-import { useProjectStore, useEditStore } from '@/stores/projectStore';
+import { useEditStore } from '@/stores/projectStore';
 import { uploadBlendedVideo } from "@/api/project";
 
 interface LocationState {
@@ -23,7 +23,7 @@ const ForkedEdit = () => {
   const [videosLoaded, setVideosLoaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const { getRedirectState } = useProjectStore();
+  //const { getRedirectState } = useProjectStore();
   const { setUrl } = useEditStore();
 
   useEffect(() => {
