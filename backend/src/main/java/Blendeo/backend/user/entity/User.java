@@ -25,6 +25,8 @@ public class User {
     private String password;
     @Column
     private String nickname;
+    @Column
+    private String profileImage;
 
     @OneToMany(mappedBy = "followPK.follower", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Follow> followers = new ArrayList<>();
@@ -37,11 +39,12 @@ public class User {
     }
 
     @Builder
-    User(int id, String email, String password, String nickname) {
+    User(int id, String email, String password, String nickname, String profileImage) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+        this.profileImage = profileImage;
     }
 
     /**
