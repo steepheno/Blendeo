@@ -4,4 +4,4 @@ const SeedUploadPage = () => {
   )
 }
 
-export default SeedUploadPage;
+export default SeedUploadPage; 

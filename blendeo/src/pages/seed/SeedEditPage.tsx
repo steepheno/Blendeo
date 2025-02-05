@@ -4,6 +4,7 @@ import { useEditStore } from '@/stores/projectStore';
 import { uploadBlendedVideo } from "@/api/project";
 
 import Searchbar from "@/components/layout/Searchbar";
+import EditorTimeline from "@/components/common/EditorTimeline";
 
 interface LocationState {
   recordedVideoURL: string;
@@ -175,30 +176,6 @@ const SeedEditPage = () => {
         )}
 
         <div className="grid grid-cols-2 gap-4 mb-4">
-          {/* <div className="space-y-2">
-            <p className="text-lg font-semibold text-white">포크한 영상</p>
-            <div className="aspect-video bg-black rounded overflow-hidden">
-              <video
-                ref={forkedVideoRef}
-                className="w-full h-full object-contain"
-                playsInline
-              />
-            </div>
-            <div className="flex items-center space-x-2 text-white">
-              <span>볼륨:</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={forkedVolume}
-                onChange={handleForkedVolumeChange}
-                className="w-full"
-              />
-              <span>{Math.round(forkedVolume * 100)}%</span>
-            </div>
-          </div> */}
-
           <div className="space-y-2">
             <p className="text-lg font-semibold text-white">녹화된 영상</p>
             <div className="aspect-video bg-black rounded overflow-hidden">
@@ -259,6 +236,7 @@ const SeedEditPage = () => {
             다시 촬영하기
           </button>
         </div>
+        <EditorTimeline />
       </div>
     </div>
   );
