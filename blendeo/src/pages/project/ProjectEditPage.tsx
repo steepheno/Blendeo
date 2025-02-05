@@ -10,7 +10,7 @@ interface LocationState {
   forkedEndTime: number;
 }
 
-const ForkedEdit = () => {
+const ProjectEditPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { recordedVideoURL, forkedVideo: forkedVideoUrl, forkedEndTime } = location.state as LocationState;
@@ -318,4 +318,4 @@ const ForkedEdit = () => {
   );
 };
 
-export default ForkedEdit;
+export default ProjectEditPage;
