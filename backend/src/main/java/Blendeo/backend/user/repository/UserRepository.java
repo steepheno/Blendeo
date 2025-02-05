@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.net.URL;
 import java.util.Optional;
 
 @RequestMapping
@@ -17,7 +18,7 @@ public interface UserRepository extends JpaRepository<User, Integer> { // 사용
     @Modifying
     @Transactional
     @Query("UPDATE User u SET u.nickname = :nickname, u.profileImage = :profileImage WHERE u.id = :id")
-    void updateUser(@Param("id") int id, @Param("nickname") String nickname, @Param("profileImage") String profileImage);
+    void updateUser(@Param("id") int id, @Param("nickname") String nickname, @Param("profileImage") URL profileImage);
 
     boolean existsByEmail(String email);
 }
