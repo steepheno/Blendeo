@@ -6,7 +6,6 @@ import { X, Timer } from "lucide-react";
 import ImageComponent from "@/components/record/ImageComponent";
 import Searchbar from "@/components/layout/Searchbar";
 import recordStop from "@/assets/stop.png";
-import { useProjectStore } from "@/stores/projectStore";
 
 interface CropDimensions {
   isHorizontal: boolean;
@@ -25,8 +24,6 @@ const DELAY_OPTIONS = [0, 3, 5, 10, 30] as const;
 type DelayOption = (typeof DELAY_OPTIONS)[number];
 
 const ProjectRecordPage: FC = () => {
-  const { getRedirectState } = useProjectStore();
-  const currentProject = getRedirectState("project-fork");
   const navigate = useNavigate();
 
   const [recordingTime, setRecordingTime] = useState<number>(0);
@@ -37,7 +34,6 @@ const ProjectRecordPage: FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const forkedVideoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string>("");
   const recordedChunksRef = useRef<Blob[]>([]);
 
@@ -65,12 +61,10 @@ const ProjectRecordPage: FC = () => {
   }, [isRecording]);
 
   const startRecording = useCallback(async (): Promise<void> => {
-    if (!streamRef.current || !forkedVideoRef.current) return;
+    if (!streamRef.current) return;
 
     try {
       recordedChunksRef.current = [];
-      const forkedVideo = forkedVideoRef.current;
-      forkedVideo.currentTime = 0;
 
       const mediaRecorder = new MediaRecorder(streamRef.current, {
         mimeType: "video/webm;codecs=vp8,opus",
@@ -91,14 +85,6 @@ const ProjectRecordPage: FC = () => {
             setRecordingTime(elapsedTime);
           }
         }, 1000);
-
-        try {
-          await forkedVideo.play();
-        } catch (err) {
-          setError("포크된 비디오 재생 실패");
-          console.error(err);
-          stopRecording();
-        }
       };
 
       mediaRecorder.ondataavailable = (event: BlobEvent) => {
@@ -114,12 +100,13 @@ const ProjectRecordPage: FC = () => {
         }
 
         try {
-          const endTime = forkedVideo.currentTime;
-          forkedVideo.pause();
 
           const recordedBlob = new Blob(recordedChunksRef.current, {
             type: "video/webm",
           });
+
+          
+          const endTime = recordingTime;
 
           if (recordedBlob.size === 0) {
             throw new Error("녹화된 데이터가 없습니다.");
@@ -129,7 +116,7 @@ const ProjectRecordPage: FC = () => {
 
           const navigateState: NavigateState = {
             recordedVideoURL,
-            forkedVideo: currentProject?.videoUrl ?? "",
+            forkedVideo: "",
             forkedEndTime: endTime,
             cropDimensions: {
               isHorizontal,
@@ -138,7 +125,7 @@ const ProjectRecordPage: FC = () => {
             },
           };
 
-          navigate("/project/forkedit", { state: navigateState });
+          navigate("/first/edit", { state: navigateState });
         } catch (err) {
           setError("비디오 저장 실패");
           console.error("비디오 처리 에러:", err);
@@ -150,7 +137,7 @@ const ProjectRecordPage: FC = () => {
       setError("녹화 시작 실패");
       console.error("녹화 에러:", err);
     }
-  }, [navigate, currentProject?.videoUrl, isHorizontal, stopRecording]);
+  }, [navigate, isHorizontal, stopRecording]);
 
   const startCountdown = useCallback((): void => {
     if (!selectedDelay || isCountingDown) return;
@@ -179,21 +166,6 @@ const ProjectRecordPage: FC = () => {
   useEffect(() => {
     const initializeVideo = async (): Promise<void> => {
       try {
-        if (forkedVideoRef.current && currentProject) {
-          forkedVideoRef.current.src = currentProject.videoUrl;
-          forkedVideoRef.current.muted = false;
-          await forkedVideoRef.current.load();
-
-          forkedVideoRef.current.onloadedmetadata = () => {
-            const video = forkedVideoRef.current;
-            if (video) {
-              setIsHorizontal(video.videoWidth > video.videoHeight);
-              console.log("horizon?",isHorizontal);
-              
-            }
-          };
-        }
-
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             width: { ideal: 1280 },
@@ -214,7 +186,7 @@ const ProjectRecordPage: FC = () => {
 
     initializeVideo();
     return cleanup;
-  }, [currentProject, cleanup]);
+  }, [cleanup]);
 
   return (
     <div className="flex flex-col">
@@ -259,24 +231,11 @@ const ProjectRecordPage: FC = () => {
 
             <div className="flex flex-col items-center self-stretch my-auto min-w-[240px] w-[962px] max-md:max-w-full">
               <div className="flex overflow-hidden flex-col justify-center items-center max-w-full">
-              <div className={`flex ${isHorizontal ? 'flex-col' : 'flex-row'} gap-4 justify-center items-center rounded-xl w-full max-md:max-w-full`}>
-                  <div className= { ` ${isHorizontal ? 'w-[676px] h-[480px]' : 'w-[480px] h-[676px]'} overflow-hidden` } >
-                    <video
-                      ref={forkedVideoRef}
-                      className="w-full h-full object-cover object-center"
-                      style={{
-                        aspectRatio: "480/676",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                      }}
-                      playsInline
-                    />
-                  </div>
-                  <div className={ ` ${isHorizontal ? 'w-[676px] h-[480px]' : 'w-[480px] h-[676px]'} overflow-hidden` } >
+                <div className="flex flex-row gap-4 justify-center items-center rounded-xl w-full max-md:max-w-full">
+                  <div className="w-[480px] h-[676px] overflow-hidden">
                     <video
                       ref={videoRef}
                       className="w-full h-full object-cover"
-                      style={{ transform: 'scaleX(-1)' }}
                       autoPlay
                       playsInline
                       muted
