@@ -2,6 +2,7 @@ package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
+import Blendeo.backend.global.util.S3Utils;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 import Blendeo.backend.project.dto.ProjectListDto;
@@ -29,6 +30,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectNodeRepository projectNodeRepository;
     private final UserRepository userRepository;
+    private final S3Utils s3Utils;
 
     @Override
     @Transactional
@@ -93,8 +95,12 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public void deleteProject(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
         projectRepository.deleteById(projectId);
         projectNodeRepository.deleteByProjectIdIfNotForked(projectId);
+
+        s3Utils.deleteFromS3ByUrl(project.getVideoUrl().toString());
     }
 
 

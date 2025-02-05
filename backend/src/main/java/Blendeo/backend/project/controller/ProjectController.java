@@ -93,7 +93,7 @@ public class ProjectController {
             summary = "프로젝트 조회"
     )
     @GetMapping("/info/{id}")
-    public ResponseEntity<ProjectInfoRes> getProject(@PathVariable Long id) {
+    public ResponseEntity<ProjectInfoRes> getProject(@PathVariable("id") Long id) {
         ProjectInfoRes projectInfo = projectService.getProjectInfo(id);
 
         return ResponseEntity.ok(projectInfo);
@@ -103,7 +103,7 @@ public class ProjectController {
             summary = "프로젝트 삭제"
     )
     @DeleteMapping("/{projectId}")
-    public ResponseEntity<?> deleteProject(@PathVariable Long projectId){
+    public ResponseEntity<?> deleteProject(@PathVariable("projectId") Long projectId){
         projectService.deleteProject(projectId);
 
         return ResponseEntity.ok().build();
