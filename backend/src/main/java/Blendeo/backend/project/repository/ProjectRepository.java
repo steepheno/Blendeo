@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -21,4 +22,11 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("SELECT p FROM Project p WHERE p.id IN :ids")
     List<Project> findAllByIdIn(@Param("ids") List<Long> ids);
+
+    @Modifying
+    @Query("UPDATE Project p SET p.viewCnt = p.viewCnt + 1 WHERE p.id = :projectId")
+    void updateViewCount(@Param("projectId") Long projectId);
+
+    @Query(value = "SELECT p.id FROM Project p ORDER BY p.viewCnt DESC LIMIT 10")
+    List<Long> getProjectRankingByViews();
 }
