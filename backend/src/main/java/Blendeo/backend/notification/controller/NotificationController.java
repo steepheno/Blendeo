@@ -2,6 +2,7 @@ package Blendeo.backend.notification.controller;
 
 import Blendeo.backend.infrastructure.redis.RedisPublisher;
 import Blendeo.backend.infrastructure.redis.RedisSubscriber;
+import Blendeo.backend.notification.dto.NotificationRedisDTO;
 import Blendeo.backend.notification.entity.Notification;
 import Blendeo.backend.notification.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +28,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/notify")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -37,14 +38,17 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@RequestParam int userId) {
+    public SseEmitter subscribe() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         redisSubscriber.addEmitter(userId, emitter);
 
         try {
             emitter.send(SseEmitter.event()
                     .name("connect")
-                    .data("연결됨"));
+                    .data("Connection Established"));
         } catch (IOException e) {
             log.error("연결 메시지 전송 실패", e);
         }
@@ -58,12 +62,13 @@ public class NotificationController {
             @RequestParam int userId,
             @RequestParam String message
     ) {
-        Notification notification = new Notification();
-        notification.setContent(message);
+        NotificationRedisDTO notificationRedisDTO = NotificationRedisDTO.builder()
+                .content(message)
+                .build();
 
         try {
-            redisSubscriber.sendNotificationToEmitters(userId, notification);
-            return ResponseEntity.ok("알림 전송 완료" + notification.getContent());
+            redisSubscriber.sendNotificationToEmitters(userId, notificationRedisDTO);
+            return ResponseEntity.ok("알림 전송 완료" + notificationRedisDTO.getContent());
         } catch (Exception e) {
             log.error("알림 전송 실패", e);
             return ResponseEntity.internalServerError().body("알림 전송 실패: " + e.getMessage());

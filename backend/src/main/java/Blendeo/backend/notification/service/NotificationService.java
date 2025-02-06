@@ -61,24 +61,15 @@ public class NotificationService {
 
         if (projectAuthor.getId() != commenter.getId()) {
             createAndPublishCommentNotification(
-                    savedCommentId,
-                    commenter.getId(),
-                    projectAuthor.getId()
+                    commenter,
+                    projectAuthor
             );
         }
     }
 
     // 알림 데이터를 생성해서 redis에 저장, 특정 채널에 publish
-    public void createAndPublishCommentNotification(Long savedCommentId, int senderId, int receiverId) {
+    public void createAndPublishCommentNotification(User sender, User receiver) {
         String content = "새로운 댓글이 달렸습니다!";
-
-        User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND,
-                ErrorCode.USER_NOT_FOUND.getMessage()));
-
-        User receiver = userRepository.findById(receiverId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND,
-                ErrorCode.USER_NOT_FOUND.getMessage()));
 
         Boolean isRead = false;
         NotificationType notificationType = NotificationType.COMMENT;
@@ -87,19 +78,18 @@ public class NotificationService {
 
         createNotification(notification);
 
-        NotificationRedisDTO notificationRedis = new NotificationRedisDTO(notification);
+        NotificationRedisDTO notificationRedis = NotificationRedisDTO.from(notification);
 
         // 해당 프로젝트로 redirect하게 할까..?
 
         // redis key 지정
         String KEY_PREFIX = "notification:comment:";
-        String notificationKey = KEY_PREFIX + savedCommentId + ":" + receiverId;
+        String notificationKey = KEY_PREFIX + notificationRedis.getId() + ":" + receiver.getId();
 
         // redis publishing
         // ttl : 3 -> 3일 뒤 redis에서 삭제
         redisPublisher.saveNotificationWithTTL(notificationKey, notificationRedis, 3, TimeUnit.DAYS);
-        redisPublisher.publish("commentNotification", notificationKey);
-
+        redisPublisher.publish("notification:comment", notificationRedis);
     }
 
     // DB에 알림 저장

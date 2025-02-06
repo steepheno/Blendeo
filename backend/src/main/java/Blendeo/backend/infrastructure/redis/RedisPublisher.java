@@ -20,7 +20,7 @@ public class RedisPublisher {
         this.objectMapper = objectMapper;
     }
 
-    public void publish(String channel, Object message) {
+    public void publish(String channel, NotificationRedisDTO message) {
         log.info("publishing message to channel : channel -> {} :: time -> {} :: message -> {}", channel,
                 System.currentTimeMillis(), message);
         notificationRedisTemplate.convertAndSend(channel, message);

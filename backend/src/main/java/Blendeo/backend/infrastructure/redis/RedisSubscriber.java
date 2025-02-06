@@ -1,6 +1,8 @@
 package Blendeo.backend.infrastructure.redis;
 
+import Blendeo.backend.notification.dto.NotificationRedisDTO;
 import Blendeo.backend.notification.entity.Notification;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,17 +36,39 @@ public class RedisSubscriber {
     // Redis 메시지 수신
     public void onMessage(String channel, String message) {
         log.info("Received channel: {} message: {}", channel, message);
+        // NotificationRedisDTO notification = objectMapper.convertValue(message, NotificationRedisDTO.class);
+        NotificationRedisDTO notification = null;
+        try {
+            // message는 이미 JSON 문자열이므로 먼저 JsonNode로 파싱
+            JsonNode jsonNode = objectMapper.readTree(message);
 
-        String cleanedMessage = message.replace("\"", "");
-        log.debug("Cleaned message: {}", cleanedMessage);
+            // 필요한 필드들을 직접 추출
+            notification = NotificationRedisDTO.builder()
+                    .id(jsonNode.get("id").asLong())
+                    .receiverId(jsonNode.get("receiverId").asInt())
+                    .senderId(jsonNode.get("senderId").asInt())
+                    .content(jsonNode.get("content").asText())
+                    .isRead(jsonNode.get("isRead").asBoolean())
+                    .notificationType(jsonNode.get("notificationType").asText())
+                    .createdAt(jsonNode.get("createdAt").asText())
+                    .build();
 
-        processMessage(cleanedMessage, 5); // 최대 5번 재시도
+        } catch (Exception e) {
+            log.error("Error processing message", e);
+        }
+        processMessage(channel, notification, 5); // 최대 5번 재시도
     }
 
     // 메시지 처리 -> 최대 5번 재시도
-    private void processMessage(String key, int retriesLeft) {
+    private void processMessage(String channel, NotificationRedisDTO notificationRedisDTO, int retriesLeft) {
         scheduledExecutorService.submit(() -> {
             try {
+                String key = new StringBuilder(channel)
+                        .append(":")
+                        .append(notificationRedisDTO.getId())
+                        .append(":")
+                        .append(notificationRedisDTO.getReceiverId())
+                        .toString();
                 String notificationJson = null;
                 for (int attempt = 0; attempt < retriesLeft; attempt++) {
                     notificationJson = (String) redisTemplate.opsForValue().get(key);
@@ -63,20 +87,20 @@ public class RedisSubscriber {
 
                 // 메시지가 정상적으로 가지고 와지면 json으로 파싱하여 notification 객체로 변환
                 if (notificationJson != null) {
-                    Notification notification = objectMapper.readValue(notificationJson, Notification.class);
-                    int userId = notification.getReceiver().getId();
+                    NotificationRedisDTO notification = objectMapper.readValue(notificationJson, NotificationRedisDTO.class);
+                    int userId = notification.getReceiverId();
                     log.debug("Received notification-> {} :: userId -> {}", notification, userId);
 
                     sendNotificationToEmitters(userId, notification);
                 }
             } catch (Exception e) {
-                log.error("Exception during message processing for key -> {} error -> {}", key, e.getMessage());
+                log.error("Exception during message processing, error -> {}", e.getMessage());
             }
         });
     }
 
     // 수신자 id를 기반으로 해당 유저의 모든 SseEmitter에 메시지 전송
-    public void sendNotificationToEmitters(int userId, Notification notification) {
+    public void sendNotificationToEmitters(int userId, NotificationRedisDTO notificationRedisDTO) {
         List<SseEmitter> userEmitters = emitters.get(userId);
         if (userEmitters != null && !userEmitters.isEmpty()) {
             List<SseEmitter> deadEmitters = new ArrayList<>();
@@ -84,8 +108,8 @@ public class RedisSubscriber {
                 try {
                     emitter.send(SseEmitter.event()
                             .name("newComment")
-                            .data(notification.getContent()));
-                    log.info("Sent SSE to user -> {} :: notification -> {} :: time -> {}", userId, notification.getContent(),
+                            .data(notificationRedisDTO.getContent()));
+                    log.info("Sent SSE to user -> {} :: notification -> {} :: time -> {}", userId, notificationRedisDTO.getContent(),
                             System.currentTimeMillis());
 
                 } catch (IOException e) {
