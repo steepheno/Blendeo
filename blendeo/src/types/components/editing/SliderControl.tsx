@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { SliderControlProps } from './edit';
+import VideoEditBar from '@/components/common/VideoEditBar';
 
 export const SliderControl: React.FC<SliderControlProps> = ({
   label,
@@ -22,10 +23,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
         </div>
       )}
       <div className="flex gap-5 justify-between mt-2 w-full">
-        <div className="flex flex-1 my-auto">
-          <div className="shrink-0 my-auto border-2 border-purple-500 border-solid h-[3px] w-[94px]" />
-          <div className="flex shrink-0 w-2.5 h-2.5 bg-white rounded-full fill-white" />
-        </div>
+        <VideoEditBar />
         <div className="flex gap-1.5 items-start text-sm tracking-normal text-center text-white">
           <div className="overflow-hidden px-3.5 py-2 rounded border-solid border-[1.236px] border-zinc-900 w-[57px]">
             {value}%

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { SliderControl } from './editing/SliderControl';
-import PresetControl from './editing/PresetControl';
-import { AudioControlData } from './editing/edit';
+import { SliderControl } from './SliderControl';
+import PresetControl from './PresetControl';
+import { AudioControlData } from './edit';
 
 const audioControl: AudioControlData[] = [
   {
@@ -41,7 +41,36 @@ const Checkbox: React.FC<{ checked: boolean; onChange: () => void }> = ({ checke
   </div>
 );
 
-const AudioControl: React.FC = () => {
+interface AudioControlProps {
+  onAudioControlChange?: (id: string, value: number | string) => void;
+  initialVolume?: number;
+}
+
+const AudioControl: React.FC<AudioControlProps> = ({ onAudioControlChange, initialVolume = 0.5 }) => {
+  const [controls, setControls] = React.useState<AudioControlData[]>([
+    {
+      id: 'volume',
+      type: 'slider',
+      label: 'Volume',
+      sublabel: '',
+      value: initialVolume * 200  // 0-1 값을 0-200으로 변환
+    },
+    {
+      id: 'speed',
+      type: 'slider',
+      label: 'Speed',
+      sublabel: '',
+      value: 100
+    },
+    {
+      id: 'loop',
+      type: 'preset',
+      label: 'Loop',
+      sublabel: '',
+      value: 'Variable'
+    },
+  ]);
+  
   const [checkedStates, setCheckedStates] = React.useState<{ [key: string]: boolean }>({
     volume: true,
     speed: true,
@@ -50,7 +79,19 @@ const AudioControl: React.FC = () => {
   });
 
   const handleChange = (id: string, value: number | string) => {
-    console.log(`${id} changed to ${value}`);
+    setControls(prevControls =>
+      prevControls.map(control =>
+        control.id === id ? {...control, value} : control
+      )
+    );
+
+    if (onAudioControlChange) {
+      if (id === 'volume') {
+        onAudioControlChange(id, Number(value) / 200);
+      } else {
+        onAudioControlChange(id, value);
+      }
+    }
   };
 
   const handleCheckboxChange = (id: string) => {

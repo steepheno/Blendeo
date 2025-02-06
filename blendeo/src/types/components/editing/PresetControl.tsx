@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { PresetControlProps } from './types';
+import { PresetControlProps } from './edit';
 
 const PresetControl: React.FC<PresetControlProps> = ({
   label,
