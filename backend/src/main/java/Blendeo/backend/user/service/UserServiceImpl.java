@@ -2,6 +2,7 @@ package Blendeo.backend.user.service;
 
 import Blendeo.backend.exception.EmailAlreadyExistsException;
 import Blendeo.backend.exception.EntityNotFoundException;
+import Blendeo.backend.notification.service.NotificationService;
 import Blendeo.backend.user.dto.FollowerListRes;
 import Blendeo.backend.user.dto.FollowingListRes;
 import Blendeo.backend.user.dto.UserInfoGetRes;
@@ -30,16 +31,18 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final FollowService followService;
     private final FollowRepository followRepository;
+    private final NotificationService notificationService;
 
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
                            RefreshTokenRepository refreshTokenRepository, FollowService followService,
-                           FollowRepository followRepository) {
+                           FollowRepository followRepository, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.refreshTokenRepository = refreshTokenRepository;
         this.followService = followService;
         this.followRepository = followRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -85,6 +88,8 @@ public class UserServiceImpl implements UserService {
 
             // Redis에 저장
             refreshTokenRepository.save(new RefreshToken(user.get().getId(), accessToken, refreshToken));
+
+            notificationService.createEmitter(user.get().getId());
 
         } else {
             throw new EntityNotFoundException("아이디 혹은 비밀번호가 일치하지 않습니다.");
