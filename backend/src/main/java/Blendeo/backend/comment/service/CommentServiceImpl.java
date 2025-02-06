@@ -51,11 +51,14 @@ public class CommentServiceImpl implements CommentService {
                 .project(project)
                 .build();
 
+        log.info("create comment object");
+
         Comment savedComment = commentRepository.save(comment);
         Long commentId = savedComment.getId();
+        log.info("success save comment");
 
-        // 알림 발송
         notificationService.publishNotification(commentRegisterReq.getProjectId(), commentId, user);
+
     }
 
 
