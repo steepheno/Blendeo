@@ -21,11 +21,9 @@ public class RedisPublisher {
     }
 
     public void publish(String channel, NotificationRedisDTO message) {
-        log.info("publishing message to channel : channel -> {} :: time -> {} :: message -> {}", channel,
-                System.currentTimeMillis(), message);
+        log.info("publishing message to channel");
         notificationRedisTemplate.convertAndSend(channel, message);
-        log.info("published message to channel : channel -> {} :: time -> {} :: message -> {}", channel,
-                System.currentTimeMillis(), message);
+        log.info("published message to channel");
     }
 
     public void saveNotificationWithTTL(String key, NotificationRedisDTO notification, long ttl, TimeUnit timeUnit) {

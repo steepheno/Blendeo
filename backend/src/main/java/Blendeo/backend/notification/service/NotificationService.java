@@ -52,12 +52,21 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    // 댓글 작성자가 본인 게시글인지 아닌지에 따라 알림 발송
-    public void publishNotification(Long projectId, Long savedCommentId, User commenter) {
-
+    public User getProjectAuthor(Long projectId){
         User projectAuthor = projectRepository.findAuthorById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND,
                         ErrorCode.USER_NOT_FOUND.getMessage()));
+        return projectAuthor;
+    }
+
+    /**
+     *
+     * 댓글 알림
+     */
+    // 댓글 작성자가 본인 게시글인지 아닌지에 따라 알림 발송
+    public void publishCommentNotification(Long projectId, User commenter) {
+
+        User projectAuthor = getProjectAuthor(projectId);
 
         if (projectAuthor.getId() != commenter.getId()) {
             createAndPublishCommentNotification(
@@ -69,9 +78,10 @@ public class NotificationService {
 
     // 알림 데이터를 생성해서 redis에 저장, 특정 채널에 publish
     public void createAndPublishCommentNotification(User sender, User receiver) {
-        String content = "새로운 댓글이 달렸습니다!";
+        String content = sender.getNickname() + "님이 새로운 댓글을 다셨습니다.";
 
         Boolean isRead = false;
+
         NotificationType notificationType = NotificationType.COMMENT;
 
         Notification notification = new Notification(receiver, sender, content, isRead, notificationType);
@@ -91,6 +101,43 @@ public class NotificationService {
         redisPublisher.saveNotificationWithTTL(notificationKey, notificationRedis, 3, TimeUnit.DAYS);
         redisPublisher.publish("notification:comment", notificationRedis);
     }
+
+    /**
+     *
+     * 좋아요 알림
+     */
+
+    public void publishLikeNotification(Long projectId, User liker){
+        User projectAuthor = getProjectAuthor(projectId);
+
+        if (projectAuthor.getId() != liker.getId()) {
+            log.info("like 한 사람과 project owner는 다른 사람입니다.");
+            createAndPublishLikeNotification(
+                    liker,
+                    projectAuthor
+            );
+        }
+    }
+
+    public void createAndPublishLikeNotification(User sender, User receiver){
+        String content = sender.getNickname() + "님이 회원님의 게시물을 좋아합니다.";
+        Boolean isRead = false;
+        NotificationType notificationType = NotificationType.LIKE;
+        Notification notification = new Notification(receiver, sender, content, isRead, notificationType);
+
+        createNotification(notification);
+
+        NotificationRedisDTO notificationRedis = NotificationRedisDTO.from(notification);
+
+        String Key_Prefix = "notification:like:";
+        String notificationKey = Key_Prefix + notificationRedis.getId() + ":" + receiver.getId();
+
+        redisPublisher.saveNotificationWithTTL(notificationKey, notificationRedis, 3, TimeUnit.DAYS);
+        log.info("Like :: redis에 저장됨");
+        redisPublisher.publish("notification:like", notificationRedis);
+        log.info("Like :: publish 완료");
+    }
+
 
     // DB에 알림 저장
     public void createNotification(Notification notification) {

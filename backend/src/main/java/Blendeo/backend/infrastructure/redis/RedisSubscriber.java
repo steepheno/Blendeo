@@ -69,6 +69,7 @@ public class RedisSubscriber {
                         .append(":")
                         .append(notificationRedisDTO.getReceiverId())
                         .toString();
+                log.info("key value :: {}", key);
                 String notificationJson = null;
                 for (int attempt = 0; attempt < retriesLeft; attempt++) {
                     notificationJson = (String) redisTemplate.opsForValue().get(key);
@@ -85,6 +86,7 @@ public class RedisSubscriber {
                     }
                 }
 
+                log.info("get notification successfully: {}", notificationJson);
                 // 메시지가 정상적으로 가지고 와지면 json으로 파싱하여 notification 객체로 변환
                 if (notificationJson != null) {
                     NotificationRedisDTO notification = objectMapper.readValue(notificationJson, NotificationRedisDTO.class);
@@ -107,7 +109,7 @@ public class RedisSubscriber {
             for (SseEmitter emitter : userEmitters) {
                 try {
                     emitter.send(SseEmitter.event()
-                            .name("newComment")
+                            .name("newNotification")
                             .data(notificationRedisDTO.getContent()));
                     log.info("Sent SSE to user -> {} :: notification -> {} :: time -> {}", userId, notificationRedisDTO.getContent(),
                             System.currentTimeMillis());

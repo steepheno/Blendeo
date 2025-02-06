@@ -2,6 +2,7 @@ package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
+import Blendeo.backend.notification.service.NotificationService;
 import Blendeo.backend.project.entity.Likes;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.repository.LikeRepository;
@@ -10,9 +11,11 @@ import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LikeService {
@@ -21,6 +24,7 @@ public class LikeService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final NotificationService notificationService;
 
     @Transactional
     public void addLike(long projectId, int userId) {
@@ -41,6 +45,12 @@ public class LikeService {
         redisTemplate.opsForZSet().incrementScore(likeScoreKey, String.valueOf(projectId), 1);
 
         likeRepository.save(new Likes(user, project));
+        log.info("Added like " + user + " to project " + project);
+
+        notificationService.publishLikeNotification(projectId, user);
+        log.info("published like notification");
+
+//        notificationService.publishNotification(commentRegisterReq.getProjectId(), user);
     }
 
     @Transactional

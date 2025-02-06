@@ -57,7 +57,7 @@ public class CommentServiceImpl implements CommentService {
         Long commentId = savedComment.getId();
         log.info("success save comment");
 
-        notificationService.publishNotification(commentRegisterReq.getProjectId(), commentId, user);
+        notificationService.publishCommentNotification(commentRegisterReq.getProjectId(), user);
 
     }
 
