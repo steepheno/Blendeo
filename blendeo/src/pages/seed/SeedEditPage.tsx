@@ -5,6 +5,8 @@ import { uploadBlendedVideo } from "@/api/project";
 
 import Searchbar from "@/components/layout/Searchbar";
 import EditorTimeline from "@/components/common/EditorTimeline";
+import AudioControl from "@/types/components/AudioControl";
+import PresetControl from "@/types/components/editing/PresetControl";
 
 interface LocationState {
   recordedVideoURL: string;
@@ -166,18 +168,17 @@ const SeedEditPage = () => {
         </div>
       )}
       <Searchbar />
-      <div className="w-full max-w-4xl">
-        <h1 className="text-2xl font-bold mb-4 text-center text-white">영상 편집</h1>
-
+      <div>
+      </div>
+      <div className="w-full max-w-6xl">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="space-y-2">
-            <p className="text-lg font-semibold text-white">녹화된 영상</p>
+        <div className="flex justify-center mb-4 gap-20">
+          <div className="space-y-2 w-full max-w-4xl">
             <div className="aspect-video bg-black rounded overflow-hidden">
               <video
                 ref={recordedVideoRef}
@@ -199,6 +200,7 @@ const SeedEditPage = () => {
               <span>{Math.round(recordedVolume * 100)}%</span>
             </div>
           </div>
+          <AudioControl />
         </div>
 
         <div className="flex justify-center space-x-4 mb-4">
