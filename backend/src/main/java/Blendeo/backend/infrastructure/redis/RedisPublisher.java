@@ -1,6 +1,7 @@
 package Blendeo.backend.infrastructure.redis;
 
-import Blendeo.backend.notification.dto.Notification;
+import Blendeo.backend.notification.dto.NotificationRedisDTO;
+import Blendeo.backend.notification.entity.Notification;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ public class RedisPublisher {
                 System.currentTimeMillis(), message);
     }
 
-    public void saveNotificationWithTTL(String key, Notification notification, long ttl, TimeUnit timeUnit) {
+    public void saveNotificationWithTTL(String key, NotificationRedisDTO notification, long ttl, TimeUnit timeUnit) {
         try {
             String notificationJson = objectMapper.writeValueAsString(notification);
             notificationRedisTemplate.opsForValue().set(key, notificationJson, ttl, timeUnit);

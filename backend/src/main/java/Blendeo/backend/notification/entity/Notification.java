@@ -12,19 +12,24 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.annotation.CreatedDate;
 
+@ToString
 @Entity
 @Getter
 @Setter
+@Table(name = "notification")
 public class Notification extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id", nullable = false)
@@ -40,9 +45,6 @@ public class Notification extends BaseTimeEntity {
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
 
-    @Column
-    private LocalDateTime sendTime;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "notification_type", nullable = false)
     private NotificationType notificationType;
@@ -55,14 +57,15 @@ public class Notification extends BaseTimeEntity {
     }
 
     @Builder
-    public Notification(User user, String content, Boolean isRead, NotificationType notificationType,
-                        LocalDateTime sendTime) {
-        this.user = user;
+    public Notification(User receiver, User sender, String content, Boolean isRead, NotificationType notificationType) {
+        this.receiver = receiver;
+        this.sender = sender;
         this.content = content;
         this.isRead = isRead;
         this.notificationType = notificationType;
-        this.sendTime = sendTime;
     }
+
+
 
 
 }

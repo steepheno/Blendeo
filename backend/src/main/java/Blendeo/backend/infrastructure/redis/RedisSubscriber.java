@@ -1,6 +1,6 @@
 package Blendeo.backend.infrastructure.redis;
 
-import Blendeo.backend.notification.dto.Notification;
+import Blendeo.backend.notification.entity.Notification;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,8 +64,10 @@ public class RedisSubscriber {
                 // 메시지가 정상적으로 가지고 와지면 json으로 파싱하여 notification 객체로 변환
                 if (notificationJson != null) {
                     Notification notification = objectMapper.readValue(notificationJson, Notification.class);
-                    int userId = notification.getReceiverId();
+                    int userId = notification.getReceiver().getId();
                     log.debug("Received notification-> {} :: userId -> {}", notification, userId);
+
+                    sendNotificationToEmitters(userId, notification);
                 }
             } catch (Exception e) {
                 log.error("Exception during message processing for key -> {} error -> {}", key, e.getMessage());
@@ -74,7 +76,7 @@ public class RedisSubscriber {
     }
 
     // 수신자 id를 기반으로 해당 유저의 모든 SseEmitter에 메시지 전송
-    private void sendNotificationToEmitters(int userId, Notification notification) {
+    public void sendNotificationToEmitters(int userId, Notification notification) {
         List<SseEmitter> userEmitters = emitters.get(userId);
         if (userEmitters != null && !userEmitters.isEmpty()) {
             List<SseEmitter> deadEmitters = new ArrayList<>();
@@ -82,8 +84,8 @@ public class RedisSubscriber {
                 try {
                     emitter.send(SseEmitter.event()
                             .name("newComment")
-                            .data(notification));
-                    log.info("Sent SSE to user -> {} :: notification -> {} :: time -> {}", userId, notification,
+                            .data(notification.getContent()));
+                    log.info("Sent SSE to user -> {} :: notification -> {} :: time -> {}", userId, notification.getContent(),
                             System.currentTimeMillis());
 
                 } catch (IOException e) {

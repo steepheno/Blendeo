@@ -5,23 +5,26 @@ import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
 import Blendeo.backend.infrastructure.redis.RedisPublisher;
 import Blendeo.backend.infrastructure.redis.RedisSubscriber;
-import Blendeo.backend.notification.dto.Notification;
-import Blendeo.backend.notification.dto.Notification.NotificationType;
+import Blendeo.backend.notification.dto.NotificationRedisDTO;
+import Blendeo.backend.notification.entity.Notification;
+import Blendeo.backend.notification.entity.Notification.NotificationType;
+import Blendeo.backend.notification.repository.NotificationRepository;
 import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
 @Service
+@Transactional
 public class NotificationService {
 
     private final RedisPublisher redisPublisher;
@@ -30,6 +33,7 @@ public class NotificationService {
     private final ProjectRepository projectRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
 
 
     public NotificationService(
@@ -38,41 +42,54 @@ public class NotificationService {
             RedisTemplate<String, Object> redisTemplate,
             ProjectRepository projectRepository,
             CommentRepository commentRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, NotificationRepository notificationRepository) {
         this.redisPublisher = redisPublisher;
         this.redisSubscriber = redisSubscriber;
         this.redisTemplate = redisTemplate;
         this.projectRepository = projectRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
+        this.notificationRepository = notificationRepository;
     }
 
-    // 댓글 작성자가 관리자 롤인지 일반 유저인지에 따라 알림 발송!
+    // 댓글 작성자가 본인 게시글인지 아닌지에 따라 알림 발송
     public void publishNotification(Long projectId, Long savedCommentId, User commenter) {
 
-        User projectAuthor = projectRepository.findAuthorByProjectId(projectId)
+        User projectAuthor = projectRepository.findAuthorById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND,
                         ErrorCode.USER_NOT_FOUND.getMessage()));
 
         if (projectAuthor.getId() != commenter.getId()) {
-            publishEventToRedis(
-                    projectId,
+            createAndPublishCommentNotification(
                     savedCommentId,
                     commenter.getId(),
                     projectAuthor.getId()
             );
         }
-
     }
 
     // 알림 데이터를 생성해서 redis에 저장, 특정 채널에 publish
-    public void publishEventToRedis(Long projectId, Long savedCommentId, int senderId, int receiverId) {
+    public void createAndPublishCommentNotification(Long savedCommentId, int senderId, int receiverId) {
         String content = "새로운 댓글이 달렸습니다!";
-        Boolean isRead = false;
-        NotificationType notificationType = NotificationType.CHAT;
-        LocalDateTime now = LocalDateTime.now();
 
-        Notification notification = new Notification(receiverId, senderId, content, isRead, now, notificationType);
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND,
+                ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        User receiver = userRepository.findById(receiverId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND,
+                ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        Boolean isRead = false;
+        NotificationType notificationType = NotificationType.COMMENT;
+
+        Notification notification = new Notification(receiver, sender, content, isRead, notificationType);
+
+        createNotification(notification);
+
+        NotificationRedisDTO notificationRedis = new NotificationRedisDTO(notification);
+
+        // 해당 프로젝트로 redirect하게 할까..?
 
         // redis key 지정
         String KEY_PREFIX = "notification:comment:";
@@ -80,12 +97,25 @@ public class NotificationService {
 
         // redis publishing
         // ttl : 3 -> 3일 뒤 redis에서 삭제
-        redisPublisher.saveNotificationWithTTL(notificationKey, notification, 3, TimeUnit.DAYS);
+        redisPublisher.saveNotificationWithTTL(notificationKey, notificationRedis, 3, TimeUnit.DAYS);
         redisPublisher.publish("commentNotification", notificationKey);
+
     }
+
+    // DB에 알림 저장
+    public void createNotification(Notification notification) {
+        log.debug("Notification entity before save: {}", notification);
+        try {
+            notificationRepository.save(notification);
+        } catch (Exception e) {
+            log.error("Cannot save notification: {}", notification, e);
+        }
+    }
+
 
     // SSE Emitter 생성
     public SseEmitter createEmitter(int userId) {
+        log.info("createEmitter started");
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         redisSubscriber.addEmitter(userId, emitter);
 
@@ -93,10 +123,10 @@ public class NotificationService {
         executor.scheduleAtFixedRate(() -> sendHeartbeat(userId, emitter, executor), 0, 15, TimeUnit.SECONDS);
 
         setEmitterCallbacks(userId, emitter, executor);
+
+        log.info("createEmitter end");
         return emitter;
     }
-
-    // SSE 연결을 유지
     private void sendHeartbeat(int userId, SseEmitter emitter, ScheduledExecutorService executor) {
         try {
             emitter.send(SseEmitter.event()
