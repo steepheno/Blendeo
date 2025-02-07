@@ -1,16 +1,15 @@
 package Blendeo.backend.user.dto;
 
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 public class UserUpdatePutReq {
     private int id;
     private String nickname;
-    private String profileImage;
 
-    public UserUpdatePutReq(int id, String nickname, String profileImage) {
+    public UserUpdatePutReq(int id, String nickname) {
         this.id = id;
         this.nickname = nickname;
-        this.profileImage = profileImage;
     }
 }

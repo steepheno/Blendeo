@@ -16,6 +16,7 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
     private Long forkId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,6 +39,7 @@ public class Project {
     @Column(columnDefinition = "BOOLEAN DEFAULT true")
     private boolean state;
 
+    @Column
     private String thumbnail;
 
     @Column(columnDefinition = "INTEGER DEFAULT 0")
@@ -46,6 +48,7 @@ public class Project {
     @Column(columnDefinition = "INTEGER DEFAULT 0")
     private int viewCnt;
 
+    @Column
     private URL videoUrl;
 
     @Builder
