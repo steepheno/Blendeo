@@ -23,7 +23,6 @@ interface UserData {
 
 // Request Interceptor
 axiosInstance.interceptors.request.use((config) => {
-  console.log("Request config:", config);
   const publicPaths = [
     "/mail/check",
     "/mail/verify",
@@ -34,13 +33,7 @@ axiosInstance.interceptors.request.use((config) => {
 
   const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
 
-  if (import.meta.env.DEV) {
-    console.log("Request config:", config);
-    console.log("Is public API:", isPublicAPI);
-  }
-
   if (!isPublicAPI) {
-    // 쿠키에서 accessToken 읽기
     const cookies = document.cookie.split(";");
     const accessToken = cookies
       .find((cookie) => cookie.trim().startsWith("accessToken="))
@@ -49,11 +42,12 @@ axiosInstance.interceptors.request.use((config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     } else {
-      // 쿠키에 없으면 localStorage에서 시도
       const localData = localStorage.getItem("user");
       if (localData) {
         const userData: UserData = JSON.parse(localData);
         config.headers.Authorization = `Bearer ${userData.accessToken}`;
+      } else {
+        console.log("No authentication token found");
       }
     }
   }
@@ -86,13 +80,13 @@ axiosInstance.interceptors.response.use(
     );
 
     if (error.response?.status === 401 && !isPublicAPI) {
-      // 인증 실패시 쿠키와 localStorage 모두 클리어
       document.cookie.split(";").forEach((cookie) => {
         document.cookie = cookie
           .replace(/^ +/, "")
           .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
       });
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
       window.location.href = "/auth/signin";
     }
     return Promise.reject(error);
