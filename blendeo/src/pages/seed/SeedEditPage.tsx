@@ -5,7 +5,7 @@ import { uploadBlendedVideo } from "@/api/project";
 
 import Searchbar from "@/components/layout/Searchbar";
 import EditorTimeline from "@/components/common/EditorTimeline";
-import AudioControl from "@/types/components/editing/AudioControl";
+import AudioControl from "@/components/common/AudioControl";
 
 interface LocationState {
   recordedVideoURL: string;

@@ -281,30 +281,6 @@ const ForkEditPage: React.FC = () => {
       <div className="flex flex-col h-full">
         {/* Top Section with Controls and Video */}
         <div className="flex" style={{ height: "23rem" }}>
-          {/* Left Control */}
-          <div className="w-72 border-r border-slate-900 p-4">
-          <VolumeSpeedControl 
-            label="Volume"
-            value={volume}
-            max={100}
-            onChange={setVolume}
-            onReset={() => setVolume(100)}
-          />
-          <VolumeSpeedControl 
-            label="Speed"
-            value={speed}
-            max={200}
-            onChange={(newSpeed) => {
-              setSpeed(newSpeed);
-              if (sourceVideoRef.current && targetVideoRef.current) {
-                sourceVideoRef.current.playbackRate = newSpeed / 100;
-                targetVideoRef.current.playbackRate = newSpeed / 100;
-              }
-            }}
-            onReset={() => setSpeed(100)}
-          />
-          </div>
-
           {/* Center Video Preview */}
           <div className="flex-1">
             <div className="p-3">

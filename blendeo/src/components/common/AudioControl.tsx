@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { SliderControl } from './SliderControl';
 import PresetControl from './PresetControl';
-import { AudioControlData } from './edit';
+import { AudioControlData } from '../../types/components/editing/edit';
 
 const audioControl: AudioControlData[] = [
   {

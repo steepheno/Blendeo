@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SliderControlProps } from './edit';
+import { SliderControlProps } from '../../types/components/editing/edit';
 import VideoEditBar from '@/components/common/VideoEditBar';
 
 export const SliderControl: React.FC<SliderControlProps> = ({
