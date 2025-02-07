@@ -18,6 +18,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RequestMapping("/api/v1/user")
 @RestController
 @Slf4j
@@ -38,6 +40,12 @@ public class UserController {
         log.info("UserRegisterPostReq: {}", userRegisterPostReq);
         int userId = userService.register(userRegisterPostReq);
         return ResponseEntity.ok().body(userId);
+    }
+
+    // 내가 좋아하는 악기 저장하기
+    @PostMapping("/favorite/save")
+    public ResponseEntity<?> saveFavoriteInstrument(List<Integer> instrumentIds) {
+
     }
 
     @Operation(summary = "[STEP1] : 이메일 존재 유무 확인 / 인증번호 발송")

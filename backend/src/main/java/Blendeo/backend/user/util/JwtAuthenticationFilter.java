@@ -35,6 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || request.getRequestURI().startsWith("/api/v1/project/new")
                 || request.getRequestURI().startsWith("/api/v1/project/info")
                 || request.getRequestURI().startsWith("/api/v1/rank")
+                || request.getRequestURI().startsWith("/api/v1/instrument")
                 || request.getRequestURI().startsWith("/ws-stomp");
     }
 
