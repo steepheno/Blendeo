@@ -2,6 +2,7 @@ package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
+import Blendeo.backend.notification.service.NotificationService;
 import Blendeo.backend.global.lock.RedisLockManager;
 import Blendeo.backend.project.entity.Likes;
 import Blendeo.backend.project.entity.Project;
@@ -13,12 +14,14 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LikeService {
@@ -27,6 +30,7 @@ public class LikeService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final NotificationService notificationService;
     private final RedisLockManager redisLockManager;
 
     @Transactional
@@ -71,6 +75,22 @@ public class LikeService {
             // 락 해제
             redisLockManager.unlock(lockKey);
         }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+        String likeSetKey = "like:set:" + projectId;
+        String likeScoreKey = "like:score";
+
+        redisTemplate.opsForSet().add(likeSetKey, String.valueOf(userId));
+        redisTemplate.opsForZSet().incrementScore(likeScoreKey, String.valueOf(projectId), 1);
+
+        likeRepository.save(new Likes(user, project));
+
+        notificationService.publishLikeNotification(projectId, user);
     }
 
     @Transactional

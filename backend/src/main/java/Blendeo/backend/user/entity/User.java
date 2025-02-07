@@ -7,6 +7,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
@@ -25,6 +27,8 @@ public class User {
     private String password;
     @Column
     private String nickname;
+    @Column
+    private URL profileImage;
 
     @OneToMany(mappedBy = "followPK.follower", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Follow> followers = new ArrayList<>();
@@ -37,11 +41,12 @@ public class User {
     }
 
     @Builder
-    User(int id, String email, String password, String nickname) {
+    User(int id, String email, String password, String nickname, URL profileImage) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+        this.profileImage = profileImage;
     }
 
     /**
@@ -58,4 +63,5 @@ public class User {
     public boolean checkPassword(String plainPassword, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(plainPassword, this.password);
     }
+
 }

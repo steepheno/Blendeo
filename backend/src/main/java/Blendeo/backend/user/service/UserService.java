@@ -1,6 +1,7 @@
 package Blendeo.backend.user.service;
 
 import Blendeo.backend.user.dto.*;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
     int register(UserRegisterPostReq userRegisterPostReq);
@@ -17,7 +18,7 @@ public interface UserService {
 
     void deleteUser(int id);
 
-    void updateUser(UserUpdatePutReq userUpdatePutReq);
+    void updateUser(int userId, String nickname, MultipartFile profileImage);
 
     void follow(int userId, int targetId);
 

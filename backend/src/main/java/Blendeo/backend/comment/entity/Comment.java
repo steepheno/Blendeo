@@ -1,17 +1,16 @@
 package Blendeo.backend.comment.entity;
 
+import Blendeo.backend.global.entity.BaseTimeEntity;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @ToString
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Comment {
+public class Comment extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +18,6 @@ public class Comment {
 
     @Column(nullable = false)
     private String comment;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -32,10 +28,8 @@ public class Comment {
     private Project project;
 
     @Builder
-    public Comment(long id, String comment, LocalDateTime createdAt, User user, Project project) {
-        this.id = id;
+    public Comment(String comment, User user, Project project) {
         this.comment = comment;
-        this.createdAt = createdAt;
         this.user = user;
         this.project = project;
     }

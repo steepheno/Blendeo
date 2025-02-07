@@ -86,4 +86,16 @@ public class S3Utils {
             throw new IllegalArgumentException("Invalid S3 URL: " + s3Url, e);
         }
     }
+
+    // URL로 삭제하고 싶은 경우 아래 메서드도 추가
+    public void deleteFromS3ByUrl(String s3Url) {
+        try {
+            String objectKey = extractObjectKeyFromUrl(s3Url);
+            s3.deleteObject(bucket, objectKey);
+            log.info("Successfully deleted file {} from S3 bucket {}", objectKey, bucket);
+        } catch (Exception e) {
+            log.error("Error deleting file from S3", e);
+            throw new RuntimeException("Failed to delete file from S3", e);
+        }
+    }
 }

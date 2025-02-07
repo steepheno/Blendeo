@@ -8,6 +8,7 @@ import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.exception.InvalidCommentException;
 import Blendeo.backend.exception.UnauthorizedAccessException;
 import Blendeo.backend.global.error.ErrorCode;
+import Blendeo.backend.notification.service.NotificationService;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
@@ -27,6 +28,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -40,7 +42,8 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new EntityNotFoundException("해당하는 프로젝트가 없습니다."));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND,
+                        ErrorCode.USER_NOT_FOUND.getMessage()));
 
         Comment comment = Comment.builder()
                 .comment(commentRegisterReq.getComment())
@@ -48,7 +51,14 @@ public class CommentServiceImpl implements CommentService {
                 .project(project)
                 .build();
 
-        commentRepository.save(comment);
+        log.info("create comment object");
+
+        Comment savedComment = commentRepository.save(comment);
+        Long commentId = savedComment.getId();
+        log.info("success save comment");
+
+        notificationService.publishCommentNotification(commentRegisterReq.getProjectId(), user);
+
     }
 
 
@@ -57,13 +67,16 @@ public class CommentServiceImpl implements CommentService {
     public void deleteComment(int userId, Long commentId) {
         // 댓글 존재 여부 확인
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COMMENT_NOT_FOUND, ErrorCode.COMMENT_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COMMENT_NOT_FOUND,
+                        ErrorCode.COMMENT_NOT_FOUND.getMessage()));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND,
+                        ErrorCode.USER_NOT_FOUND.getMessage()));
 
         if (comment.getUser().getId() != user.getId()) {
-            throw new UnauthorizedAccessException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+            throw new UnauthorizedAccessException(ErrorCode.UNAUTHORIZED_ACCESS,
+                    ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
         }
 
         commentRepository.delete(comment);
@@ -73,7 +86,8 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentRes> getComments(Long projectId) {
 
         List<Comment> comments = commentRepository.findCommentByProjectId(projectId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COMMENT_NOT_FOUND, ErrorCode.COMMENT_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COMMENT_NOT_FOUND,
+                        ErrorCode.COMMENT_NOT_FOUND.getMessage()));
 
         return comments.stream()
                 .map(CommentRes::from)

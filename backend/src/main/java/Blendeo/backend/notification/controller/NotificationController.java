@@ -1,0 +1,73 @@
+package Blendeo.backend.notification.controller;
+
+import Blendeo.backend.infrastructure.redis.RedisPublisher;
+import Blendeo.backend.infrastructure.redis.RedisSubscriber;
+import Blendeo.backend.notification.dto.NotificationRedisDTO;
+import Blendeo.backend.notification.entity.Notification;
+import Blendeo.backend.notification.service.NotificationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/v1/notify")
+@CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
+public class NotificationController {
+
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper objectMapper;
+    private final RedisSubscriber redisSubscriber;
+    private final NotificationService notificationService;
+
+    @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        redisSubscriber.addEmitter(userId, emitter);
+
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connect")
+                    .data("Connection Established"));
+        } catch (IOException e) {
+            log.error("연결 메시지 전송 실패", e);
+        }
+
+        return emitter;
+    }
+
+    @PostMapping("/test-direct-send")
+    public ResponseEntity<String> testDirectSend(
+            @RequestParam int userId,
+            @RequestParam String message
+    ) {
+        NotificationRedisDTO notificationRedisDTO = NotificationRedisDTO.builder()
+                .content(message)
+                .build();
+
+        try {
+            redisSubscriber.sendNotificationToEmitters(userId, notificationRedisDTO);
+            return ResponseEntity.ok("알림 전송 완료" + notificationRedisDTO.getContent());
+        } catch (Exception e) {
+            log.error("알림 전송 실패", e);
+            return ResponseEntity.internalServerError().body("알림 전송 실패: " + e.getMessage());
+        }
+    }
+}
