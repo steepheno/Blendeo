@@ -12,6 +12,7 @@ public enum ErrorCode {
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 유저를 찾을 수 없습니다."),
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 프로젝트를 찾을 수 없습니다."),
+    CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 채팅방을 찾을 수 없습니다."),
     EMAIL_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
 
     // Follow
@@ -25,7 +26,8 @@ public enum ErrorCode {
 
     // Scrap
     SCRAP_NOT_FOUND(HttpStatus.NOT_FOUND, "스크랩한 프로젝트가 아닙니다.");
-
+    
+    
     private final HttpStatus status;
     private final String message;
 
