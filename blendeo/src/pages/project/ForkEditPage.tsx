@@ -75,7 +75,7 @@ const TimelineTools: React.FC = () => {
   );
 };
 
-export const VideoEditor: React.FC = () => {
+const ForkEditPage: React.FC = () => {
   const [videosLoaded, setVideosLoaded] = useState(0);
   const [volume, setVolume] = useState(100);
   const [speed, setSpeed] = useState(100);
@@ -482,4 +482,4 @@ export const VideoEditor: React.FC = () => {
   );
 };
 
-export default VideoEditor;
+export default ForkEditPage;

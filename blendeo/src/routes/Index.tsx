@@ -11,9 +11,9 @@ import ProjectDetailPage from "@/pages/project/ProjectDetailPage";
 import SeedRecordPage from "@/pages/seed/SeedRecordPage";
 import SeedEditPage from "@/pages/seed/SeedEditPage";
 import SeedUploadPage from "@/pages/seed/SeedUploadPage";
-import ProjectRecordPage from "@/pages/project/ProjectRecordPage";
-import ProjectEditPage from "@/pages/project/ProjectEditPage";
-import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
+import ForkRecordPage from "@/pages/project/ForkRecordPage";
+import ForkEditPage from "@/pages/project/ForkEditPage";
+import ForkUploadPage from "@/pages/project/ForkUploadPage";
 
 import ProjectTreePage from "@/pages/project/ProjectTreePage";
 import UserProfilePage from "@/pages/profile/UserProfilePage";
@@ -72,7 +72,7 @@ export const router = createBrowserRouter([
         path: "forkrecord",
         element: (
           <ProtectedRoute>
-            <ProjectRecordPage />
+            <ForkRecordPage />
           </ProtectedRoute>
         ),
       },
@@ -80,7 +80,7 @@ export const router = createBrowserRouter([
         path: "forkedit",
         element: (
           <ProtectedRoute>
-            <ProjectEditPage />
+            <ForkEditPage />
           </ProtectedRoute>
         ),
       },
@@ -88,7 +88,7 @@ export const router = createBrowserRouter([
         path: "forkupload",
         element: (
           <ProtectedRoute>
-            <ProjectUploadPage />
+            <ForkUploadPage />
           </ProtectedRoute>
         ),
       },

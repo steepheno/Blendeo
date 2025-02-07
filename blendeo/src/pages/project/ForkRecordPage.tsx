@@ -6,7 +6,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 
-const ProjectRecordPage = () => {
+const ForkRecordPage = () => {
   const { getRedirectState } = useProjectStore();
   const currentProject = getRedirectState('project-fork');
   const navigate = useNavigate();
@@ -218,4 +218,4 @@ const ProjectRecordPage = () => {
   );
 };
 
-export default ProjectRecordPage;
+export default ForkRecordPage;
