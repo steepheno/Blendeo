@@ -7,7 +7,8 @@ import Blendeo.backend.chat.entity.ChatRoomParticipant;
 import Blendeo.backend.chat.repoository.ChatMessageRepository;
 import Blendeo.backend.chat.repoository.ChatRoomParticipantRepository;
 import Blendeo.backend.chat.repoository.ChatRoomRepository;
-import jakarta.persistence.EntityNotFoundException;
+import Blendeo.backend.exception.EntityNotFoundException;
+import Blendeo.backend.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -60,7 +61,7 @@ public class ChatService {
 
         List<ChatRoom> chatRooms = new ArrayList<>();
         chatRoomParticipants.forEach(participant -> {
-            chatRooms.add(chatRoomRepository.findById(participant.getChatRoomId()).orElseThrow(()->new EntityNotFoundException()));
+            chatRooms.add(chatRoomRepository.findById(participant.getChatRoomId()).orElseThrow(()->new EntityNotFoundException(ErrorCode.CHATROOM_NOT_FOUND, ErrorCode.CHATROOM_NOT_FOUND.toString())));
         });
         return chatRooms;
     }
@@ -77,9 +78,9 @@ public class ChatService {
 
     public void inviteUser(Long roomId, int userId) {
         ChatRoomParticipant chatRoomParticipant = ChatRoomParticipant.builder()
-                        .chatRoomId(roomId)
-                                .userId(userId)
-                                        .build();
+                .chatRoomId(roomId)
+                .userId(userId)
+                .build();
         chatRoomParticipantRepository.save(chatRoomParticipant);
     }
 
@@ -101,7 +102,7 @@ public class ChatService {
     public boolean isInThatChatRoom(Long roomId, int userId) {
         boolean isExist = false;
         List<ChatRoomParticipant> roomParticipants = chatRoomParticipantRepository.findAllByChatRoomId(roomId)
-                .orElseThrow(()->new EntityNotFoundException());
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.CHATROOM_NOT_FOUND, ErrorCode.CHATROOM_NOT_FOUND.toString()));
         for (ChatRoomParticipant chatRoomParticipant : roomParticipants) {
             if (chatRoomParticipant.getUserId().equals(userId)) {
                 isExist = true;

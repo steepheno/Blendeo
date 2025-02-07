@@ -35,8 +35,6 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173", // React 개발 서버
-                "http://localhost:5500",
-                "http://127.0.0.1:5500",
                 "http://i12a602.p.ssafy.io:5173"
                 ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
