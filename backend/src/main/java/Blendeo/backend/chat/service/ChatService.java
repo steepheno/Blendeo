@@ -11,6 +11,7 @@ import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +22,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j // JPA 트랜잭션 매니저 설정
 public class ChatService {
-    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final RedisTemplate<String, Object> chatRedisTemplate;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomParticipantRepository participantRepository;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
+
+    public ChatService(@Qualifier("chatRedisTemplate") RedisTemplate<String, Object> chatRedisTemplate, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, ChatRoomParticipantRepository participantRepository, ChatRoomParticipantRepository chatRoomParticipantRepository) {
+        this.chatRedisTemplate = chatRedisTemplate;
+        this.chatMessageRepository = chatMessageRepository;
+        this.chatRoomRepository = chatRoomRepository;
+        this.participantRepository = participantRepository;
+        this.chatRoomParticipantRepository = chatRoomParticipantRepository;
+    }
 
     public void sendMessage(ChatMessage message) {
         message.setTimestamp(LocalDateTime.now());
@@ -45,7 +54,7 @@ public class ChatService {
 
         // Redis에 메시지 발행
         log.info("Attempting to publish to Redis...");
-        redisTemplate.convertAndSend("/sub/chat/room/" + message.getChatRoomId(), message);
+        chatRedisTemplate.convertAndSend("/sub/chat/room/" + message.getChatRoomId(), message);
         log.info("Successfully published to Redis");
     }
 

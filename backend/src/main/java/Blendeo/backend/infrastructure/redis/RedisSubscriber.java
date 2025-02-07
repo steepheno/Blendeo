@@ -13,20 +13,31 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RedisSubscriber {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    @EventListener
+    public void handleRedisMessage(Message<String> message) {
+        log.info("Received message from Redis: {}", message.getPayload());
+    }
+
+    private final RedisTemplate<String, Object> notificationRedisTemplate;
     private final ObjectMapper objectMapper;
     private final Map<Integer, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);
 
+    public RedisSubscriber(@Qualifier("notificationRedisTemplate") RedisTemplate<String, Object> notificationRedisTemplate, ObjectMapper objectMapper) {
+        this.notificationRedisTemplate = notificationRedisTemplate;
+        this.objectMapper = objectMapper;
+    }
 
 
     // Redis 메시지 수신
@@ -68,7 +79,7 @@ public class RedisSubscriber {
                 log.info("key value :: {}", key);
                 String notificationJson = null;
                 for (int attempt = 0; attempt < retriesLeft; attempt++) {
-                    notificationJson = (String) redisTemplate.opsForValue().get(key);
+                    notificationJson = (String) notificationRedisTemplate.opsForValue().get(key);
                     if (notificationJson != null) {
                         break;
                     }

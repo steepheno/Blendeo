@@ -38,19 +38,6 @@ public class UserServiceImpl implements UserService {
     private final FollowService followService;
     private final FollowRepository followRepository;
     private final NotificationService notificationService;
-
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
-                           RefreshTokenRepository refreshTokenRepository, FollowService followService,
-                           FollowRepository followRepository, NotificationService notificationService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.followService = followService;
-        this.followRepository = followRepository;
-        this.notificationService = notificationService;
-    }
-    
     private final S3Utils s3Utils;
 
     @Override

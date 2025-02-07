@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,8 +59,8 @@ public class RedisConfig {
         return template;
     }
 
-<<<<<<< backend/src/main/java/Blendeo/backend/config/RedisConfig.java
     @Bean
+    @Qualifier("chatRedisTemplate")
     public RedisTemplate<String, Object> chatRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
@@ -81,7 +82,9 @@ public class RedisConfig {
         template.setHashValueSerializer(jsonSerializer);
 
         template.afterPropertiesSet();
-=======
+
+        return template;
+    }
     // Notification
     @Bean
     public RedisMessageListenerContainer redisContainer(
@@ -110,13 +113,13 @@ public class RedisConfig {
     }
 
     @Bean
+    @Qualifier("notificationRedisTemplate")
     public RedisTemplate<String, Object> notificationRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
 
->>>>>>> backend/src/main/java/Blendeo/backend/config/RedisConfig.java
         return template;
     }
 }

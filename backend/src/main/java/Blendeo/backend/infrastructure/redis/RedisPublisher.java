@@ -5,6 +5,7 @@ import Blendeo.backend.notification.entity.Notification;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,7 @@ public class RedisPublisher {
     private final RedisTemplate<String, Object> notificationRedisTemplate;
     private final ObjectMapper objectMapper;
 
-    public RedisPublisher(RedisTemplate<String, Object> notificationRedisTemplate, ObjectMapper objectMapper) {
+    public RedisPublisher(@Qualifier("notificationRedisTemplate")RedisTemplate<String, Object> notificationRedisTemplate, ObjectMapper objectMapper) {
         this.notificationRedisTemplate = notificationRedisTemplate;
         this.objectMapper = objectMapper;
     }
