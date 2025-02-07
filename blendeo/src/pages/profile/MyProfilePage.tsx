@@ -1,16 +1,19 @@
-import { useState, useEffect } from "react";
+// MyProfilePage.tsx
+import { useState, useEffect, useCallback } from "react";
 import Layout from "@/components/layout/Layout";
 import ProfileSection from "@/components/profile/ProfileSection";
 import VideoSection from "@/components/profile/VideoSection";
 import { useUser, useAuthStore } from "@/stores/authStore";
-import { getUser, getFollowers, getFollowings } from "@/api/user";
+import {
+  getUser,
+  getFollowers,
+  getFollowings,
+  updateProfile,
+} from "@/api/user";
 import { User, FollowResponse } from "@/types/api/user";
 import { useNavigate } from "react-router-dom";
 
-console.log("\n=== MyProfilePage Script Loaded ===");
-
 const MyProfilePage = () => {
-  console.log("\n=== MyProfilePage Component Initializing ===");
   const navigate = useNavigate();
   const authUser = useUser();
   const { isAuthenticated } = useAuthStore();
@@ -80,58 +83,70 @@ const MyProfilePage = () => {
     },
   ];
 
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      if (!isAuthenticated || !authUser?.id) {
-        console.log("Auth check failed:", {
-          isAuthenticated,
-          userId: authUser?.id,
-        });
-        setError("인증이 필요합니다");
-        navigate("/auth/signin", { state: { from: "/profile/me" } });
-        return;
-      }
+  const fetchProfileData = useCallback(async () => {
+    if (!isAuthenticated || !authUser?.id) {
+      setError("인증이 필요합니다");
+      navigate("/auth/signin", { state: { from: "/profile/me" } });
+      return;
+    }
 
-      try {
-        console.log("Starting API calls for user:", authUser.id);
-        setIsLoading(true);
-        setError(null);
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const [userResponse, followersResponse, followingsResponse] =
-          await Promise.all([
-            getUser(authUser.id),
-            getFollowers(authUser.id),
-            getFollowings(authUser.id),
-          ]);
+      const [userResponse, followersResponse, followingsResponse] =
+        await Promise.all([
+          getUser(authUser.id),
+          getFollowers(authUser.id),
+          getFollowings(authUser.id),
+        ]);
 
-        setProfileData(userResponse as User);
+      setProfileData(userResponse);
 
-        const followingsData = followingsResponse as FollowResponse;
-        const followersData = followersResponse as FollowResponse;
+      const combinedFollowData: FollowResponse = {
+        followingIdList: followingsResponse.followingIdList,
+        followingNicknameList: followingsResponse.followingNicknameList,
+        followingCount: followingsResponse.followingCount,
+        followerIdList: followersResponse.followerIdList,
+        followerNicknameList: followersResponse.followerNicknameList,
+        followerCount: followersResponse.followerCount,
+      };
 
-        const combinedFollowData: FollowResponse = {
-          followingIdList: followingsData.followingIdList,
-          followingNicknameList: followingsData.followingNicknameList,
-          followingCount: followingsData.followingCount,
-          followerIdList: followersData.followerIdList,
-          followerNicknameList: followersData.followerNicknameList,
-          followerCount: followersData.followerCount,
-        };
-
-        setFollowData(combinedFollowData);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "프로필을 불러오는 중 오류가 발생했습니다."
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProfileData();
+      setFollowData(combinedFollowData);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "프로필을 불러오는 중 오류가 발생했습니다."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }, [authUser?.id, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
+
+  const handleProfileUpdate = async (data: {
+    nickname: string;
+    profileImage?: File;
+  }) => {
+    try {
+      await updateProfile({
+        nickname: data.nickname,
+        profileImage: data.profileImage,
+      });
+
+      await fetchProfileData(); // 프로필 업데이트 후 데이터 새로고침
+    } catch (err) {
+      throw new Error(
+        err instanceof Error
+          ? err.message
+          : "프로필 업데이트 중 오류가 발생했습니다."
+      );
+    }
+  };
 
   if (isLoading) {
     return (
@@ -165,6 +180,8 @@ const MyProfilePage = () => {
           tags={tags}
           followingCount={followData?.followingCount?.toString() || "0"}
           followerCount={followData?.followerCount?.toString() || "0"}
+          isEditable={true}
+          onProfileUpdate={handleProfileUpdate}
         />
         <VideoSection title="내 영상들" videos={videos} />
         <VideoSection title="좋아요 누른 영상들" videos={videos} />

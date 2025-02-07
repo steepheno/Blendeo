@@ -4,18 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 
 const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
-  console.log("\n=== SidebarItem Mount ===");
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   const routing = () => {
-    console.log("\n=== SidebarItem Click ===");
-    console.log("Clicked label:", label);
-    console.log("Auth state at click:", {
-      isAuthenticated,
-      userId: user?.id,
-    });
-
     switch (label) {
       case "홈":
         navigate("/");
@@ -40,8 +32,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
               state: { from: "/profile/me" },
             });
           }
-        } catch (error) {
-          console.error("Navigation error:", error);
+        } catch {
+          // Error handling
         }
         break;
     }

@@ -1,4 +1,3 @@
-// src/stores/userStore.ts
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import * as userApi from "@/api/user";
@@ -8,7 +7,7 @@ interface UserStore {
   currentUser: User | null;
   followings: FollowResponse | null;
   followers: FollowResponse | null;
-  updateUser: (userId: number, data: UpdateUserRequest) => Promise<void>;
+  updateUser: (data: UpdateUserRequest) => Promise<void>;
   getUser: (id: number) => Promise<void>;
   followUser: (userId: number) => Promise<void>;
   unfollowUser: (userId: number) => Promise<void>;
@@ -18,15 +17,18 @@ interface UserStore {
 
 export const useUserStore = create<UserStore>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       currentUser: null,
       followings: null,
       followers: null,
 
-      updateUser: async (userId, data) => {
-        await userApi.updateUser(userId, data);
-        const updatedUser = await userApi.getUser(userId);
-        set({ currentUser: updatedUser });
+      updateUser: async (data) => {
+        const currentUser = get().currentUser;
+        await userApi.updateProfile(data);
+        if (currentUser?.id) {
+          const updatedUser = await userApi.getUser(currentUser.id);
+          set({ currentUser: updatedUser });
+        }
       },
 
       getUser: async (id) => {

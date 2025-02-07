@@ -1,4 +1,3 @@
-// src/types/api/user.ts
 export interface User {
   id: number;
   email: string;
@@ -17,5 +16,5 @@ export interface FollowResponse {
 
 export interface UpdateUserRequest {
   nickname: string;
-  profileImage?: string;
+  profileImage?: File;
 }
