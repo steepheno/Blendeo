@@ -63,7 +63,8 @@ public class SecurityConfig {
                                 "/configuration/ui",
                                 "/configuration/security",
                                 "/api/v1/project/new",
-                                "/api/v1/project/info/**"
+                                "/api/v1/project/info/**",
+                                "/api/v1/rank/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/admin/**").authenticated()
                         // 나머지 요청은 인증 필요

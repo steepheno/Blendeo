@@ -20,10 +20,13 @@ public class RankingService {
     private final ProjectRepository projectRepository;
     private final LikeRepository likeRepository;
 
+    private static final String RANKING_KEY = "like:score";
+    private static final String VIEW_KEY = "viewcount:score";
+
     @CircuitBreaker(name = "redisCircuitBreaker", fallbackMethod = "getProjectRankingFromDB")
     public List<ProjectRankRes> getRankingByLikes() {
         try {
-            Set<String> redisResult = redisTemplate.opsForZSet().reverseRange("like:score", 0, 9);
+            Set<String> redisResult = redisTemplate.opsForZSet().reverseRange(RANKING_KEY, 0, 9);
 
             return processRankingResult(redisResult.stream()
                     .filter(Objects::nonNull)
@@ -63,5 +66,37 @@ public class RankingService {
             log.error("ProjectIds에 숫자가 아닌 다른 값이 포함되었습니다. {}", str);
             return null;
         }
+    }
+
+    public void incrementScore(Long projectId) {
+        redisTemplate.opsForZSet().incrementScore(VIEW_KEY, String.valueOf(projectId), 1);
+    }
+
+    public Set<String> getTopProjects(int limit) {
+        return redisTemplate.opsForZSet().reverseRange(VIEW_KEY, 0, limit - 1);
+    }
+
+    @CircuitBreaker(name = "redisCircuitBreaker", fallbackMethod = "getProjectRankingByViewsFromDB")
+    public List<ProjectRankRes> getRankingByViews() {
+        try {
+            Set<String> redisResult = redisTemplate.opsForZSet().reverseRange(VIEW_KEY, 0, 9);
+
+            return processRankingResult(redisResult.stream()
+                    .filter(Objects::nonNull)
+                    .map(this::parseProjectId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()));
+        } catch (PoolException e) {
+            log.error("Redis 연결 실패 (조회수 랭킹) ", e);
+            throw e;
+        }
+    }
+
+    public List<ProjectRankRes> getProjectRankingByViewsFromDB(Throwable throwable) {
+        log.info("조회수 랭킹 Circuit Breaker 발동");
+        log.warn("Fallback 메서드 호출! 예외 타입: {}", throwable.getClass().getName());
+
+        List<Long> mysqlResult = projectRepository.getProjectRankingByViews();
+        return processRankingResult(mysqlResult);
     }
 }
