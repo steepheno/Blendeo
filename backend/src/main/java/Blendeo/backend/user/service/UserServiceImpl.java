@@ -3,27 +3,33 @@ package Blendeo.backend.user.service;
 import Blendeo.backend.exception.EmailAlreadyExistsException;
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.notification.service.NotificationService;
-import Blendeo.backend.user.dto.FollowerListRes;
-import Blendeo.backend.user.dto.FollowingListRes;
-import Blendeo.backend.user.dto.UserInfoGetRes;
-import Blendeo.backend.user.dto.UserLoginPostReq;
-import Blendeo.backend.user.dto.UserLoginPostRes;
-import Blendeo.backend.user.dto.UserRegisterPostReq;
-import Blendeo.backend.user.dto.UserUpdatePutReq;
+import Blendeo.backend.global.util.S3Utils;
+import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.entity.Follow;
-import Blendeo.backend.user.entity.RefreshToken;
+import Blendeo.backend.user.entity.Token;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.FollowRepository;
 import Blendeo.backend.user.repository.RefreshTokenRepository;
 import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Slf4j
+@AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -44,6 +50,8 @@ public class UserServiceImpl implements UserService {
         this.followRepository = followRepository;
         this.notificationService = notificationService;
     }
+    
+    private final S3Utils s3Utils;
 
     @Override
     public int register(UserRegisterPostReq userRegisterPostReq) {
@@ -67,10 +75,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserLoginPostRes login(UserLoginPostReq userLoginPostReq) {
+    public UserLoginPostResWithToken login(UserLoginPostReq userLoginPostReq) {
         String email = userLoginPostReq.getEmail();
         Optional<User> user = userRepository.findByEmail(email);
-        UserLoginPostRes userLoginPostRes;
+        UserLoginPostResWithToken userLoginPostResWithToken = null;
 
         if (user.isPresent()) {
             if (!user.get().checkPassword(userLoginPostReq.getPassword(), passwordEncoder)) {
@@ -80,14 +88,15 @@ public class UserServiceImpl implements UserService {
             String accessToken = jwtUtil.generateAccessToken(user.get().getId());
             String refreshToken = jwtUtil.generateRefreshToken();
 
-            userLoginPostRes = UserLoginPostRes.builder()
+            userLoginPostResWithToken = UserLoginPostResWithToken.builder()
                     .id(user.get().getId())
                     .email(user.get().getEmail())
                     .nickname(user.get().getNickname())
-                    .accessToken(accessToken).build();
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken).build();
 
             // Redis에 저장
-            refreshTokenRepository.save(new RefreshToken(user.get().getId(), accessToken, refreshToken));
+            refreshTokenRepository.save(new Token(user.get().getId(), accessToken, refreshToken));
 
             notificationService.createEmitter(user.get().getId());
 
@@ -95,21 +104,18 @@ public class UserServiceImpl implements UserService {
             throw new EntityNotFoundException("아이디 혹은 비밀번호가 일치하지 않습니다.");
         }
 
-        return userLoginPostRes;
+        return userLoginPostResWithToken;
     }
 
     @Override
-    public String findByAccessToken(String token) {
-        if (!token.startsWith("Bearer ")) {
-            throw new IllegalArgumentException();
-        }
-        String accessToken = token.substring(7);
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByAccessToken(accessToken);
+    public String findByRefreshToken(String token) {
+        Optional<Token> newToken = refreshTokenRepository.findByRefreshToken(token);
 
-        if (refreshToken.isPresent() && jwtUtil.validateToken(refreshToken.get().getRefreshToken())) {
-            RefreshToken resultToken = refreshToken.get();
+        if (newToken.isPresent() && jwtUtil.validateToken(newToken.get().getRefreshToken())) {
+            Token resultToken = newToken.get();
 
-            String newAccessToken = jwtUtil.generateAccessToken(resultToken.getId());
+            int id = jwtUtil.getIdFromToken(resultToken.getAccessToken());
+            String newAccessToken = jwtUtil.generateAccessToken(id);
 
             resultToken.updateAccessToken(newAccessToken);
             refreshTokenRepository.save(resultToken);
@@ -122,19 +128,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void logout(String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            String accessToken = token.substring(7);
-
-            if (!jwtUtil.validateToken(accessToken)) {
+        if (token != null) {
+            if (!jwtUtil.validateToken(token)) {
                 throw new IllegalArgumentException("Invalid or expired access token");
             }
-
-            int userId = jwtUtil.getIdFromToken(accessToken);
-
-            Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(String.valueOf(userId));
-
-            refreshTokenRepository.delete(refreshToken.get());
-
+            Optional<Token> tokenInfo = refreshTokenRepository.findByAccessToken(token);
+            if (tokenInfo.isPresent()) {
+                refreshTokenRepository.delete(tokenInfo.get());
+            }
 //            SecurityContextHolder.clearContext(); // SecurityContext에서 인증 정보 제거
         }
     }
@@ -143,7 +144,7 @@ public class UserServiceImpl implements UserService {
     public UserInfoGetRes getUser(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
-        UserInfoGetRes info = new UserInfoGetRes(id, user.getEmail(), user.getNickname(), null);
+        UserInfoGetRes info = new UserInfoGetRes(id, user.getEmail(), user.getNickname(), user.getProfileImage().toString());
         return info;
     }
 
@@ -155,10 +156,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(UserUpdatePutReq userUpdatePutReq) {
-        User user = userRepository.findById(userUpdatePutReq.getId())
+    public void updateUser(int userId, String nickname, MultipartFile profileImage) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(EntityNotFoundException::new);
-        userRepository.updateUser(userUpdatePutReq.getId(), userUpdatePutReq.getNickname());
+
+        // user 에 원래 존재했던 프로필 사진을 S3에서 삭제하기.
+        if (user.getProfileImage()!=null) {
+            s3Utils.deleteFromS3ByUrl(user.getProfileImage().toString());
+        }
+
+        File tempFile = null;
+        URL profileImgUrl = null;
+
+        try {
+            log.warn("are you here? 2");
+            String fileName = "profile/image_"+ UUID.randomUUID().toString();
+            tempFile = File.createTempFile(fileName, ".jpeg");
+
+            profileImage.transferTo(tempFile);
+
+            log.warn("are you here? 3");
+            s3Utils.uploadToS3(tempFile, fileName + ".jpeg", "profileImage/jpeg");
+
+            String urlString = s3Utils.getUrlByFileName(fileName + ".jpeg");
+            profileImgUrl = new URL(urlString);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        userRepository.updateUser(userId, nickname, profileImgUrl);
     }
 
     @Transactional

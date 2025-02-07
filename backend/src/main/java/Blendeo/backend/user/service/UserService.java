@@ -1,21 +1,16 @@
 package Blendeo.backend.user.service;
 
-import Blendeo.backend.user.dto.FollowerListRes;
-import Blendeo.backend.user.dto.FollowingListRes;
-import Blendeo.backend.user.dto.UserInfoGetRes;
-import Blendeo.backend.user.dto.UserLoginPostReq;
-import Blendeo.backend.user.dto.UserLoginPostRes;
-import Blendeo.backend.user.dto.UserRegisterPostReq;
-import Blendeo.backend.user.dto.UserUpdatePutReq;
+import Blendeo.backend.user.dto.*;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
     int register(UserRegisterPostReq userRegisterPostReq);
 
     void emailExist(String email);
 
-    UserLoginPostRes login(UserLoginPostReq userRegisterPostReq);
+    UserLoginPostResWithToken login(UserLoginPostReq userRegisterPostReq);
 
-    String findByAccessToken(String accessToken);
+    String findByRefreshToken(String accessToken);
 
     void logout(String accessToken);
 
@@ -23,7 +18,7 @@ public interface UserService {
 
     void deleteUser(int id);
 
-    void updateUser(UserUpdatePutReq userUpdatePutReq);
+    void updateUser(int userId, String nickname, MultipartFile profileImage);
 
     void follow(int userId, int targetId);
 

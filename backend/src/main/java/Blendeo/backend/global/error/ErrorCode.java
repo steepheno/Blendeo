@@ -1,5 +1,6 @@
 package Blendeo.backend.global.error;
 
+import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties.Http;
 import org.springframework.http.HttpStatus;
 
 public enum ErrorCode {
@@ -20,7 +21,10 @@ public enum ErrorCode {
     // Comment
     INVALID_COMMENT_CONTENT(HttpStatus.BAD_REQUEST, "댓글 내용은 필수입니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
-    COMMENT_TOO_LONG(HttpStatus.BAD_REQUEST, "댓글이 최대 길이를 초과했습니다.");
+    COMMENT_TOO_LONG(HttpStatus.BAD_REQUEST, "댓글이 최대 길이를 초과했습니다."),
+
+    // Scrap
+    SCRAP_NOT_FOUND(HttpStatus.NOT_FOUND, "스크랩한 프로젝트가 아닙니다.");
 
     private final HttpStatus status;
     private final String message;
