@@ -14,6 +14,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(
                         "http://localhost:5173",
+                        "http://localhost:5500",
+                        "http://127.0.0.1:5500",
                         "http://i12a602.p.ssafy.io:5173"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")

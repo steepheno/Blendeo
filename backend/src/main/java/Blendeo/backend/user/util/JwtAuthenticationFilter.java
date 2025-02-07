@@ -33,7 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || request.getRequestURI().startsWith("/webjars")
                 || request.getRequestURI().startsWith("/configuration")
                 || request.getRequestURI().startsWith("/api/v1/project/new")
-                || request.getRequestURI().startsWith("/api/v1/project/info");
+                || request.getRequestURI().startsWith("/api/v1/project/info")
+                || request.getRequestURI().startsWith("/ws-stomp");
     }
 
     @Override
