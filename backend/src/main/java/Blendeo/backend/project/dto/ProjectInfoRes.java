@@ -19,11 +19,12 @@ public class ProjectInfoRes {
     private LocalDateTime createdAt;
     private boolean state;
     private String thumbnail;
+    private String videoUrl;
     private int runningTime;
     private int viewCnt;
 
     @Builder
-    public ProjectInfoRes(Long id, Long forkId, String projectTitle, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, String thumbnail, int runningTime, int viewCnt) {
+    public ProjectInfoRes(Long id, Long forkId, String projectTitle, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, String thumbnail, int runningTime, int viewCnt, String videoUrl) {
         this.id = id;
         this.forkId = forkId;
         this.projectTitle = projectTitle;
@@ -34,5 +35,6 @@ public class ProjectInfoRes {
         this.thumbnail = thumbnail;
         this.runningTime = runningTime;
         this.viewCnt = viewCnt;
+        this.videoUrl = videoUrl;
     }
 }

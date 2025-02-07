@@ -4,6 +4,7 @@ import Blendeo.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 
 @ToString
@@ -45,18 +46,18 @@ public class Project {
     @Column(columnDefinition = "INTEGER DEFAULT 0")
     private int viewCnt;
 
-    private String videoUrl;
+    private URL videoUrl;
 
     @Builder
     public Project(Long forkId, User author, String title, String contents,
-                   String thumbnail, String videoUrl, int runningTime) {
+                   String thumbnail, int contributorCnt, URL videoUrl, int runningTime) {
         this.forkId = forkId;
         this.author = author;
         this.title = title;
         this.contents = contents;
         this.thumbnail = thumbnail;
         this.videoUrl = videoUrl;
-        this.contributorCnt = 0;
+        this.contributorCnt = contributorCnt;
         this.createdAt = LocalDateTime.now();
         this.state = true;
         this.runningTime = runningTime;
