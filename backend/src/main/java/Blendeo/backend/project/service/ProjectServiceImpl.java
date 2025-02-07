@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,6 +32,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectNodeRepository projectNodeRepository;
     private final UserRepository userRepository;
     private final S3Utils s3Utils;
+    private final RankingService rankingService;
 
     @Override
     @Transactional
@@ -72,7 +74,12 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
     public ProjectInfoRes getProjectInfo(Long projectId) {
+
+        // 조회수 1 증가
+        projectRepository.updateViewCount(projectId);
+        rankingService.incrementScore(projectId);
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));

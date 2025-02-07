@@ -20,4 +20,9 @@ public class RankingController {
     public ResponseEntity<List<ProjectRankRes>> getRankingByLikes(){
         return ResponseEntity.ok(rankingService.getRankingByLikes());
     }
+
+    @GetMapping("/views")
+    public ResponseEntity<List<ProjectRankRes>> getRankingByViews(){
+        return ResponseEntity.ok(rankingService.getRankingByViews());
+    }
 }
