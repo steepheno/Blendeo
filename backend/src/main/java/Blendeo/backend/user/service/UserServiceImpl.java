@@ -3,6 +3,7 @@ package Blendeo.backend.user.service;
 import Blendeo.backend.exception.EmailAlreadyExistsException;
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.notification.service.NotificationService;
+import Blendeo.backend.global.util.S3Utils;
 import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.entity.Follow;
 import Blendeo.backend.user.entity.Token;
@@ -11,16 +12,24 @@ import Blendeo.backend.user.repository.FollowRepository;
 import Blendeo.backend.user.repository.RefreshTokenRepository;
 import Blendeo.backend.user.repository.UserRepository;
 import Blendeo.backend.user.util.JwtUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -41,6 +50,8 @@ public class UserServiceImpl implements UserService {
         this.followRepository = followRepository;
         this.notificationService = notificationService;
     }
+    
+    private final S3Utils s3Utils;
 
     @Override
     public int register(UserRegisterPostReq userRegisterPostReq) {
@@ -133,7 +144,7 @@ public class UserServiceImpl implements UserService {
     public UserInfoGetRes getUser(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
-        UserInfoGetRes info = new UserInfoGetRes(id, user.getEmail(), user.getNickname(), null);
+        UserInfoGetRes info = new UserInfoGetRes(id, user.getEmail(), user.getNickname(), user.getProfileImage().toString());
         return info;
     }
 
@@ -145,10 +156,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(UserUpdatePutReq userUpdatePutReq) {
-        User user = userRepository.findById(userUpdatePutReq.getId())
+    public void updateUser(int userId, String nickname, MultipartFile profileImage) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(EntityNotFoundException::new);
-        userRepository.updateUser(userUpdatePutReq.getId(), userUpdatePutReq.getNickname());
+
+        // user 에 원래 존재했던 프로필 사진을 S3에서 삭제하기.
+        if (user.getProfileImage()!=null) {
+            s3Utils.deleteFromS3ByUrl(user.getProfileImage().toString());
+        }
+
+        File tempFile = null;
+        URL profileImgUrl = null;
+
+        try {
+            log.warn("are you here? 2");
+            String fileName = "profile/image_"+ UUID.randomUUID().toString();
+            tempFile = File.createTempFile(fileName, ".jpeg");
+
+            profileImage.transferTo(tempFile);
+
+            log.warn("are you here? 3");
+            s3Utils.uploadToS3(tempFile, fileName + ".jpeg", "profileImage/jpeg");
+
+            String urlString = s3Utils.getUrlByFileName(fileName + ".jpeg");
+            profileImgUrl = new URL(urlString);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        userRepository.updateUser(userId, nickname, profileImgUrl);
     }
 
     @Transactional

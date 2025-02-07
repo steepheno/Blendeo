@@ -31,11 +31,11 @@ public class Neo4jConfig {
 
     @Bean
     public DatabaseSelectionProvider databaseSelectionProvider() {
-        return DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("blendeo");
+        return DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("neo4j");
     }
 
-    @Bean
-    public Neo4jTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+    @Bean("neo4jTransactionManager")
+    public Neo4jTransactionManager neo4jTransactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
         return new Neo4jTransactionManager(driver, databaseSelectionProvider);
     }
 }

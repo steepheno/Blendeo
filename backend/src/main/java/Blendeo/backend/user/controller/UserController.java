@@ -11,10 +11,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequestMapping("/api/v1/user")
 @RestController
@@ -185,16 +187,22 @@ public class UserController {
     // 전체 조회?
 
     @Operation(summary = "회원정보 수정")
-    @PutMapping("/update-user")
-    public ResponseEntity<?> updateUser(@RequestBody UserUpdatePutReq userUpdatePutReq) {
-        userService.updateUser(userUpdatePutReq);
+    @PutMapping(value = "/update-user",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateUser(@RequestParam("nickname") String nickname,
+                                        @RequestParam("profileImage") MultipartFile profileImage) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        userService.updateUser(Integer.parseInt(user.getUsername()), nickname, profileImage);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "회원 탈퇴")
-    @DeleteMapping("/delete-user/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable("id") int id) {
-        userService.deleteUser(id);
+    @DeleteMapping("/delete-user")
+    public ResponseEntity<?> deleteUser() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        userService.deleteUser(Integer.parseInt(user.getUsername()));
         return ResponseEntity.ok().build();
     }
 
