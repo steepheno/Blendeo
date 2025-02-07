@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RedisSubscriber {
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -25,13 +27,7 @@ public class RedisSubscriber {
     private final Map<Integer, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);
 
-    public RedisSubscriber(
-            RedisTemplate<String, Object> redisTemplate,
-            ObjectMapper objectMapper
-    ) {
-        this.redisTemplate = redisTemplate;
-        this.objectMapper = objectMapper;
-    }
+
 
     // Redis 메시지 수신
     public void onMessage(String channel, String message) {

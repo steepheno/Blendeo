@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class NotificationService {
 
     private final RedisPublisher redisPublisher;
@@ -34,23 +37,6 @@ public class NotificationService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
-
-
-    public NotificationService(
-            RedisPublisher redisPublisher,
-            RedisSubscriber redisSubscriber,
-            RedisTemplate<String, Object> redisTemplate,
-            ProjectRepository projectRepository,
-            CommentRepository commentRepository,
-            UserRepository userRepository, NotificationRepository notificationRepository) {
-        this.redisPublisher = redisPublisher;
-        this.redisSubscriber = redisSubscriber;
-        this.redisTemplate = redisTemplate;
-        this.projectRepository = projectRepository;
-        this.commentRepository = commentRepository;
-        this.userRepository = userRepository;
-        this.notificationRepository = notificationRepository;
-    }
 
     public User getProjectAuthor(Long projectId){
         User projectAuthor = projectRepository.findAuthorById(projectId)

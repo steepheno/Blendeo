@@ -6,12 +6,10 @@ import Blendeo.backend.notification.dto.NotificationRedisDTO;
 import Blendeo.backend.notification.entity.Notification;
 import Blendeo.backend.notification.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,7 +17,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,7 +25,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/notify")
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -56,7 +53,6 @@ public class NotificationController {
         return emitter;
     }
 
-    // 테스트용 직접 알림 전송 엔드포인트
     @PostMapping("/test-direct-send")
     public ResponseEntity<String> testDirectSend(
             @RequestParam int userId,
@@ -74,14 +70,4 @@ public class NotificationController {
             return ResponseEntity.internalServerError().body("알림 전송 실패: " + e.getMessage());
         }
     }
-
-
-
-//    @Operation(
-//            summary = "클라이언트 알림 구독"
-//    )
-//    @GetMapping(value = "/notifications")
-//    public ResponseEntity<SseEmitter> notificationSubscribe(int userId) {
-//        return ResponseEntity.ok(notificationService.createEmitter(userId));
-//    }
 }

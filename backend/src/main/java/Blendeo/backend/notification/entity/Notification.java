@@ -64,8 +64,4 @@ public class Notification extends BaseTimeEntity {
         this.isRead = isRead;
         this.notificationType = notificationType;
     }
-
-
-
-
 }
