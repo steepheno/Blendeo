@@ -30,7 +30,6 @@ public class ChatService {
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
 
     public void sendMessage(ChatMessage message) {
-        log.info("Attempting to save message with userId: {}", message.getUserId());
         message.setTimestamp(LocalDateTime.now());
 
         // DB에 메시지 저장
@@ -42,7 +41,6 @@ public class ChatService {
                 .build();
         log.info("Sending message: {}", chatMessage.getContent());
         ChatMessages savedMessage = chatMessageRepository.save(chatMessage);
-        log.info("ChatService: 너 들어왔지? ㅎㅎ" + savedMessage.getContent());
 
         // Redis에 메시지 발행
         log.info("Attempting to publish to Redis...");
@@ -51,7 +49,6 @@ public class ChatService {
     }
 
     public List<ChatMessage> getChatHistory(Long roomId) {
-        log.info("getChatHistory: {}", roomId);
         return chatMessageRepository.findByChatRoomIdOrderByCreatedAtDesc(roomId)
                 .stream()
                 .map(this::convertToChatMessage)

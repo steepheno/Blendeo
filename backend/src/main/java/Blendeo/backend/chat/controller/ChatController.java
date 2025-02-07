@@ -32,7 +32,6 @@ public class ChatController {
         // 현재 인증된 사용자 정보 가져오기
         Integer userId = Integer.parseInt(String.valueOf(message.getUserId()));
         message.setUserId(userId);
-        log.info("Controller: " + message.toString());
 
         chatService.sendMessage(message);
 
@@ -67,7 +66,6 @@ public class ChatController {
         if (!chatService.isInThatChatRoom(roomId, Integer.parseInt(user.getUsername()))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         };
-        log.warn("ChatController: getChatHistory");
         return ResponseEntity.ok(chatService.getChatHistory(roomId));
     }
 
