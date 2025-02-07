@@ -1,9 +1,11 @@
 import * as React from "react";
 import { SidebarItemProps } from "@/types/components/sidebar/sidebar";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/stores/authStore";
 
 const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
 
   const routing = () => {
     switch (label) {
@@ -12,17 +14,32 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
         break;
 
       case "채팅":
-        navigate("/chat");
+        if (isAuthenticated) {
+          navigate("/chat");
+        } else {
+          navigate("/auth/signin", {
+            state: { from: "/chat" },
+          });
+        }
         break;
 
       case "내 정보":
-        navigate("/mypage");
+        try {
+          if (isAuthenticated) {
+            navigate("/profile/me");
+          } else {
+            navigate("/auth/signin", {
+              state: { from: "/profile/me" },
+            });
+          }
+        } catch {
+          // Error handling
+        }
         break;
     }
   };
 
   return (
-    // 홈, 탐색, ..., 내 정보 버튼
     <div
       onClick={routing}
       className={`flex gap-3 items-center px-3 py-2 w-full hover:bg-gray-100 cursor-pointer hover:rounded-3xl`}

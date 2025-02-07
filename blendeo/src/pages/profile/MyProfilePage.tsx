@@ -1,9 +1,27 @@
+// MyProfilePage.tsx
+import { useState, useEffect, useCallback } from "react";
 import Layout from "@/components/layout/Layout";
-
 import ProfileSection from "@/components/profile/ProfileSection";
 import VideoSection from "@/components/profile/VideoSection";
+import { useUser, useAuthStore } from "@/stores/authStore";
+import {
+  getUser,
+  getFollowers,
+  getFollowings,
+  updateProfile,
+} from "@/api/user";
+import { User, FollowResponse } from "@/types/api/user";
+import { useNavigate } from "react-router-dom";
 
-const Mypage = () => {
+const MyProfilePage = () => {
+  const navigate = useNavigate();
+  const authUser = useUser();
+  const { isAuthenticated } = useAuthStore();
+  const [profileData, setProfileData] = useState<User | null>(null);
+  const [followData, setFollowData] = useState<FollowResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const tags = [
     {
       imageSrc:
@@ -65,24 +83,111 @@ const Mypage = () => {
     },
   ];
 
-  const likedVideos = videos; // Assuming liked videos are the same for the example
+  const fetchProfileData = useCallback(async () => {
+    if (!isAuthenticated || !authUser?.id) {
+      setError("인증이 필요합니다");
+      navigate("/auth/signin", { state: { from: "/profile/me" } });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const [userResponse, followersResponse, followingsResponse] =
+        await Promise.all([
+          getUser(authUser.id),
+          getFollowers(authUser.id),
+          getFollowings(authUser.id),
+        ]);
+
+      setProfileData(userResponse);
+
+      const combinedFollowData: FollowResponse = {
+        followingIdList: followingsResponse.followingIdList,
+        followingNicknameList: followingsResponse.followingNicknameList,
+        followingCount: followingsResponse.followingCount,
+        followerIdList: followersResponse.followerIdList,
+        followerNicknameList: followersResponse.followerNicknameList,
+        followerCount: followersResponse.followerCount,
+      };
+
+      setFollowData(combinedFollowData);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "프로필을 불러오는 중 오류가 발생했습니다."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authUser?.id, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
+
+  const handleProfileUpdate = async (data: {
+    nickname: string;
+    profileImage?: File;
+  }) => {
+    try {
+      await updateProfile({
+        nickname: data.nickname,
+        profileImage: data.profileImage,
+      });
+
+      await fetchProfileData(); // 프로필 업데이트 후 데이터 새로고침
+    } catch (err) {
+      throw new Error(
+        err instanceof Error
+          ? err.message
+          : "프로필 업데이트 중 오류가 발생했습니다."
+      );
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Layout showNotification>
+        <div className="w-full h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error || !profileData) {
+    return (
+      <Layout showNotification>
+        <div className="w-full h-screen flex items-center justify-center">
+          <div className="text-xl text-gray-600">
+            {error || "프로필을 불러올 수 없습니다."}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout showNotification>
       <div className="w-full">
         <ProfileSection
-          username="blendeo_kim"
-          displayName="김블랜디오"
-          userAvatar="https://cdn.builder.io/api/v1/image/assets/TEMP/01f1ea5fafca4560a35106d44130a5213830c8fa8ce73231601417da13369c67?placeholderIfAbsent=true&apiKey=039fbd4dc53647c88d2eaa0a387bc882"
+          username={profileData.nickname}
+          displayName={profileData.nickname}
+          userAvatar={profileData.profileImage || ""}
           tags={tags}
-          followingCount="1.3m"
-          followerCount="546"
+          followingCount={followData?.followingCount?.toString() || "0"}
+          followerCount={followData?.followerCount?.toString() || "0"}
+          isEditable={true}
+          onProfileUpdate={handleProfileUpdate}
         />
         <VideoSection title="내 영상들" videos={videos} />
-        <VideoSection title="좋아요 누른 영상들" videos={likedVideos} />
+        <VideoSection title="좋아요 누른 영상들" videos={videos} />
       </div>
     </Layout>
   );
 };
 
-export default Mypage;
+export default MyProfilePage;
