@@ -1,18 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, Play, Pause, Settings, Video, Image, Lock, Eye, Music, Mic, Speaker, ChevronDown, RotateCcw } from 'lucide-react';
-
-interface Track {
-  id: string;
-  type: 'video' | 'audio';
-  clips: Array<{
-    id: string;
-    start: number;
-    duration: number;
-  }>;
-}
+import { useLocation } from 'react-router-dom';
+import { useEditStore } from '@/stores/projectStore';
 
 interface TrackToolsProps {
   type: 'video' | 'audio';
+}
+
+interface LocationState {
+  videoFile: string;
+  forkedUrl: string;
+  forkedEndTime: number;
 }
 
 const TrackTools: React.FC<TrackToolsProps> = ({ type }) => {
@@ -33,19 +31,19 @@ const TrackTools: React.FC<TrackToolsProps> = ({ type }) => {
   const tools = type === 'video' ? videoTools : audioTools;
 
   if(type === 'video'){
-  return (
-    <div className="flex gap-1 items-center bg-slate-1000 p-2 rounded-l w-32">
-      {tools.map((tool, index) => (
-        <button
-          key={index}
-          className="p-1 hover:bg-slate-700 rounded transition-colors"
-          title={tool.tooltip}
-        >
-          {tool.icon}
-        </button>
-      ))}
-    </div>
-  );
+    return (
+      <div className="flex gap-1 items-center bg-slate-1000 p-2 rounded-l w-32">
+        {tools.map((tool, index) => (
+          <button
+            key={index}
+            className="p-1 hover:bg-slate-700 rounded transition-colors"
+            title={tool.tooltip}
+          >
+            {tool.icon}
+          </button>
+        ))}
+      </div>
+    );
   }
   else {
     return (
@@ -65,14 +63,14 @@ const TrackTools: React.FC<TrackToolsProps> = ({ type }) => {
 };
 
 const TimelineTools: React.FC = () => {
-  return (
-    <div className="flex flex-col gap-7 mt-16 ml-4">
-      <TrackTools type="video" />
-      <TrackTools type="video" />
-      <TrackTools type="audio" />
-      <TrackTools type="audio" />
-    </div>
-  );
+  // return (
+  //   <div className="flex flex-col gap-7 mt-16 ml-4">
+  //     <TrackTools type="video" />
+  //     <TrackTools type="video" />
+  //     <TrackTools type="audio" />
+  //     <TrackTools type="audio" />
+  //   </div>
+  // );
 };
 
 const ForkEditPage: React.FC = () => {
@@ -85,11 +83,55 @@ const ForkEditPage: React.FC = () => {
   const [leftThumbnails, setLeftThumbnails] = useState<string[]>([]);
   const [rightThumbnails, setRightThumbnails] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-
+  
   const sourceVideoRef = useRef<HTMLVideoElement>(null);
   const targetVideoRef = useRef<HTMLVideoElement>(null);
 
-  const videoUrl = "https://blendeo-s3-bucket.s3.ap-northeast-2.amazonaws.com/videos/merged_f827a2af-5e89-4970-909d-92db5f0be589.mp4";
+  const location = useLocation();
+  const { getUrl, setUrl, clear } = useEditStore();
+
+  const [videoUrls, setVideoUrls] = useState<{forkedUrl: string, videoFile: string}>({
+    forkedUrl: '',
+    videoFile: '',
+  });
+
+  useEffect(() => {
+    const setupUrls = () => {
+      try {
+        // store에서 확인
+        const savedUrls = getUrl();
+        if (savedUrls) {
+          const parsed = JSON.parse(savedUrls);
+          console.log("Restored from store: ", parsed);
+          setVideoUrls(parsed);
+          return;
+        }
+        
+        // store에 없으면 location.state 확인
+        if (location.state) {
+          const { videoFile, forkedUrl } = location.state as LocationState;
+          console.log('Using location sate: ', { videoFile, forkedUrl });
+          setVideoUrls({ videoFile, forkedUrl });
+          
+          // store에도 저장
+          setUrl(JSON.stringify({ videoFile, forkedUrl }));
+        }
+      } catch (error) {
+        console.error("Error setting up video URLs: ", error);
+      }
+    };
+
+    setupUrls();
+
+    // cleanup
+    return () => {
+      // Blob URL 정리
+      if (videoUrls.videoFile.startsWith('blob: ')) {
+        URL.revokeObjectURL(videoUrls.videoFile);
+      }
+      clear();
+    };
+  }, [location.state]);
 
   // ... (generateThumbnail 함수와 나머지 useEffect는 동일하게 유지)
 
@@ -119,12 +161,21 @@ const ForkEditPage: React.FC = () => {
     return () => document.removeEventListener('mouseup', handleMouseUp);
   }, []);
 
+  // useEffect(() => {
+  //   if (sourceVideoRef.current && forkedEndTime) {
+  //     sourceVideoRef.current.currentTime = forkedEndTime;
+  //   }
+  // }, [forkedEndTime]);
+
   const generateThumbnail = async (video: HTMLVideoElement, time: number): Promise<string> => {
     return new Promise(async (resolve, reject) => {
       try {
         const tempVideo = document.createElement('video');
-        tempVideo.crossOrigin = "anonymous";
-        tempVideo.src = videoUrl;
+        if (video === sourceVideoRef.current) {
+          tempVideo.crossOrigin = "anonymous";
+        }
+        tempVideo.src = video === sourceVideoRef.current ?
+          videoUrls.forkedUrl : videoUrls.videoFile;
         
         tempVideo.onloadeddata = () => {
           tempVideo.currentTime = time;
@@ -281,27 +332,50 @@ const ForkEditPage: React.FC = () => {
       <div className="flex flex-col h-full">
         {/* Top Section with Controls and Video */}
         <div className="flex" style={{ height: "23rem" }}>
-          {/* Center Video Preview */}
+          {/* Left Controls */}
+          <div className="w-72 border-l border-slate-900 p-4">
+            <VolumeSpeedControl 
+              label="Volume"
+              value={volume}
+              max={100}
+              onChange={setVolume}
+              onReset={() => setVolume(100)}
+            />
+            <VolumeSpeedControl 
+              label="Speed"
+              value={speed}
+              max={200}
+              onChange={(newSpeed) => {
+                setSpeed(newSpeed);
+                if (sourceVideoRef.current && targetVideoRef.current) {
+                  sourceVideoRef.current.playbackRate = newSpeed / 100;
+                  targetVideoRef.current.playbackRate = newSpeed / 100;
+                }
+              }}
+              onReset={() => setSpeed(100)}
+            />
+          </div>
+          {/* Videos Preview */}
           <div className="flex-1">
             <div className="p-3">
               <div className="grid grid-cols-2 gap-4">
-                {/* Source Video */}
+                {/* Forked Video */}
                 <div className="bg-slate-950 rounded-lg p-2">
-                  <video 
+                  <video
                     ref={sourceVideoRef}
                     className="w-full aspect-video rounded"
-                    src={videoUrl}
+                    src={videoUrls.forkedUrl}
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleLoadedMetadata}
                     onLoadedData={() => setVideosLoaded(prev => prev + 1)}
                   />
                 </div>
-                {/* Target Video */}
+                {/* My Video */}
                 <div className="bg-slate-950 rounded-lg p-2">
-                  <video 
+                  <video
                     ref={targetVideoRef}
                     className="w-full aspect-video rounded"
-                    src={videoUrl}
+                    src={videoUrls.videoFile}
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleLoadedMetadata}
                     onLoadedData={() => setVideosLoaded(prev => prev + 1)}
@@ -313,26 +387,26 @@ const ForkEditPage: React.FC = () => {
 
           {/* Right Controls */}
           <div className="w-72 border-l border-slate-900 p-4">
-          <VolumeSpeedControl 
-            label="Volume"
-            value={volume}
-            max={100}
-            onChange={setVolume}
-            onReset={() => setVolume(100)}
-          />
-          <VolumeSpeedControl 
-            label="Speed"
-            value={speed}
-            max={200}
-            onChange={(newSpeed) => {
-              setSpeed(newSpeed);
-              if (sourceVideoRef.current && targetVideoRef.current) {
-                sourceVideoRef.current.playbackRate = newSpeed / 100;
-                targetVideoRef.current.playbackRate = newSpeed / 100;
-              }
-            }}
-            onReset={() => setSpeed(100)}
-          />
+            <VolumeSpeedControl 
+              label="Volume"
+              value={volume}
+              max={100}
+              onChange={setVolume}
+              onReset={() => setVolume(100)}
+            />
+            <VolumeSpeedControl 
+              label="Speed"
+              value={speed}
+              max={200}
+              onChange={(newSpeed) => {
+                setSpeed(newSpeed);
+                if (sourceVideoRef.current && targetVideoRef.current) {
+                  sourceVideoRef.current.playbackRate = newSpeed / 100;
+                  targetVideoRef.current.playbackRate = newSpeed / 100;
+                }
+              }}
+              onReset={() => setSpeed(100)}
+            />
           </div>
         </div>
 
