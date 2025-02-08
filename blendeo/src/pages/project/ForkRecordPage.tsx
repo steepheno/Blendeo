@@ -4,10 +4,12 @@ import recordStop from "@/assets/stop.png";
 
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProjectStore } from '@/stores/projectStore';
+import { useProjectStore, useEditStore } from '@/stores/projectStore';
 
 const ForkRecordPage = () => {
   const { getRedirectState } = useProjectStore();
+  const { setUrl } = useEditStore();
+
   const currentProject = getRedirectState('project-fork');
   const navigate = useNavigate();
 
@@ -28,6 +30,9 @@ const ForkRecordPage = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
     }
+
+    // 디버깅용 로그
+    console.log("Cleanup called");
   };
 
   useEffect(() => {
@@ -36,6 +41,15 @@ const ForkRecordPage = () => {
         if (forkedVideoRef.current && currentProject) {
           forkedVideoRef.current.src = currentProject.videoUrl;
           forkedVideoRef.current.muted = false;
+          // 비디오 로딩 상태
+          forkedVideoRef.current.onloadeddata = () => {
+            console.log("Forked video loaded successfully");
+          };
+
+          forkedVideoRef.current.onerror = (e) => {
+            console.error("Forked video load error: ", e);
+          };
+
           await forkedVideoRef.current.load();
         }
 
@@ -117,14 +131,29 @@ const ForkRecordPage = () => {
             throw new Error("녹화된 데이터가 없습니다."+error);
           }
 
+          const videoFile = URL.createObjectURL(recordedBlob);
+
+          // 디버깅용 코드
+          console.log("Recording stopped: ", {
+            videoFile,
+            forkedUrl: currentProject?.videoUrl,
+            endTime
+          });
+
+          // Store URL's in Zustand
+          setUrl(JSON.stringify({
+            videoFile,
+            forkedUrl: currentProject?.videoUrl
+          }));
+
           // Create object URL for the recorded video
-          const recordedVideoURL = URL.createObjectURL(recordedBlob);
+          // const recordedVideoURL = URL.createObjectURL(recordedBlob);
 
           // Navigate with state containing the video URL
           navigate("/project/forkedit", {
             state: {
-              recordedVideoURL,
-              forkedVideo: currentProject?.videoUrl,
+              videoFile,
+              forkedUrl: currentProject?.videoUrl,
               forkedEndTime: endTime,
             },
           });
