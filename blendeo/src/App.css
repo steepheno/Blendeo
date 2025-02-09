@@ -1,0 +1,23 @@
+.custom-range {
+    -webkit-appearance: none;
+    height: 3.5px;
+    background: #4c1d95;
+}
+
+.custom-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.custom-range::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+}

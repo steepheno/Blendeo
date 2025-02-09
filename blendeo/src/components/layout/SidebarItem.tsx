@@ -12,6 +12,10 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
       case "홈":
         navigate("/");
         break;
+      
+      case "촬영":
+        navigate("/project/record");
+        break;
 
       case "채팅":
         if (isAuthenticated) {
