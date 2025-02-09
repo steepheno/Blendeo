@@ -152,24 +152,30 @@ public class UserServiceImpl implements UserService {
             s3Utils.deleteFromS3ByUrl(user.getProfileImage().toString());
         }
 
-        File tempFile = null;
+        // 들어온 사진이 없다면, URL null로 저장.
         URL profileImgUrl = null;
 
-        try {
-            log.warn("are you here? 2");
-            String fileName = "profile/image_"+ UUID.randomUUID().toString();
-            tempFile = File.createTempFile(fileName, ".jpeg");
+        if (profileImage != null && !profileImage.isEmpty()) {
+            File tempFile = null;
 
-            profileImage.transferTo(tempFile);
 
-            log.warn("are you here? 3");
-            s3Utils.uploadToS3(tempFile, fileName + ".jpeg", "profileImage/jpeg");
+            try {
+                log.warn("are you here? 2");
+                String fileName = "profile/image_"+ UUID.randomUUID().toString();
+                tempFile = File.createTempFile(fileName, ".jpeg");
 
-            String urlString = s3Utils.getUrlByFileName(fileName + ".jpeg");
-            profileImgUrl = new URL(urlString);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+                profileImage.transferTo(tempFile);
+
+                log.warn("are you here? 3");
+                s3Utils.uploadToS3(tempFile, fileName + ".jpeg", "profileImage/jpeg");
+
+                String urlString = s3Utils.getUrlByFileName(fileName + ".jpeg");
+                profileImgUrl = new URL(urlString);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
+
         userRepository.updateUser(userId, nickname, profileImgUrl);
     }
 

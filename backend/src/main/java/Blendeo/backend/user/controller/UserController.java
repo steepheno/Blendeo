@@ -185,10 +185,10 @@ public class UserController {
     @PutMapping(value = "/update-user",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateUser(@RequestParam("nickname") String nickname,
-                                        @RequestParam("profileImage") MultipartFile profileImage) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                                        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        userService.updateUser(Integer.parseInt(user.getUsername()), nickname, profileImage);
+            userService.updateUser(Integer.parseInt(user.getUsername()), nickname, profileImage);
         return ResponseEntity.ok().build();
     }
 
