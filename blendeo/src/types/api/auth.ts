@@ -14,7 +14,7 @@ export interface SigninRequest {
 export interface AuthResponse {
   id: number;
   email: string;
-  nickname: string | null;
+  nickname: string;
   profileImage: string | null;
   accessToken: string;
   refreshToken: string;

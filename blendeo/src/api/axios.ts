@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { CustomAxiosInstance } from "@/types/api/axios";
+import { useUserStore } from "@/stores/userStore";
 
 const baseURL = import.meta.env.VITE_API_URL || "/api/v1";
 
@@ -12,25 +13,16 @@ const axiosInstance = axios.create({
   },
 }) as CustomAxiosInstance;
 
-interface UserData {
-  id: number;
-  email: string;
-  nickname: string;
-  profileImage: string | null;
-  accessToken: string;
-  refreshToken: string;
-}
+const publicPaths = [
+  "/mail/check",
+  "/mail/verify",
+  "/user/auth/signup",
+  "/user/auth/login",
+  "/api/v1/project/info",
+];
 
 // Request Interceptor
 axiosInstance.interceptors.request.use((config) => {
-  const publicPaths = [
-    "/mail/check",
-    "/mail/verify",
-    "/user/auth/signup",
-    "/user/auth/login",
-    "/api/v1/project/info",
-  ];
-
   const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
 
   if (!isPublicAPI) {
@@ -42,13 +34,7 @@ axiosInstance.interceptors.request.use((config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     } else {
-      const localData = localStorage.getItem("user");
-      if (localData) {
-        const userData: UserData = JSON.parse(localData);
-        config.headers.Authorization = `Bearer ${userData.accessToken}`;
-      } else {
-        console.log("No authentication token found");
-      }
+      console.log("No authentication token found");
     }
   }
   return config;
@@ -60,6 +46,8 @@ axiosInstance.interceptors.response.use(
     return response.data;
   },
   async (error) => {
+    const originalRequest = error.config;
+
     if (
       error.config.url?.includes("/user/auth/logout") &&
       error.response?.status === 401
@@ -67,28 +55,48 @@ axiosInstance.interceptors.response.use(
       return Promise.resolve();
     }
 
-    const publicPaths = [
-      "/mail/check",
-      "/mail/verify",
-      "/user/auth/signup",
-      "/user/auth/login",
-      "/api/v1/project/info",
-    ];
-
     const isPublicAPI = publicPaths.some((path) =>
       error.config.url?.includes(path)
     );
 
-    if (error.response?.status === 401 && !isPublicAPI) {
-      document.cookie.split(";").forEach((cookie) => {
-        document.cookie = cookie
-          .replace(/^ +/, "")
-          .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
-      });
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/auth/signin";
+    // accessToken이 만료된 경우
+    if (error.response?.status === 401 && !isPublicAPI && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // refreshToken으로 새로운 accessToken 발급 시도
+        const cookies = document.cookie.split(";");
+        const refreshToken = cookies
+          .find((cookie) => cookie.trim().startsWith("refreshToken="))
+          ?.split("=")[1];
+
+        if (refreshToken) {
+          const response = await axios.post(
+            `${baseURL}/user/auth/refresh`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${refreshToken}`
+              }
+            }
+          );
+
+          // 새로운 요청 시도
+          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+          return axiosInstance(originalRequest);
+        }
+      } catch (refreshError) {
+        // refresh 실패 시 로그아웃 처리
+        document.cookie.split(";").forEach((cookie) => {
+          document.cookie = cookie
+            .replace(/^ +/, "")
+            .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+        });
+        useUserStore.getState().setCurrentUser(null);
+        window.location.href = "/auth/signin";
+      }
     }
+
     return Promise.reject(error);
   }
 );
