@@ -1,21 +1,19 @@
 import * as React from "react";
-import { UserProps } from "@/types/components/chat/chat";
+import { UserItemProps } from "@/types/components/chat/chat";
 
-// UserProps 타입을 확장하여 onClick 추가
-interface ExtendedUserProps extends UserProps {
-  onClick: () => void;
-}
-
-export const UserItem: React.FC<ExtendedUserProps> = ({
+export const UserItem: React.FC<UserItemProps> = ({
   name,
   message,
   isOnline,
   imageUrl,
   onClick,
+  isSelected,
 }) => {
   return (
     <div
-      className="flex gap-4 items-center px-4 py-2 w-full whitespace-nowrap min-h-[72px] cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+      className={`p-4 hover:bg-gray-100 cursor-pointer ${
+        isSelected ? "bg-blue-50" : ""
+      }`}
       onClick={onClick}
     >
       <div className="relative">

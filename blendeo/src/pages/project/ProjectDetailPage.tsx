@@ -61,7 +61,6 @@ const ProjectDetailPage = () => {
           throw new Error("프로젝트를 찾을 수 없습니다.");
         }
         setProjectData(response);
-        console.log(response);
         setError(null);
       } catch (err) {
         const errorMessage =

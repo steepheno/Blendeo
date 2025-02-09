@@ -9,6 +9,6 @@ export const sendVerificationEmail = async (email: string) => {
 
 export const verifyEmailCode = async (email: string, authCode: string) => {
   return axiosInstance.post<void>(
-    `/user/auth/auth/code/check?email=${encodeURIComponent(email)}&authCode=${authCode}`
+    `/user/auth/code/check?email=${encodeURIComponent(email)}&authCode=${authCode}`
   );
 };

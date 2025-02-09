@@ -3,9 +3,21 @@ import { useEffect, useState, useCallback } from "react";
 import GenreTag from "@/components/common/GenreTag";
 import Layout from "@/components/layout/Layout";
 import { useProjectStore } from "@/stores/projectStore";
-import { Project, ProjectListItem } from "@/types/api/project";
 import VideoSection from "@/components/profile/VideoSection";
 import mainImg from "@/assets/mainImg.png";
+
+import { Project, ProjectListItem } from "@/types/api/project";
+
+// VideoSection에서 사용하는 비디오 props 타입
+interface VideoProps {
+  thumbnailSrc: string;
+  title: string;
+  username: string;
+  views: string;
+  timeAgo: string;
+  tags: string[];
+  onClick?: () => void;
+}
 
 const genreTags = [
   { label: "All", width: "50px" },
@@ -25,12 +37,12 @@ const SELECTED_TAB_KEY = "selectedMainPageTab";
 
 const MainPage = () => {
   const navigate = useNavigate();
-  const [selectedTab, setSelectedTab] = useState<
-    "forYou" | "ranking" | "latest"
-  >(() => {
-    const savedTab = localStorage.getItem(SELECTED_TAB_KEY);
-    return (savedTab as "forYou" | "ranking" | "latest") || "forYou";
-  });
+  const [selectedTab, setSelectedTab] = useState<"forYou" | "ranking" | "latest">(
+    () => {
+      const savedTab = localStorage.getItem(SELECTED_TAB_KEY);
+      return (savedTab as "forYou" | "ranking" | "latest") || "forYou";
+    }
+  );
   const [selectedGenre, setSelectedGenre] = useState<string>("All");
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -40,79 +52,6 @@ const MainPage = () => {
     setSelectedTab(tab);
     localStorage.setItem(SELECTED_TAB_KEY, tab);
   };
-
-  const convertProjectToVideoProps = (project: Project) => ({
-    thumbnailSrc: project.thumbnail,
-    title: project.title,
-    username: project.author.nickname,
-    views: formatViews(project.viewCnt),
-    timeAgo: getTimeAgo(project.createdAt),
-    tags: [],
-  });
-
-  const fetchProjects = useCallback(async () => {
-    try {
-      if (selectedTab === "latest") {
-        console.log("Fetching latest projects...");
-        const response = await getNewProjects();
-        console.log("API Response:", response);
-        const convertedProjects: Project[] = response.map(
-          (item: ProjectListItem) => ({
-            id: item.projectId,
-            title: item.title,
-            thumbnail: item.thumbnail,
-            viewCnt: item.viewCnt,
-            contributorCnt: item.contributionCnt,
-            author: {
-              id: item.authorId,
-              nickname: item.authorNickname,
-              email: "",
-            },
-            forkId: 0,
-            contents: "",
-            createdAt: new Date().toISOString(),
-            state: true,
-            runningTime: 0,
-            likeCnt: 0,
-            videoUrl: "",
-          })
-        );
-        console.log("Converted Projects:", convertedProjects);
-        setProjects(convertedProjects);
-      } else {
-        const mockProjects: Project[] = [
-          {
-            id: 1,
-            forkId: 0,
-            author: {
-              id: 1,
-              email: "user@example.com",
-              nickname: "Lady Gaga & Ariana Grande",
-            },
-            title: "Rain on Me",
-            contents: "Project description",
-            contributorCnt: 2,
-            createdAt: new Date(
-              Date.now() - 2 * 30 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-            state: true,
-            thumbnail: "https://example.com/thumbnail1.jpg",
-            runningTime: 180,
-            viewCnt: 3200000,
-            likeCnt: 15000,
-            videoUrl: "https://example.com/video1.mp4",
-          },
-        ];
-        setProjects(mockProjects);
-      }
-    } catch (error) {
-      console.error("Failed to fetch projects:", error);
-    }
-  }, [selectedTab, getNewProjects]);
-
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects, selectedGenre]);
 
   const formatViews = (views: number): string => {
     if (views >= 1000000) {
@@ -138,6 +77,78 @@ const MainPage = () => {
     return "Today";
   };
 
+  const convertToVideoProps = (project: Project): VideoProps => ({
+    thumbnailSrc: project.thumbnail || '/default-thumbnail.jpg',
+    title: project.title,
+    username: project.author.nickname,
+    views: formatViews(project.viewCnt),
+    timeAgo: getTimeAgo(project.createdAt),
+    tags: [],
+    onClick: () => handleProjectClick(project.id)
+  });
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      if (selectedTab === "latest") {
+        console.log("Fetching latest projects...");
+        const response = await getNewProjects();
+        console.log("API Response:", response);
+        
+        const convertedProjects: Project[] = response.map((item: ProjectListItem) => ({
+          id: item.projectId,
+          title: item.title, // ProjectListItem의 정의에 따라 수정
+          thumbnail: item.thumbnail,
+          viewCnt: item.viewCnt,
+          contributorCnt: item.contributionCnt,
+          author: {
+            id: item.authorId,
+            nickname: item.authorNickname,
+            email: "",
+          },
+          forkId: item.forkCnt || 0,
+          contents: "",
+          createdAt: new Date().toISOString(),
+          state: true,
+          runningTime: 0,
+          likeCnt: 0,
+          videoUrl: "",
+        }));
+        
+        console.log("Converted Projects:", convertedProjects);
+        setProjects(convertedProjects);
+      } else {
+        const mockProjects: Project[] = [
+          {
+            id: 1,
+            title: "Rain on Me",
+            thumbnail: "https://example.com/thumbnail1.jpg",
+            viewCnt: 3200000,
+            contributorCnt: 2,
+            author: {
+              id: 1,
+              nickname: "Lady Gaga & Ariana Grande",
+              email: "user@example.com",
+            },
+            forkId: 0,
+            contents: "Project description",
+            createdAt: new Date(Date.now() - 2 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+            state: true,
+            runningTime: 180,
+            likeCnt: 15000,
+            videoUrl: "https://example.com/video1.mp4",
+          },
+        ];
+        setProjects(mockProjects);
+      }
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+    }
+  }, [selectedTab, getNewProjects]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects, selectedGenre]);
+
   const handleProjectClick = (projectId: number) => {
     navigate(`/project/${projectId}`);
   };
@@ -148,8 +159,9 @@ const MainPage = () => {
         <div className="flex flex-col flex-1 shrink self-start px-20 pt-2.5 basis-0 min-w-[240px] max-md:px-5 max-md:max-w-full">
           <div className="flex flex-col w-full max-md:max-w-full">
             <div
-              style={{ backgroundImage: `url(${mainImg}`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
-              className="flex flex-col w-full text-5xl font-black tracking-tighter text-white leading-[60px] min-h-[366px] max-md:max-w-full max-md:text-4xl max-md:leading-[56px]">
+              style={{ backgroundImage: `url(${mainImg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
+              className="flex flex-col w-full text-5xl font-black tracking-tighter text-white leading-[60px] min-h-[366px] max-md:max-w-full max-md:text-4xl max-md:leading-[56px]"
+            >
               <div className="flex flex-col justify-center p-4 w-full max-md:max-w-full max-md:text-4xl max-md:leading-[56px]">
                 <div className="flex overflow-hidden flex-col justify-center px-5 py-8 w-full rounded-xl max-md:max-w-full max-md:text-4xl max-md:leading-[56px]">
                   <div className="flex self-center max-w-full min-h-[120px] w-[893px]" />
@@ -205,13 +217,10 @@ const MainPage = () => {
                   selectedTab === "forYou"
                     ? "For You"
                     : selectedTab === "ranking"
-                      ? "Ranking"
-                      : "Latest Projects"
+                    ? "Ranking"
+                    : "Latest Projects"
                 }
-                videos={projects.map((project) => ({
-                  ...convertProjectToVideoProps(project),
-                  onClick: () => handleProjectClick(project.id),
-                }))}
+                videos={projects.map(convertToVideoProps)}
               />
             </div>
           </div>

@@ -9,7 +9,7 @@ const Searchbar = () => {
   };
 
   const goToMypage = () => {
-    navigate("/mypage");
+    navigate("/profile/me");
   };
 
   const goToUpload = () => {

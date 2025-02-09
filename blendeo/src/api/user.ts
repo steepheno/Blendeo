@@ -1,10 +1,23 @@
-// src/api/user.ts
 import axiosInstance from "@/api/axios";
-import { UpdateUserRequest, User, FollowResponse } from "@/types/api/user";
+import { User, FollowResponse } from "@/types/api/user";
 
 // 프로필 관련
-export const updateUser = async (userId: number, data: UpdateUserRequest) => {
-  return axiosInstance.put<void>(`/user/update-user/${userId}`, data);
+export const updateProfile = async (data: {
+  nickname: string;
+  profileImage?: File;
+}) => {
+  const formData = new FormData();
+  formData.append("nickname", data.nickname);
+
+  if (data.profileImage) {
+    formData.append("profileImage", data.profileImage);
+  }
+
+  return axiosInstance.put<User>("/user/update-user", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
 
 export const getUser = async (id: number) => {

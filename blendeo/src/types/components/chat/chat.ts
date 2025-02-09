@@ -1,31 +1,38 @@
 // src/types/components/chat/chat.ts
-export interface UserProps {
+export interface User {
+  id: string;
   name: string;
   message?: string;
   isOnline?: boolean;
   imageUrl: string;
+  lastMessageTime?: number;
 }
 
-export interface ChatSearchBarProps {
-  placeholder: string;
-  iconSrc: string;
+export interface UserItemProps extends User {
+  onClick: () => void;
+  isSelected?: boolean;
 }
 
-export interface MessageProps {
-  avatar?: string;
-  sender: string;
-  time: string;
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
   content: string;
-  isUser?: boolean;
+  timestamp: number;
 }
 
-export interface ChatHeaderProps {
-  title: string;
-  onBack: () => void;
-  onVideo: () => void;
-  onMenu: () => void;
+export interface WebSocketMessage {
+  type: "CHAT" | "JOIN" | "LEAVE";
+  roomId: string;
+  sender: string;
+  content: string;
+  timestamp: number;
 }
 
-export interface ChatInputProps {
-  onSend: (message: string) => void;
+export interface ChatWindow {
+  user: User;
+  onClose: () => void;
+  messages: ChatMessage[];
+  onSendMessage: (content: string) => void;
+  isConnected: boolean;
 }

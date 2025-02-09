@@ -6,13 +6,24 @@ import { X, Timer } from "lucide-react";
 import ImageComponent from "@/components/record/ImageComponent";
 import Searchbar from "@/components/layout/Searchbar";
 import recordStop from "@/assets/stop.png";
-import { useProjectStore, useEditStore } from "@/stores/projectStore";
 
-const ForkRecordPage = () => {
-  const { getRedirectState } = useProjectStore();
-  const { setUrl } = useEditStore();
+interface CropDimensions {
+  isHorizontal: boolean;
+  targetWidth: number;
+  targetHeight: number;
+}
 
-  const currentProject = getRedirectState('project-fork');
+interface NavigateState {
+  recordedVideoURL: string;
+  forkedVideo: string;
+  forkedEndTime: number;
+  cropDimensions: CropDimensions;
+}
+
+const DELAY_OPTIONS = [0, 3, 5, 10, 30] as const;
+type DelayOption = (typeof DELAY_OPTIONS)[number];
+
+const ProjectRecordPage: FC = () => {
   const navigate = useNavigate();
 
   const [recordingTime, setRecordingTime] = useState<number>(0);
@@ -23,60 +34,25 @@ const ForkRecordPage = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const forkedVideoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string>("");
   const recordedChunksRef = useRef<Blob[]>([]);
 
   const [isHorizontal, setIsHorizontal] = useState<boolean>(true);
-  const [selectedDelay, setSelectedDelay] = useState<DelayOptions>(3);
+  const [selectedDelay, setSelectedDelay] = useState<DelayOption>(3);
   const [isCountingDown, setIsCountingDown] = useState<boolean>(false);
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
 
-  const cleanup = () => {
+  const cleanup = useCallback((): void => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
     }
+  }, []);
 
-    // 디버깅용 로그
-    console.log("Cleanup called");
-  };
-
-  useEffect(() => {
-    const initializeVideo = async () => {
-      try {
-        if (forkedVideoRef.current && currentProject) {
-          forkedVideoRef.current.src = currentProject.videoUrl;
-          forkedVideoRef.current.muted = false;
-          // 비디오 로딩 상태
-          forkedVideoRef.current.onloadeddata = () => {
-            console.log("Forked video loaded successfully");
-          };
-
-          forkedVideoRef.current.onerror = (e) => {
-            console.error("Forked video load error: ", e);
-          };
-
-          await forkedVideoRef.current.load();
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-        streamRef.current = stream;
-      } catch (err) {
-        setError("카메라 초기화 실패");
-        console.error("초기화 에러:", err);
-      }
-    };
-
-    initializeVideo();
-    return cleanup;
-  }, [currentProject]);
+  const formatTime = useCallback((time: number): string => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }, []);
 
   const stopRecording = useCallback((): void => {
     if (mediaRecorderRef.current && isRecording) {
@@ -85,12 +61,10 @@ const ForkRecordPage = () => {
   }, [isRecording]);
 
   const startRecording = useCallback(async (): Promise<void> => {
-    if (!streamRef.current || !forkedVideoRef.current) return;
+    if (!streamRef.current) return;
 
     try {
       recordedChunksRef.current = [];
-      const forkedVideo = forkedVideoRef.current;
-      forkedVideo.currentTime = 0;
 
       const mediaRecorder = new MediaRecorder(streamRef.current, {
         mimeType: "video/webm;codecs=vp8,opus",
@@ -111,14 +85,6 @@ const ForkRecordPage = () => {
             setRecordingTime(elapsedTime);
           }
         }, 1000);
-
-        try {
-          await forkedVideo.play();
-        } catch (err) {
-          setError("포크된 비디오 재생 실패");
-          console.error(err);
-          stopRecording();
-        }
       };
 
       mediaRecorder.ondataavailable = (event: BlobEvent) => {
@@ -134,43 +100,32 @@ const ForkRecordPage = () => {
         }
 
         try {
-          const endTime = forkedVideo.currentTime;
-          forkedVideo.pause();
 
           const recordedBlob = new Blob(recordedChunksRef.current, {
             type: "video/webm",
           });
 
+          
+          const endTime = recordingTime;
+
           if (recordedBlob.size === 0) {
             throw new Error("녹화된 데이터가 없습니다.");
           }
 
-          const videoFile = URL.createObjectURL(recordedBlob);
+          const recordedVideoURL = URL.createObjectURL(recordedBlob);
 
-          // 디버깅용 코드
-          console.log("Recording stopped: ", {
-            videoFile,
-            forkedUrl: currentProject?.videoUrl,
-            endTime
-          });
-
-          // Store URL's in Zustand
-          setUrl(JSON.stringify({
-            videoFile,
-            forkedUrl: currentProject?.videoUrl
-          }));
-
-          // Create object URL for the recorded video
-          // const recordedVideoURL = URL.createObjectURL(recordedBlob);
-
-          // Navigate with state containing the video URL
-          navigate("/project/forkedit", {
-            state: {
-              videoFile,
-              forkedUrl: currentProject?.videoUrl,
-              forkedEndTime: endTime,
+          const navigateState: NavigateState = {
+            recordedVideoURL,
+            forkedVideo: "",
+            forkedEndTime: endTime,
+            cropDimensions: {
+              isHorizontal,
+              targetWidth: isHorizontal ? 676 : 480,
+              targetHeight: isHorizontal ? 480 : 676,
             },
-          });
+          };
+
+          navigate("/first/edit", { state: navigateState });
         } catch (err) {
           setError("비디오 저장 실패");
           console.error("비디오 처리 에러:", err);
@@ -182,7 +137,7 @@ const ForkRecordPage = () => {
       setError("녹화 시작 실패");
       console.error("녹화 에러:", err);
     }
-  }, [navigate, currentProject?.videoUrl, isHorizontal, stopRecording]);
+  }, [navigate, isHorizontal, stopRecording]);
 
   const startCountdown = useCallback((): void => {
     if (!selectedDelay || isCountingDown) return;
@@ -211,21 +166,6 @@ const ForkRecordPage = () => {
   useEffect(() => {
     const initializeVideo = async (): Promise<void> => {
       try {
-        if (forkedVideoRef.current && currentProject) {
-          forkedVideoRef.current.src = currentProject.videoUrl;
-          forkedVideoRef.current.muted = false;
-          await forkedVideoRef.current.load();
-
-          forkedVideoRef.current.onloadedmetadata = () => {
-            const video = forkedVideoRef.current;
-            if (video) {
-              setIsHorizontal(video.videoWidth > video.videoHeight);
-              console.log("horizon?",isHorizontal);
-              
-            }
-          };
-        }
-
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             width: { ideal: 1280 },
@@ -246,7 +186,7 @@ const ForkRecordPage = () => {
 
     initializeVideo();
     return cleanup;
-  }, [currentProject, cleanup]);
+  }, [cleanup]);
 
   return (
     <div className="flex flex-col">
@@ -274,41 +214,28 @@ const ForkRecordPage = () => {
               <div className="flex flex-row lg:flex-col items-center justify-center gap-8">
                 <Timer className="w-12 h-12 text-white" strokeWidth={1.5} />
                 <div className="flex flex-row lg:flex-col gap-4 items-center justify-center">
-                  {/* {DELAY_OPTIONS.map((seconds) => (
+                  {DELAY_OPTIONS.map((seconds) => (
                     <button
                       key={seconds}
                       type="button"
                       onClick={() => setSelectedDelay(seconds)}
                       className={`font-pathway text-4xl cursor-pointer transition-all
-                      ${selectedDelay === seconds ? "text-violet-700 scale-110" : "text-white hover:text-gray-300"}`}
+                ${selectedDelay === seconds ? "text-violet-700 scale-110" : "text-white hover:text-gray-300"}`}
                     >
                       {seconds}
                     </button>
-                  ))} */}
+                  ))}
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col items-center self-stretch my-auto min-w-[240px] w-[962px] max-md:max-w-full">
               <div className="flex overflow-hidden flex-col justify-center items-center max-w-full">
-              <div className={`flex ${isHorizontal ? 'flex-col' : 'flex-row'} gap-4 justify-center items-center rounded-xl w-full max-md:max-w-full`}>
-                  <div className= { ` ${isHorizontal ? 'w-[676px] h-[480px]' : 'w-[480px] h-[676px]'} overflow-hidden` } >
-                    <video
-                      ref={forkedVideoRef}
-                      className="w-full h-full object-cover object-center"
-                      style={{
-                        aspectRatio: "480/676",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                      }}
-                      playsInline
-                    />
-                  </div>
-                  <div className={ ` ${isHorizontal ? 'w-[676px] h-[480px]' : 'w-[480px] h-[676px]'} overflow-hidden` } >
+                <div className="flex flex-row gap-4 justify-center items-center rounded-xl w-full max-md:max-w-full">
+                  <div className="w-[480px] h-[676px] overflow-hidden">
                     <video
                       ref={videoRef}
                       className="w-full h-full object-cover"
-                      style={{ transform: 'scaleX(-1)' }}
                       autoPlay
                       playsInline
                       muted
@@ -316,9 +243,9 @@ const ForkRecordPage = () => {
                   </div>
                 </div>
               </div>
-              {/* <div className="text-white my-[20px] self-start">
+              <div className="text-white my-[20px] self-start">
                 <p className="text-left">{formatTime(recordingTime)}</p>
-              </div> */}
+              </div>
               <div className="flex overflow-hidden flex-wrap gap-2.5 justify-center items-center max-w-full w-[816px]">
                 <div className="flex overflow-hidden flex-wrap grow shrink gap-10 justify-center items-center self-stretch px-5 my-auto min-w-[240px] w-[653px]">
                   <button
@@ -346,4 +273,4 @@ const ForkRecordPage = () => {
   );
 };
 
-export default ForkRecordPage;
+export default ProjectRecordPage;

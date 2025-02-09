@@ -15,12 +15,9 @@ interface AuthStore {
   isLoading: boolean;
   error: string | null;
 
-  // 기본 인증 관련 액션
   signin: (data: SigninRequest) => Promise<void>;
   signup: (data: SignupRequest) => Promise<void>;
   logout: () => Promise<void>;
-
-  // 추가 기능
   googleLogin: () => Promise<void>;
   clearError: () => void;
   setUser: (user: AuthResponse | null) => void;
@@ -45,14 +42,12 @@ export const useAuthStore = create<AuthStore>()(
             if (response) {
               set({
                 user: response,
-                token: response.token || null,
+                token: response.accessToken,
                 isAuthenticated: true,
                 isLoading: false,
               });
               localStorage.setItem("user", JSON.stringify(response));
-              if (response.token) {
-                localStorage.setItem("token", response.token);
-              }
+              localStorage.setItem("token", response.accessToken);
             }
           } catch (error) {
             const err = error as Error;
@@ -68,14 +63,12 @@ export const useAuthStore = create<AuthStore>()(
             const response = await authApi.signup(data);
             set({
               user: response,
-              token: response.token || null,
+              token: response.accessToken,
               isAuthenticated: true,
               isLoading: false,
             });
             localStorage.setItem("user", JSON.stringify(response));
-            if (response.token) {
-              localStorage.setItem("token", response.token);
-            }
+            localStorage.setItem("token", response.accessToken);
           } catch (error) {
             const err = error as Error;
             set({ error: err.message, isLoading: false });
@@ -107,7 +100,6 @@ export const useAuthStore = create<AuthStore>()(
         googleLogin: async () => {
           set({ isLoading: true, error: null });
           try {
-            // 구글 로그인은 별도의 API 엔드포인트를 사용하도록 수정
             const response = await authApi.signin({
               email: "",
               password: "",
@@ -115,7 +107,7 @@ export const useAuthStore = create<AuthStore>()(
             set({
               user: response,
               isAuthenticated: true,
-              token: response.token || null,
+              token: response.accessToken || null,
               isLoading: false,
             });
           } catch (error) {
@@ -140,7 +132,6 @@ export const useAuthStore = create<AuthStore>()(
   )
 );
 
-// Selector hooks
 export const useUser = () => useAuthStore((state) => state.user);
 export const useIsAuthenticated = () =>
   useAuthStore((state) => state.isAuthenticated);

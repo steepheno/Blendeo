@@ -5,43 +5,47 @@ export const signup = async (data: SignupRequest) => {
   return axiosInstance.post<AuthResponse>("/user/auth/signup", data);
 };
 
+// src/api/auth.ts
 export const signin = async (data: SigninRequest) => {
   const response = await axiosInstance.post<AuthResponse>(
     "/user/auth/login",
     data
   );
 
-  // response가 직접 AuthResponse 타입이므로 .data 없이 사용
-  if (response?.accessToken) {
-    localStorage.setItem("token", response.accessToken);
-    document.cookie = `accessToken=${response.accessToken}; path=/; secure; samesite=strict; max-age=3600`;
-  }
-
-  if (response?.refreshToken) {
-    document.cookie = `refreshToken=${response.refreshToken}; path=/; secure; samesite=strict; max-age=86400`;
-  }
-
   if (response) {
-    localStorage.setItem("user", JSON.stringify(response));
+    document.cookie = `accessToken=${response.accessToken}; path=/; secure; samesite=strict; max-age=3600`;
+    document.cookie = `refreshToken=${response.refreshToken}; path=/; secure; samesite=strict; max-age=86400`;
+
+    const userInfo = {
+      id: response.id,
+      email: response.email,
+      nickname: response.nickname,
+      profileImage: response.profileImage,
+    };
+    localStorage.setItem("user", JSON.stringify(userInfo));
   }
 
   return response;
 };
 
 export const logout = async () => {
-  const token = localStorage.getItem("token");
-  const response = await axiosInstance.post("/user/auth/logout", null, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  // 로그아웃 성공 시 localStorage 클리어
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  return response;
+  try {
+    const response = await axiosInstance.post("/user/auth/logout");
+
+    document.cookie =
+      "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+    document.cookie =
+      "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+
+    localStorage.removeItem("user");
+
+    return response;
+  } catch (error) {
+    console.error("Logout error:", error);
+    throw error;
+  }
 };
 
-// 새로운 함수 추가
 export const refresh = async () => {
   const token = localStorage.getItem("token");
   return axiosInstance.post("/user/auth/refresh", null, {
