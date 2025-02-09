@@ -160,13 +160,11 @@ public class UserServiceImpl implements UserService {
 
 
             try {
-                log.warn("are you here? 2");
                 String fileName = "profile/image_"+ UUID.randomUUID().toString();
                 tempFile = File.createTempFile(fileName, ".jpeg");
 
                 profileImage.transferTo(tempFile);
 
-                log.warn("are you here? 3");
                 s3Utils.uploadToS3(tempFile, fileName + ".jpeg", "profileImage/jpeg");
 
                 String urlString = s3Utils.getUrlByFileName(fileName + ".jpeg");
