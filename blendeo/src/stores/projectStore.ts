@@ -24,6 +24,13 @@ interface BlendedUrl {
   clear: () => void;
 }
 
+interface SeedUrl {
+  url: string | null;
+  getUrl: () => string | null;
+  setUrl: (url: string | null) => void;
+  clear: () => void;
+}
+
 interface ProjectStore {
   currentProject: Project | null;
   comments: Comment[];
@@ -187,5 +194,17 @@ export const useEditStore = create<BlendedUrl>()(
       clear: () => set({ url: null }),
     }),
     { name: "edit-store" }
+  )
+);
+
+export const useSeedStore = create<SeedUrl>()(
+  devtools(
+    (set, get) =>({
+      url: null,
+      getUrl: () => get().url,
+      setUrl: (url) => set({ url }),
+      clear: () => set({ url: null }),
+    }),
+    {name: "seed-store" }
   )
 );

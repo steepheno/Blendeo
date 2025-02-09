@@ -5,9 +5,12 @@ import recordStop from "@/assets/stop.png";
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
+import { useSeedStore } from '@/stores/projectStore';
 
 const SeedRecordPage = () => {
   const { getRedirectState } = useProjectStore();
+  const { setUrl } = useSeedStore();
+
   const currentProject = getRedirectState('project-fork');
   const navigate = useNavigate();
 
@@ -121,6 +124,31 @@ const SeedRecordPage = () => {
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
+
+      try {
+        const recordedBlob = new Blob(recordedChunksRef.current, {
+          type: "video/webm",
+        });
+
+        if (recordedBlob.size === 0) {
+          throw new Error("녹화된 데이터가 없습니다." + error);
+        }
+
+        const videoFile = URL.createObjectURL(recordedBlob);
+
+        // SeedStore에 URL 저장
+        setUrl(JSON.stringify({ videoFile }))
+
+        // Navigation
+        navigate("/project/edit", {
+          state: {
+            videoFile,
+          },
+        });
+      } catch (error) {
+        setError("비디오 저장 실패");
+        console.error("비디오 처리 에러: ", error);
+      }
     }
   };
 
