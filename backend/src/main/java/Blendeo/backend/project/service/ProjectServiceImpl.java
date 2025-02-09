@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -151,11 +152,27 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectListDto> getUserProjectList(int userId, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        log.info("requesting projects for userId: {}, page: {}, size: {}", userId, page, size);
         Page<Project> projectPage = projectRepository.findByAuthorId(userId, pageRequest);
-        log.info("프로젝트 페이지 :: {}", projectPage.getTotalElements());
         List<Project> projects = projectPage.getContent();
-        log.info("projects : {}", projects);
+
+        return projects.stream()
+                .map(project -> ProjectListDto.builder()
+                        .projectId(project.getId())
+                        .projectTitle(project.getTitle())
+                        .thumbnail(project.getThumbnail())
+                        .viewCnt(project.getViewCnt())
+                        .contributionCnt(project.getContributorCnt())
+                        .authorId(project.getAuthor().getId())
+                        .authorNickname(project.getAuthor().getNickname())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProjectListDto> getFollowingProjectList(int userId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Project> projectPage = projectRepository.findByFollowingUserAtDesc(userId, pageRequest);
+        List<Project> projects = projectPage.getContent();
 
         return projects.stream()
                 .map(project -> ProjectListDto.builder()

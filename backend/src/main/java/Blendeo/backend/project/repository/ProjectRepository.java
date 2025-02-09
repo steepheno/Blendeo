@@ -25,6 +25,12 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query("SELECT p FROM Project p WHERE p.author.id = :userId ORDER BY p.createdAt DESC")
     Page<Project> findByAuthorId(@Param("userId") int userId, Pageable pageable);
 
+    @Query("SELECT DISTINCT p FROM Project p " +
+            "JOIN Follow f ON f.followPK.following.id = p.author.id " +
+            "WHERE f.followPK.follower.id = :userId " +
+            "ORDER BY p.createdAt DESC")
+    Page<Project> findByFollowingUserAtDesc(@Param("userId") int userId, Pageable pageable);
+
     @Query("SELECT p FROM Project p WHERE p.id IN :ids")
     List<Project> findAllByIdIn(@Param("ids") List<Long> ids);
 
