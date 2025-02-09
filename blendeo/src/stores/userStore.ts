@@ -13,6 +13,7 @@ interface UserStore {
   unfollowUser: (userId: number) => Promise<void>;
   getFollowings: (userId: number) => Promise<void>;
   getFollowers: (userId: number) => Promise<void>;
+  setCurrentUser: (user: User | null) => void; // 현재 사용자 설정 함수 추가
 }
 
 export const useUserStore = create<UserStore>()(
@@ -21,6 +22,10 @@ export const useUserStore = create<UserStore>()(
       currentUser: null,
       followings: null,
       followers: null,
+
+      setCurrentUser: (user) => {
+        set({ currentUser: user });
+      },
 
       updateUser: async (data) => {
         const currentUser = get().currentUser;

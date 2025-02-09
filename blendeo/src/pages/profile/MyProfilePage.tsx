@@ -113,8 +113,6 @@ const MyProfilePage = () => {
       };
 
       setFollowData(combinedFollowData);
-      console.log(userResponse, combinedFollowData);
-      
     } catch (err) {
       setError(
         err instanceof Error

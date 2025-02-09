@@ -1,16 +1,18 @@
 // src/stores/authStore.ts
+import React from "react";
 import { create } from "zustand";
-import { persist, devtools } from "zustand/middleware";
+import { persist, devtools, createJSONStorage } from "zustand/middleware";
 import * as authApi from "@/api/auth";
 import type {
-  AuthResponse,
   SigninRequest,
   SignupRequest,
 } from "@/types/api/auth";
+import { User } from "@/types/api/user";
+import { getUser } from "@/api/user";
 
 interface AuthStore {
-  user: AuthResponse | null;
-  token: string | null;
+  userId : number | null;
+  user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -20,20 +22,43 @@ interface AuthStore {
   logout: () => Promise<void>;
   googleLogin: () => Promise<void>;
   clearError: () => void;
-  setUser: (user: AuthResponse | null) => void;
+  setUser: (user: User | null) => void;
+  fetchUserData: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
   devtools(
     persist(
-      (set) => ({
-        user: JSON.parse(localStorage.getItem("user") || "null"),
-        token: localStorage.getItem("token"),
-        isAuthenticated: !!localStorage.getItem("user"),
+      (set, get) => ({
+        userId: null,
+        user: null,
+        isAuthenticated: false,
         isLoading: false,
         error: null,
 
         setUser: (user) => set({ user }),
+
+        fetchUserData: async () => {
+          const { userId } = get();
+          if (!userId) return;
+
+          try {
+            const response = await getUser(userId);
+            if (response) {
+              set({
+                user: response,
+                isAuthenticated: true,
+              });
+            }
+          } catch (error) {
+            console.error("Failed to fetch user data:", error);
+            set({ 
+              user: null, 
+              userId: null,
+              isAuthenticated: false 
+            });
+          }
+        },
 
         signin: async (data) => {
           set({ isLoading: true, error: null });
@@ -41,13 +66,12 @@ export const useAuthStore = create<AuthStore>()(
             const response = await authApi.signin(data);
             if (response) {
               set({
-                user: response,
-                token: response.accessToken,
+                userId: response.id,
                 isAuthenticated: true,
                 isLoading: false,
               });
-              localStorage.setItem("user", JSON.stringify(response));
-              localStorage.setItem("token", response.accessToken);
+              // Fetch user data immediately after signin
+              await get().fetchUserData();
             }
           } catch (error) {
             const err = error as Error;
@@ -63,12 +87,11 @@ export const useAuthStore = create<AuthStore>()(
             const response = await authApi.signup(data);
             set({
               user: response,
-              token: response.accessToken,
               isAuthenticated: true,
               isLoading: false,
             });
-            localStorage.setItem("user", JSON.stringify(response));
-            localStorage.setItem("token", response.accessToken);
+
+            await get().fetchUserData();
           } catch (error) {
             const err = error as Error;
             set({ error: err.message, isLoading: false });
@@ -86,11 +109,9 @@ export const useAuthStore = create<AuthStore>()(
             set({ error: err.message });
             console.error("Logout failed:", error);
           } finally {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
             set({
+              userId: null,
               user: null,
-              token: null,
               isAuthenticated: false,
               isLoading: false,
             });
@@ -107,9 +128,9 @@ export const useAuthStore = create<AuthStore>()(
             set({
               user: response,
               isAuthenticated: true,
-              token: response.accessToken || null,
               isLoading: false,
             });
+            await get().fetchUserData();
           } catch (error) {
             const err = error as Error;
             set({ error: err.message, isLoading: false });
@@ -121,16 +142,27 @@ export const useAuthStore = create<AuthStore>()(
       }),
       {
         name: "auth-storage",
-        partialize: (state) => ({
-          user: state.user,
-          token: state.token,
+        storage: createJSONStorage(() => localStorage), // window.sessionStorage로 명시적 지정
+        partialize: (state: AuthStore) => ({
+          userId: state.userId,
           isAuthenticated: state.isAuthenticated,
         }),
       }
     ),
-    { name: "auth-store" }
   )
 );
+
+// App.tsx나 적절한 상위 컴포넌트에서 사용할 초기화 훅
+export const useInitializeAuth = () => {
+  const fetchUserData = useAuthStore((state) => state.fetchUserData);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserData();
+    }
+  }, [isAuthenticated]);
+};
 
 export const useUser = () => useAuthStore((state) => state.user);
 export const useIsAuthenticated = () =>
