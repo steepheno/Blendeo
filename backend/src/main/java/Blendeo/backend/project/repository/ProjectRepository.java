@@ -43,4 +43,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("select p.author from Project p where p.id= :id")
     Optional<User> findAuthorById(Long id);
+
+    @Query("select count(*) from Project p where p.forkId = :id")
+    int findCountByForkId(Long id);
 }
