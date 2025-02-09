@@ -104,6 +104,7 @@ const MainPage = () => {
             id: item.authorId,
             nickname: item.authorNickname,
             email: "",
+            profileImage: null,
           },
           forkId: item.forkCnt || 0,
           contents: "",
@@ -128,6 +129,7 @@ const MainPage = () => {
               id: 1,
               nickname: "Lady Gaga & Ariana Grande",
               email: "user@example.com",
+              profileImage: null
             },
             forkId: 0,
             contents: "Project description",

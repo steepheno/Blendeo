@@ -46,7 +46,7 @@ interface ProjectStore {
   createComment: (projectId: number, comment: string) => Promise<void>;
   deleteComment: (commentId: number, projectId: number) => Promise<void>;
   forkProject: (forkedUrl: string, videoFile: string) => Promise<void>;
-  uploadBlendedVideo: (forkedUrl: string, videoFile: string) => Promise<void>;
+  uploadBlendedVideo: (forkedUrl: string, videoFile: File) => Promise<void>;
   getNewProjects: () => Promise<ProjectListItem[]>;
   contributors: User[];
   getProjectContributors: (projectId: number) => Promise<void>;
