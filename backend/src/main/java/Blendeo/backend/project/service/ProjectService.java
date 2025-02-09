@@ -12,4 +12,5 @@ public interface ProjectService {
     void modifyProjectState(Long projectId, boolean state);
     void modifyProjectContents(Long projectId, String contents);
     List<ProjectListDto> getNewProjectList(int page, int size);
+    List<ProjectListDto> getUserProjectList(int userId, int page, int size);
 }

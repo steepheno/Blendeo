@@ -99,6 +99,8 @@ public class ProjectController {
         return ResponseEntity.ok(projectInfo);
     }
 
+
+
     @Operation(
             summary = "프로젝트 삭제"
     )
@@ -137,5 +139,16 @@ public class ProjectController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size){
         return ResponseEntity.ok().body(projectService.getNewProjectList(page, size));
+    }
+
+    @Operation(
+            summary = "유저의 프로젝트 목록 조회"
+    )
+    @GetMapping("user/{userId}")
+    public ResponseEntity<List<ProjectListDto>> getUserProjectList(
+            @PathVariable int userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        return ResponseEntity.ok().body(projectService.getUserProjectList(userId, page, size));
     }
 }

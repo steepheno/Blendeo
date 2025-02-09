@@ -14,10 +14,10 @@ public class ProjectListDto {
     private int forkCnt;
     private int contributionCnt;
     private int authorId;
-    private String authorNickame;
+    private String authorNickname;
 
     @Builder
-    public ProjectListDto(Long projectId, String projectTitle, String thumbnail, int viewCnt, int forkCnt, int contributionCnt, int authorId, String authorNickame) {
+    public ProjectListDto(Long projectId, String projectTitle, String thumbnail, int viewCnt, int forkCnt, int contributionCnt, int authorId, String authorNickname) {
         this.projectId = projectId;
         this.projectTitle = projectTitle;
         this.thumbnail = thumbnail;
@@ -25,6 +25,6 @@ public class ProjectListDto {
         this.forkCnt = forkCnt;
         this.contributionCnt = contributionCnt;
         this.authorId = authorId;
-        this.authorNickame = authorNickame;
+        this.authorNickname = authorNickname;
     }
 }
