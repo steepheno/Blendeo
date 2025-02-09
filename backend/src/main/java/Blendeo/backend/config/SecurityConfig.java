@@ -36,7 +36,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173", // React 개발 서버
-                "http://i12a602.p.ssafy.io:5173"
+                "http://i12a602.p.ssafy.io:5173",
+                "http://localhost:5500",
+                "http://127.0.0.1:5500"
                 ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
@@ -59,15 +61,16 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/api/v1/**",
                                 "/webjars/**",
                                 "/configuration/ui",
-                                "/configuration/security",
+                                "/configuration/security"
+                        ).permitAll()
+                        .requestMatchers(
                                 "/api/v1/project/new",
                                 "/api/v1/project/info/**",
-                                "/api/v1/rank/**"
+                                "/api/v1/rank/**",
+                                "/api/v1/user/auth/**"
                         ).permitAll()
-                        .requestMatchers("/api/v1/admin/**").authenticated()
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
                 )

@@ -31,7 +31,7 @@ public class Neo4jConfig {
 
     @Bean
     public DatabaseSelectionProvider databaseSelectionProvider() {
-        return DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("blendeo");
+        return DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("neo4j");
     }
 
     @Bean("neo4jTransactionManager")
