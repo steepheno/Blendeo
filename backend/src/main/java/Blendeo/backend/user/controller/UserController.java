@@ -1,7 +1,6 @@
 package Blendeo.backend.user.controller;
 
-import Blendeo.backend.instrument.dto.UserInstrumentRes;
-import Blendeo.backend.instrument.entity.UserInstrument;
+import Blendeo.backend.instrument.dto.InstrumentGetRes;
 import Blendeo.backend.instrument.service.InstrumentService;
 import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.service.MailService;
@@ -60,7 +59,7 @@ public class UserController {
     public ResponseEntity<?> getFavoriteInstrument() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        List<UserInstrumentRes> userInstrumentRes = instrumentService.getMyFavorite(Integer.parseInt(user.getUsername()));
+        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavorite(Integer.parseInt(user.getUsername()));
 
         return ResponseEntity.ok().body(userInstrumentRes);
     }

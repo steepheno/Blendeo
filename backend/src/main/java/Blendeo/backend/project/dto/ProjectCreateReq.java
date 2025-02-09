@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URL;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -17,9 +18,10 @@ public class ProjectCreateReq {
     private boolean state;
     private int duration;
     private URL videoUrl;
+    private List<String> etcInstrumentNames;
 
     @Builder
-    public ProjectCreateReq(String title, String content, int userId, Long forkProjectId, boolean state, int duration, URL videoUrl) {
+    public ProjectCreateReq(String title, String content, int userId, Long forkProjectId, boolean state, int duration, URL videoUrl, List<String> etcInstrumentNames) {
         this.title = title;
         this.content = content;
         this.userId = userId;
@@ -27,5 +29,6 @@ public class ProjectCreateReq {
         this.state = state;
         this.duration = duration;
         this.videoUrl = videoUrl;
+        this.etcInstrumentNames = etcInstrumentNames;
     }
 }

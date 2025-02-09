@@ -1,19 +1,21 @@
 package Blendeo.backend.instrument.controller;
 
+import Blendeo.backend.instrument.entity.EtcInstrument;
 import Blendeo.backend.instrument.entity.Instrument;
 import Blendeo.backend.instrument.service.InstrumentService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/instrument")
 @RequiredArgsConstructor
+@Slf4j
 public class InstrumentController {
 
     private final InstrumentService instrumentService;

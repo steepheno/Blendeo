@@ -1,11 +1,15 @@
 package Blendeo.backend.project.dto;
 
+import Blendeo.backend.instrument.dto.InstrumentGetRes;
+import Blendeo.backend.instrument.entity.EtcInstrument;
+import Blendeo.backend.instrument.entity.ProjectInstrument;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @ToString
 @NoArgsConstructor
@@ -22,9 +26,11 @@ public class ProjectInfoRes {
     private String videoUrl;
     private int runningTime;
     private int viewCnt;
+    private List<InstrumentGetRes> projectInstruments;
+    private List<InstrumentGetRes> etcInstruments;
 
     @Builder
-    public ProjectInfoRes(Long id, Long forkId, String projectTitle, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, String thumbnail, int runningTime, int viewCnt, String videoUrl) {
+    public ProjectInfoRes(Long id, Long forkId, String projectTitle, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, String thumbnail, int runningTime, int viewCnt, String videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments) {
         this.id = id;
         this.forkId = forkId;
         this.projectTitle = projectTitle;
@@ -36,5 +42,7 @@ public class ProjectInfoRes {
         this.runningTime = runningTime;
         this.viewCnt = viewCnt;
         this.videoUrl = videoUrl;
+        this.projectInstruments = projectInstruments;
+        this.etcInstruments = etcInstruments;
     }
 }

@@ -3,6 +3,12 @@ package Blendeo.backend.project.service;
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
 import Blendeo.backend.global.util.S3Utils;
+import Blendeo.backend.instrument.dto.InstrumentGetRes;
+import Blendeo.backend.instrument.entity.EtcInstrument;
+import Blendeo.backend.instrument.entity.Instrument;
+import Blendeo.backend.instrument.entity.ProjectInstrument;
+import Blendeo.backend.instrument.repository.EtcInstrumentRepository;
+import Blendeo.backend.instrument.repository.ProjectInstrumentRepository;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 import Blendeo.backend.project.dto.ProjectListDto;
@@ -13,13 +19,14 @@ import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,10 +40,12 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserRepository userRepository;
     private final S3Utils s3Utils;
     private final RankingService rankingService;
+    private final ProjectInstrumentRepository projectInstrumentRepository;
+    private final EtcInstrumentRepository etcInstrumentRepository;
 
     @Override
     @Transactional
-    public int createProject(ProjectCreateReq projectCreateReq) {
+    public Project createProject(ProjectCreateReq projectCreateReq) {
 
         User user = userRepository.findById(projectCreateReq.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
@@ -70,7 +79,7 @@ public class ProjectServiceImpl implements ProjectService {
             projectNodeRepository.createForkRelation(project.getId(), projectCreateReq.getForkProjectId());
         }
 
-        return Math.toIntExact(project.getId());
+        return project;
     }
 
     @Override
@@ -84,6 +93,8 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
+        List<ProjectInstrument> projectInstruments = projectInstrumentRepository.getAllByProjectId(projectId);
+
         return ProjectInfoRes.builder()
                 .id(project.getId())
                 .projectTitle(project.getTitle())
@@ -96,6 +107,12 @@ public class ProjectServiceImpl implements ProjectService {
                 .thumbnail(project.getThumbnail())
                 .videoUrl(project.getVideoUrl().toString())
                 .viewCnt(project.getViewCnt())
+                .projectInstruments(projectInstruments.stream()
+                        .map(projectInstrument-> InstrumentGetRes.builder()
+                                .instrument_id(projectInstrument.getId())
+                                .instrument_name(projectInstrument.getInstrument().getName())
+                                .build()).collect(Collectors.toList()))
+                .etcInstruments()
                 .build();
     }
 
@@ -146,6 +163,51 @@ public class ProjectServiceImpl implements ProjectService {
                         .authorId(project.getAuthor().getId())
                         .authorNickame(project.getAuthor().getNickname())
                         .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InstrumentGetRes> saveProjectInstruments(long projectId, List<Integer> instrumentIds) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+        List<ProjectInstrument> projectInstruments = new ArrayList<>();
+        for (Integer instrumentId : instrumentIds) {
+            ProjectInstrument projectInstrument = projectInstrumentRepository.save(ProjectInstrument.builder()
+                    .projectId(projectId)
+                    .instrument(Instrument.builder()
+                            .id(instrumentId).build()).build());
+
+            projectInstruments.add(projectInstrument);
+        }
+
+        return projectInstruments.stream()
+                .map(projectInstrument -> InstrumentGetRes.builder()
+                        .instrument_id(projectInstrument.getId())
+                        .instrument_name(projectInstrument.getInstrument().getName()).build()
+                )
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InstrumentGetRes> saveEtcInstruments(Long projectId, List<String> etcInstrumentNames) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+        List<EtcInstrument> etcInstruments = new ArrayList<>();
+
+        for (String name : etcInstrumentNames) {
+            // etc 악기 저장
+            EtcInstrument etcInstrument = etcInstrumentRepository.save(EtcInstrument.builder().instrument_name(name).build());
+
+            etcInstruments.add(etcInstrument);
+        }
+
+        return etcInstruments.stream()
+                .map(etcInstrument -> InstrumentGetRes.builder()
+                        .instrument_id(etcInstrument.getId())
+                        .instrument_name(etcInstrument.getName()).build()
+                )
                 .collect(Collectors.toList());
     }
 }

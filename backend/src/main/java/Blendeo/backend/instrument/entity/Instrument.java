@@ -16,6 +16,10 @@ public class Instrument {
     @Column
     private String name;
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Builder
     public Instrument(int id, String name) {
         this.id = id;
