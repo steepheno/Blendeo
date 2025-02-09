@@ -175,11 +175,6 @@ public class UserController {
     @Operation(summary = "회원정보 단일건 조회")
     @GetMapping("/get-user/{id}")
     public ResponseEntity<?> getUser(@PathVariable("id") int id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        // 해당 유저가 아니라면
-        if (Integer.parseInt(user.getUsername()) != id) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         UserInfoGetRes userInfoGetRes = userService.getUser(id);
         return ResponseEntity.ok().body(userInfoGetRes);
     }
