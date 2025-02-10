@@ -8,6 +8,7 @@ import Blendeo.backend.instrument.entity.EtcInstrument;
 import Blendeo.backend.instrument.entity.Instrument;
 import Blendeo.backend.instrument.entity.ProjectInstrument;
 import Blendeo.backend.instrument.repository.EtcInstrumentRepository;
+import Blendeo.backend.instrument.repository.InstrumentRepository;
 import Blendeo.backend.instrument.repository.ProjectInstrumentRepository;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
@@ -42,6 +43,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final RankingService rankingService;
     private final ProjectInstrumentRepository projectInstrumentRepository;
     private final EtcInstrumentRepository etcInstrumentRepository;
+    private final InstrumentRepository instrumentRepository;
 
     @Override
     @Transactional
@@ -97,7 +99,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         return ProjectInfoRes.builder()
                 .id(project.getId())
-                .projectTitle(project.getTitle())
+                .title(project.getTitle())
                 .state(project.isState())
                 .forkId(project.getForkId())
                 .contributorCnt(project.getContributorCnt())
@@ -108,11 +110,17 @@ public class ProjectServiceImpl implements ProjectService {
                 .videoUrl(project.getVideoUrl().toString())
                 .viewCnt(project.getViewCnt())
                 .projectInstruments(projectInstruments.stream()
+                        .filter(projectInstrument -> projectInstrument.getInstrument() != null) // Instrument가 널이면!
                         .map(projectInstrument-> InstrumentGetRes.builder()
-                                .instrument_id(projectInstrument.getId())
+                                .instrument_id(projectInstrument.getInstrument().getId())
                                 .instrument_name(projectInstrument.getInstrument().getName())
                                 .build()).collect(Collectors.toList()))
-                .etcInstruments()
+                .etcInstruments(projectInstruments.stream()
+                        .filter(projectInstrument -> projectInstrument.getEtcInstrument() != null) // EtcInstrument가 null 이 아니면!
+                        .map(etcInstrument -> InstrumentGetRes.builder()
+                                .instrument_id(etcInstrument.getEtcInstrument().getId())
+                                .instrument_name(etcInstrument.getEtcInstrument().getName())
+                        .build()).collect(Collectors.toList()))
                 .build();
     }
 
@@ -181,10 +189,12 @@ public class ProjectServiceImpl implements ProjectService {
             projectInstruments.add(projectInstrument);
         }
 
+
+
         return projectInstruments.stream()
                 .map(projectInstrument -> InstrumentGetRes.builder()
-                        .instrument_id(projectInstrument.getId())
-                        .instrument_name(projectInstrument.getInstrument().getName()).build()
+                        .instrument_id(projectInstrument.getInstrument().getId())
+                        .instrument_name(instrumentRepository.getById(projectInstrument.getInstrument().getId()).getName()).build()
                 )
                 .collect(Collectors.toList());
     }
@@ -203,10 +213,23 @@ public class ProjectServiceImpl implements ProjectService {
             etcInstruments.add(etcInstrument);
         }
 
-        return etcInstruments.stream()
-                .map(etcInstrument -> InstrumentGetRes.builder()
-                        .instrument_id(etcInstrument.getId())
-                        .instrument_name(etcInstrument.getName()).build()
+        // projectInstrument에 저장
+        List<ProjectInstrument> projectInstruments = new ArrayList<>();
+        for (EtcInstrument etcInstrument : etcInstruments) {
+            ProjectInstrument projectInstrument = projectInstrumentRepository.save(ProjectInstrument.builder()
+                    .projectId(projectId)
+                    .etcInstrument(EtcInstrument.builder()
+                            .id(etcInstrument.getId())
+                            .instrument_name(etcInstrument.getName())
+                    .build()).build());
+            projectInstruments.add(projectInstrument);
+        }
+
+
+        return projectInstruments.stream()
+                .map(projectInstrument -> InstrumentGetRes.builder()
+                        .instrument_id(projectInstrument.getEtcInstrument().getId())
+                        .instrument_name(projectInstrument.getEtcInstrument().getName()).build()
                 )
                 .collect(Collectors.toList());
     }

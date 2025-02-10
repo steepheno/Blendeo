@@ -17,7 +17,7 @@ import java.util.List;
 public class ProjectInfoRes {
     private Long id;
     private Long forkId;
-    private String projectTitle;
+    private String title;
     private String contents;
     private int contributorCnt;
     private LocalDateTime createdAt;
@@ -30,10 +30,10 @@ public class ProjectInfoRes {
     private List<InstrumentGetRes> etcInstruments;
 
     @Builder
-    public ProjectInfoRes(Long id, Long forkId, String projectTitle, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, String thumbnail, int runningTime, int viewCnt, String videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments) {
+    public ProjectInfoRes(Long id, Long forkId, String title, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, String thumbnail, int runningTime, int viewCnt, String videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments) {
         this.id = id;
         this.forkId = forkId;
-        this.projectTitle = projectTitle;
+        this.title = title;
         this.contents = contents;
         this.contributorCnt = contributorCnt;
         this.createdAt = createdAt;
