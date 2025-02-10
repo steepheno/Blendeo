@@ -190,11 +190,6 @@ public class UserController {
     @Operation(summary = "회원정보 단일건 조회")
     @GetMapping("/get-user/{id}")
     public ResponseEntity<?> getUser(@PathVariable("id") int id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        // 해당 유저가 아니라면
-        if (Integer.parseInt(user.getUsername()) != id) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         UserInfoGetRes userInfoGetRes = userService.getUser(id);
         List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavorite(Integer.parseInt(user.getUsername()));
         userInfoGetRes.setInstruments(userInstrumentRes);
@@ -207,10 +202,10 @@ public class UserController {
     @PutMapping(value = "/update-user",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateUser(@RequestParam("nickname") String nickname,
-                                        @RequestParam("profileImage") MultipartFile profileImage) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                                        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        userService.updateUser(Integer.parseInt(user.getUsername()), nickname, profileImage);
+            userService.updateUser(Integer.parseInt(user.getUsername()), nickname, profileImage);
         return ResponseEntity.ok().build();
     }
 

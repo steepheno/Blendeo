@@ -118,6 +118,8 @@ public class ProjectController {
         return ResponseEntity.ok(projectInfo);
     }
 
+
+
     @Operation(
             summary = "프로젝트 삭제"
     )
@@ -156,6 +158,29 @@ public class ProjectController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size){
         return ResponseEntity.ok().body(projectService.getNewProjectList(page, size));
+    }
+
+    @Operation(
+            summary = "유저의 프로젝트 목록 조회"
+    )
+    @GetMapping("user/{userId}")
+    public ResponseEntity<List<ProjectListDto>> getUserProjectList(
+            @PathVariable int userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        return ResponseEntity.ok().body(projectService.getUserProjectList(userId, page, size));
+    }
+
+    @Operation(
+            summary = "팔로우중인 유저들의 프로젝트 목록 조회"
+    )
+    @GetMapping("/follow")
+    public ResponseEntity<List<ProjectListDto>> getFollowProjectList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+        return ResponseEntity.ok().body(projectService.getFollowingProjectList(userId, page, size));
     }
 
 }
