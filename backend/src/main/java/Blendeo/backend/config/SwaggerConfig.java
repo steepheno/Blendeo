@@ -28,8 +28,11 @@ public class SwaggerConfig {
         SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
 
         return new OpenAPI().servers(List.of(
-                        new Server().url("https://api.blendeo.shop")  // HTTPS URL로 설정
-                        ))
+                        new Server().url("https://api.blendeo.shop"),  // HTTPS URL로 설정
+                        new Server().url("http://api.blendeo.shop"),
+                        new Server().url("http://localhost:8080"),
+                        new Server().url("http://http://i12a602.p.ssafy.io:8080/")
+                ))
                         .components(new Components()
                         .addSecuritySchemes("bearerAuth", securityScheme)) // API 구성 요소를 설정합니다.
                 .security(Arrays.asList(securityRequirement))
