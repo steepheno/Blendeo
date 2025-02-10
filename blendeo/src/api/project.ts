@@ -9,7 +9,7 @@ import {
 } from "@/types/api/project";
 
 interface CreateProjectResponse {
-  projectId: number;  // 또는 실제 API 응답 구조에 맞게 수정
+  projectId: number; // 또는 실제 API 응답 구조에 맞게 수정
 }
 
 // 프로젝트 CRUD
@@ -18,15 +18,17 @@ export const createProject = async (data: CreateProjectRequest) => {
     title: data.title,
     content: data.content,
     state: data.state.toString(),
-    videoUrl: data.videoUrl
+    videoUrl: data.videoUrl,
   });
 
   if (data.forkProjectId !== undefined) {
-    params.append('forkProjectId', data.forkProjectId.toString());
+    params.append("forkProjectId", data.forkProjectId.toString());
   }
 
   // void를 CreateProjectResponse로 변경
-  return axiosInstance.post<CreateProjectResponse>(`/project/create?${params.toString()}`);
+  return axiosInstance.post<CreateProjectResponse>(
+    `/project/create?${params.toString()}`
+  );
 };
 
 export const getProject = async (projectId: number) => {
@@ -81,40 +83,48 @@ export const uploadBlendedVideo = async (
   // 파일 크기 확인 (바이트 단위)
   const fileSizeInBytes = videoFile.size;
   const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
-  
-  console.log('File Information:', {
+
+  console.log("File Information:", {
     name: videoFile.name,
     type: videoFile.type,
     sizeInBytes: fileSizeInBytes,
-    sizeInMB: fileSizeInMB.toFixed(2) + ' MB'
+    sizeInMB: fileSizeInMB.toFixed(2) + " MB",
   });
 
   const formData = new FormData();
-  formData.append('forkedUrl', forkedUrl);
-  formData.append('videoFile', videoFile);
+  formData.append("forkedUrl", forkedUrl);
+  formData.append("videoFile", videoFile);
 
   // FormData 전체 크기 추정
   let totalSize = fileSizeInBytes;
   totalSize += new Blob([forkedUrl]).size; // forkedUrl 문자열의 크기
 
-  console.log('Total FormData Information:', {
+  console.log("Total FormData Information:", {
     estimatedSizeInBytes: totalSize,
-    estimatedSizeInMB: (totalSize / (1024 * 1024)).toFixed(2) + ' MB'
+    estimatedSizeInMB: (totalSize / (1024 * 1024)).toFixed(2) + " MB",
   });
 
-  const response = await axiosInstance.post<string>("/project/create/video/blend/upload", formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    onUploadProgress: (progressEvent: { loaded: number; total?: number }) => {
-      if (progressEvent.total) {
-        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        console.log(`Upload Progress: ${percentCompleted}%`);
-      } else {
-        console.log(`Uploaded: ${(progressEvent.loaded / (1024 * 1024)).toFixed(2)} MB`);
-      }
+  const response = await axiosInstance.post<string>(
+    "/project/create/video/blend/upload",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: (progressEvent: { loaded: number; total?: number }) => {
+        if (progressEvent.total) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          console.log(`Upload Progress: ${percentCompleted}%`);
+        } else {
+          console.log(
+            `Uploaded: ${(progressEvent.loaded / (1024 * 1024)).toFixed(2)} MB`
+          );
+        }
+      },
     }
-  });
+  );
 
   return response;
 };

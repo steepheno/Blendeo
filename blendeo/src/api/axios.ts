@@ -60,7 +60,11 @@ axiosInstance.interceptors.response.use(
     );
 
     // accessToken이 만료된 경우
-    if (error.response?.status === 403 && !isPublicAPI && !originalRequest._retry) {
+    if (
+      error.response?.status === 403 &&
+      !isPublicAPI &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -76,8 +80,8 @@ axiosInstance.interceptors.response.use(
             {},
             {
               headers: {
-                Authorization: `Bearer ${refreshToken}`
-              }
+                Authorization: `Bearer ${refreshToken}`,
+              },
             }
           );
 
@@ -95,7 +99,6 @@ axiosInstance.interceptors.response.use(
         useUserStore.getState().setCurrentUser(null);
         window.location.href = "/auth/signin";
         console.log(refreshError);
-        
       }
     }
 

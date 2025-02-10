@@ -5,7 +5,7 @@ import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import SignInPage from "@/pages/auth/SignInPage";
 import SignUpPage from "@/pages/auth/SignUpPage";
 import MainPage from "@/pages/main/MainPage";
-// import ChatPage from "@/pages/chat/ChatPage";
+import ChatPage from "@/pages/chat/ChatPage";
 
 import ProjectDetailPage from "@/pages/project/ProjectDetailPage";
 // import SeedRecordPage from "@/pages/seed/SeedRecordPage";
@@ -120,14 +120,14 @@ export const router = createBrowserRouter([
   {
     path: "/chat",
     children: [
-      // {
-      //   path: "", // /chat
-      //   element: (
-      //     <ProtectedRoute>
-      //       <ChatPage />
-      //     </ProtectedRoute>
-      //   ),
-      // },
+      {
+        path: "", // /chat
+        element: (
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        ),
+      },
       // {
       //   path: "video", // /chat/video
       //   element: (
