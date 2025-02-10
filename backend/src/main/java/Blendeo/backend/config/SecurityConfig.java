@@ -42,8 +42,8 @@ public class SecurityConfig {
                 "http://blendeo.shop",           // HTTP 버전 추가
                 "https://api.blendeo.shop",      // API 도메인 추가
                 "http://api.blendeo.shop",        // API 도메인 HTTP 버전 추가
-                "http://api.blendeo.shop/swagger-ui.html",
-                "https://api.blendeo.shop/swagger-ui.html"
+                "http://api.blendeo.shop/swagger-ui/index.html",
+                "https://api.blendeo.shop/swagger-ui/index.html"
                 ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
