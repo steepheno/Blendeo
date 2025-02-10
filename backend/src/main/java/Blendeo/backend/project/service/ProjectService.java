@@ -19,4 +19,6 @@ public interface ProjectService {
     List<InstrumentGetRes> saveProjectInstruments(long projectId, List<Integer> instrumentIds);
 
     List<InstrumentGetRes> saveEtcInstruments(Long id, List<String> etcInstrumentNames);
+    List<ProjectListDto> getUserProjectList(int userId, int page, int size);
+    List<ProjectListDto> getFollowingProjectList(int userId, int page, int size);
 }
