@@ -4,27 +4,37 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 public class ProjectListDto {
     private Long projectId;
-    private String projectTitle;
+    private String title;
     private String thumbnail;
     private int viewCnt;
     private int forkCnt;
     private int contributionCnt;
     private int authorId;
     private String authorNickname;
+    private URL authorProfileImage;
+    private List<String> instruments;
+    private LocalDateTime createdAt;
 
     @Builder
-    public ProjectListDto(Long projectId, String projectTitle, String thumbnail, int viewCnt, int forkCnt, int contributionCnt, int authorId, String authorNickname) {
+    public ProjectListDto(Long projectId, String title, String thumbnail, int viewCnt, int forkCnt, int contributionCnt, int authorId, String authorNickname, URL authorProfileImage, List<String> instruments, LocalDateTime createdAt) {
         this.projectId = projectId;
-        this.projectTitle = projectTitle;
+        this.title = title;
         this.thumbnail = thumbnail;
         this.viewCnt = viewCnt;
         this.forkCnt = forkCnt;
         this.contributionCnt = contributionCnt;
         this.authorId = authorId;
         this.authorNickname = authorNickname;
+        this.authorProfileImage = authorProfileImage;
+        this.instruments = instruments;
+        this.createdAt = createdAt;
     }
 }

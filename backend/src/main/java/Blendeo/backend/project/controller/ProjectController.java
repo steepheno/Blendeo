@@ -132,7 +132,7 @@ public class ProjectController {
             summary = "프로젝트 공개 여부 수정"
     )
     @PatchMapping("/state/{projectId}")
-    public ResponseEntity<?> modifyProjectState(@PathVariable Long projectId, boolean state){
+    public ResponseEntity<?> modifyProjectState(@PathVariable("projectId") Long projectId, boolean state){
         projectService.modifyProjectState(projectId, state);
 
         return ResponseEntity.ok().build();
@@ -142,7 +142,7 @@ public class ProjectController {
             summary = "프로젝트 상세 설명 수정"
     )
     @PatchMapping("/contents/{projectId}")
-    public ResponseEntity<?> modifyProjectContents(@PathVariable Long projectId, String contents){
+    public ResponseEntity<?> modifyProjectContents(@PathVariable("projectId") Long projectId, String contents){
         projectService.modifyProjectContents(projectId, contents);
 
         return ResponseEntity.ok().build();
@@ -153,8 +153,8 @@ public class ProjectController {
     )
     @GetMapping("/new")
     public ResponseEntity<List<ProjectListDto>> getNewProjectList(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size){
+            @RequestParam(defaultValue = "0", value = "page") int page,
+            @RequestParam(defaultValue = "10", value = "size") int size){
         return ResponseEntity.ok().body(projectService.getNewProjectList(page, size));
     }
 
@@ -163,9 +163,9 @@ public class ProjectController {
     )
     @GetMapping("user/{userId}")
     public ResponseEntity<List<ProjectListDto>> getUserProjectList(
-            @PathVariable int userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size){
+            @PathVariable("userId") int userId,
+            @RequestParam(defaultValue = "0", value="page") int page,
+            @RequestParam(defaultValue = "10", value="size") int size){
         return ResponseEntity.ok().body(projectService.getUserProjectList(userId, page, size));
     }
 
@@ -174,8 +174,8 @@ public class ProjectController {
     )
     @GetMapping("/follow")
     public ResponseEntity<List<ProjectListDto>> getFollowProjectList(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size){
+            @RequestParam(defaultValue = "0", value="page") int page,
+            @RequestParam(defaultValue = "10", value="size") int size){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
         return ResponseEntity.ok().body(projectService.getFollowingProjectList(userId, page, size));

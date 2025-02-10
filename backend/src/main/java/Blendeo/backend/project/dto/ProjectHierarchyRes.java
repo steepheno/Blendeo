@@ -13,8 +13,8 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class ProjectHierarchyRes {
-    private Long projectId;
-    private String projectTitle;
+    private Long id;
+    private String title;
     private String thumbnail;
     private String authorNickname;
     private int viewCnt;

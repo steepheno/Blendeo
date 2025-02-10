@@ -24,6 +24,8 @@ import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -165,12 +167,22 @@ public class ProjectServiceImpl implements ProjectService {
         return projects.stream()
                 .map(project -> ProjectListDto.builder()
                         .projectId(project.getId())
-                        .projectTitle(project.getTitle())
+                        .title(project.getTitle())
                         .thumbnail(project.getThumbnail())
                         .viewCnt(project.getViewCnt())
                         .contributionCnt(project.getContributorCnt())
                         .authorId(project.getAuthor().getId())
                         .authorNickname(project.getAuthor().getNickname())
+                        .authorProfileImage(project.getAuthor().getProfileImage())
+                        .instruments(
+                                projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                        .map(projectInstrument ->
+                                                projectInstrument.getInstrument() != null
+                                                        ? projectInstrument.getInstrument().getName()
+                                                        : projectInstrument.getEtcInstrument().getName()
+                                        ).collect(Collectors.toList())
+                        )
+                        .createdAt(project.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -184,13 +196,23 @@ public class ProjectServiceImpl implements ProjectService {
         return projects.stream()
                 .map(project -> ProjectListDto.builder()
                         .projectId(project.getId())
-                        .projectTitle(project.getTitle())
+                        .title(project.getTitle())
                         .thumbnail(project.getThumbnail())
                         .viewCnt(project.getViewCnt())
                         .forkCnt(projectRepository.findCountByForkId(project.getId()))
                         .contributionCnt(project.getContributorCnt())
                         .authorId(project.getAuthor().getId())
                         .authorNickname(project.getAuthor().getNickname())
+                        .authorProfileImage(project.getAuthor().getProfileImage())
+                        .instruments(
+                                projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                        .map(projectInstrument ->
+                                                projectInstrument.getInstrument() != null
+                                                        ? projectInstrument.getInstrument().getName()
+                                                        : projectInstrument.getEtcInstrument().getName()
+                                        ).collect(Collectors.toList())
+                        )
+                        .createdAt(project.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -204,13 +226,23 @@ public class ProjectServiceImpl implements ProjectService {
         return projects.stream()
                 .map(project -> ProjectListDto.builder()
                         .projectId(project.getId())
-                        .projectTitle(project.getTitle())
+                        .title(project.getTitle())
                         .thumbnail(project.getThumbnail())
                         .viewCnt(project.getViewCnt())
                         .forkCnt(projectRepository.findCountByForkId(project.getId()))
                         .contributionCnt(project.getContributorCnt())
                         .authorId(project.getAuthor().getId())
                         .authorNickname(project.getAuthor().getNickname())
+                        .authorProfileImage(project.getAuthor().getProfileImage())
+                        .instruments(
+                                projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                        .map(projectInstrument ->
+                                                projectInstrument.getInstrument() != null
+                                                        ? projectInstrument.getInstrument().getName()
+                                                        : projectInstrument.getEtcInstrument().getName()
+                                        ).collect(Collectors.toList())
+                        )
+                        .createdAt(project.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
