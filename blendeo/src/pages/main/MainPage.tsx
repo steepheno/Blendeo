@@ -4,7 +4,7 @@ import GenreTag from "@/components/common/GenreTag";
 import Layout from "@/components/layout/Layout";
 import { useProjectStore } from "@/stores/projectStore";
 import VideoSection from "@/components/profile/VideoSection";
-import mainImg from "@/assets/mainImg.png";
+import mainImg from "@/assets/mainimg.png";
 
 import { Project, ProjectListItem } from "@/types/api/project";
 
