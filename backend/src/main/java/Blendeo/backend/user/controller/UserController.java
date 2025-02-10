@@ -191,7 +191,7 @@ public class UserController {
     @GetMapping("/get-user/{id}")
     public ResponseEntity<?> getUser(@PathVariable("id") int id) {
         UserInfoGetRes userInfoGetRes = userService.getUser(id);
-        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavoriteInstruments(Integer.parseInt(user.getUsername()));
+        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavoriteInstruments(id);
         userInfoGetRes.setInstruments(userInstrumentRes);
         return ResponseEntity.ok().body(userInfoGetRes);
     }

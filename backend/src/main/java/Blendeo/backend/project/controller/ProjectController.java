@@ -1,13 +1,11 @@
 package Blendeo.backend.project.controller;
 
 import Blendeo.backend.instrument.dto.InstrumentGetRes;
-import Blendeo.backend.instrument.entity.EtcInstrument;
-import Blendeo.backend.instrument.entity.ProjectInstrument;
 import Blendeo.backend.instrument.service.InstrumentService;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 import Blendeo.backend.project.dto.ProjectListDto;
-import Blendeo.backend.project.dto.ProjectPostRes;
+import Blendeo.backend.project.dto.ProjectCreateRes;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.service.ProjectService;
 import Blendeo.backend.project.service.VideoEditorService;
@@ -102,7 +100,7 @@ public class ProjectController {
 
         List<InstrumentGetRes> etcInstruments = projectService.saveEtcInstruments(project.getId(), etcInstrumentNames);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ProjectPostRes.builder()
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProjectCreateRes.builder()
                 .projectId(project.getId())
                 .projectInstruments(projectInstruments)
                 .etcInstruments(etcInstruments).build());
