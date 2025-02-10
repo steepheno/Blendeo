@@ -46,9 +46,9 @@ export const logout = async () => {
 export const refresh = async () => {
   // 쿠키에서 refreshToken 읽기
   const refreshToken = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('refreshToken='))
-    ?.split('=')[1];
+    .split("; ")
+    .find((row) => row.startsWith("refreshToken="))
+    ?.split("=")[1];
 
   return axiosInstance.post("/user/auth/refresh", null, {
     headers: {
@@ -60,9 +60,9 @@ export const refresh = async () => {
 export const getUser = async (id: number) => {
   // 쿠키에서 accessToken 읽기
   const accessToken = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('accessToken='))
-    ?.split('=')[1];
+    .split("; ")
+    .find((row) => row.startsWith("accessToken="))
+    ?.split("=")[1];
 
   return axiosInstance.get(`/user/${id}`, {
     headers: {
