@@ -1,7 +1,5 @@
-import axios from 'axios';
+import axiosInstance from "@/api/axios";
 import type { ProjectListItem } from '@/types/api/project';
-
-const BASE_URL = '/api/v1';
 
 export const mainPageApi = {
   /**
@@ -10,13 +8,11 @@ export const mainPageApi = {
    * @param size 페이지 크기 (기본값: 10)
    */
   getNewProjects: async (page = 0, size = 10): Promise<ProjectListItem[]> => {
-    const response = await axios.get<ProjectListItem[]>(`${BASE_URL}/project/new`, {
+    return axiosInstance.get<ProjectListItem[]>('/project/new', {
       params: {
         page,
         size
       }
     });
-    
-    return response.data;
   }
 };
