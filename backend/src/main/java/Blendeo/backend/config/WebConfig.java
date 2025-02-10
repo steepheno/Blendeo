@@ -14,6 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(
                         "http://localhost:5173",
+                        "http:/i12a602.p.ssafy.io",
                         "http://i12a602.p.ssafy.io:5173",
                         "https://blendeo.shop",
                         "http://blendeo.shop",           // HTTP 버전 추가
