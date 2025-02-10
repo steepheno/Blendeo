@@ -8,15 +8,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProjectRankRes {
-    private long projectId;
-    private String projectTitle;
+    private long id;
+    private String title;
     private int userId;
     private String userNickName;
 
     @Builder
     public ProjectRankRes(long projectId, String projectTitle, int userId, String userNickName) {
-        this.projectId = projectId;
-        this.projectTitle = projectTitle;
+        this.id = projectId;
+        this.title = projectTitle;
         this.userId = userId;
         this.userNickName = userNickName;
     }

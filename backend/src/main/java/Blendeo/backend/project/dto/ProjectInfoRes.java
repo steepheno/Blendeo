@@ -15,12 +15,11 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 public class ProjectInfoRes {
-    private Long id;
+    private Long projectId;
     private Long forkId;
     private String title;
     private String contents;
     private int contributorCnt;
-    private LocalDateTime createdAt;
     private boolean state;
     private String thumbnail;
     private String videoUrl;
@@ -28,10 +27,11 @@ public class ProjectInfoRes {
     private int viewCnt;
     private List<InstrumentGetRes> projectInstruments;
     private List<InstrumentGetRes> etcInstruments;
+    private LocalDateTime createdAt;
 
     @Builder
     public ProjectInfoRes(Long id, Long forkId, String title, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, String thumbnail, int runningTime, int viewCnt, String videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments) {
-        this.id = id;
+        this.projectId = id;
         this.forkId = forkId;
         this.title = title;
         this.contents = contents;

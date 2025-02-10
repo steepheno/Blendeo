@@ -63,8 +63,8 @@ public class ForkService {
                 new ArrayList<>();
 
         return ProjectHierarchyRes.builder()
-                .projectId(project.getId())
-                .projectTitle(project.getTitle())
+                .id(project.getId())
+                .title(project.getTitle())
                 .thumbnail(project.getThumbnail())
                 .authorNickname(project.getAuthor().getNickname())
                 .viewCnt(project.getViewCnt())
