@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
 import SidebarItem from "./SidebarItem";
 import SubscriptionItem from "./SubscriptionItem";
 
@@ -11,19 +10,21 @@ const sidebarItems = [
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/12210756f538fe6fa67316f5c82ddd736cfb12ec1ffb4a3e944e8b34a0eb4370",
-    label: "촬영",
+    label: "탐색",
+    path: "/explore",
+    requireAuth: true,
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/89a0072ef0dbff743855d5c27a472bde87b46dbf1c2df85532ab140f348af1d3",
     label: "채팅",
-  },
-  {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/dc1dd8425faea0ea03838faca2a0ae63608db905b6381b8afeacda1218d866b2",
-    label: "Studio",
+    path: "/chat",
+    requireAuth: true,
   },
   {
     icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/10442a81aaba3d34107e6c64311b1f79a99edf436b7668568be30496a74d8cb5",
     label: "내 정보",
+    path: "/profile/me",
+    requireAuth: true,
   },
 ];
 
@@ -46,25 +47,15 @@ const subscriptionItems = [
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuthStore();
 
-  const goToLogin = () => {
-    navigate("/auth/signin");
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/"); // 로그아웃 후 메인 페이지로 이동
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+  const goToRecord = () => {
+    navigate("/seedRecord");
   };
 
   return (
     <>
       {/* 실제 Sidebar */}
-      <div className="fixed top-[81px] left-0 bottom-0 w-[330px] bg-white border-r border-gray-200 overflow-y-auto">
+      <div className="fixed top-[81px] left-0 bottom-0 w-[280px] xl:w-[310px] 2xl:w-[330px] bg-white border-r border-gray-200 overflow-y-auto">
         <div className="flex flex-col h-full p-6">
           {/* 상단 섹션 (네비게이션 아이템들) */}
           <div className="flex flex-col space-y-2">
@@ -79,21 +70,12 @@ const Sidebar = () => {
           {/* 하단 섹션 (Sign in/out + 구독) */}
           <div className="mt-4">
             {/* 로그인/로그아웃 버튼 */}
-            {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="flex justify-center items-center px-6 py-2.5 w-full text-sm font-bold text-white bg-violet-700 hover:bg-violet-800 rounded-full transition-colors"
-              >
-                Sign out
-              </button>
-            ) : (
-              <button
-                onClick={goToLogin}
-                className="flex justify-center items-center px-6 py-2.5 w-full text-sm font-bold text-white bg-violet-700 hover:bg-violet-800 rounded-full transition-colors"
-              >
-                Sign in
-              </button>
-            )}
+            <button
+              onClick={goToRecord}
+              className="flex justify-center items-center px-6 py-2.5 w-full text-sm font-bold text-white bg-violet-700 hover:bg-violet-800 rounded-full transition-colors"
+            >
+              업로드
+            </button>
 
             {/* 구독 섹션 */}
             <div className="mt-8">

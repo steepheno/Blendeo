@@ -7,22 +7,21 @@ const SubscriptionItem: React.FC<SubscriptionItemProps> = ({
   imageUrl,
   title,
   timeAgo,
-  views,
 }) => {
   return (
-    <div className="flex gap-4 items-center px-4 py-3 w-full bg-white bg-opacity-0 min-h-[76px]">
+    <div className="flex gap-3 items-center px-4 py-2 w-[60px] bg-white bg-opacity-0 min-h-[60px]">
       <img
         loading="lazy"
         src={imageUrl}
         alt={title}
         className="object-contain shrink-0 self-stretch my-auto rounded-lg aspect-[0.75] w-[39px]"
       />
-      <div className="flex flex-col justify-center self-stretch my-auto w-[184px]">
-        <div className="overflow-hidden max-w-full h-6 text-base font-medium text-neutral-900 w-[184px]">
+      <div className="flex flex-col justify-center self-stretch my-auto w-[170px]">
+        <div className="overflow-hidden max-w-full h-6 text-base font-medium text-neutral-3000 w-[184px] truncate">
           {title}
         </div>
         <div className="overflow-hidden max-w-full text-sm text-slate-500 w-[184px]">
-          {timeAgo}, {views} views
+        {timeAgo}
         </div>
       </div>
     </div>

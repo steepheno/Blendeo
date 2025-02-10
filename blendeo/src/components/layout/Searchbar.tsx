@@ -15,7 +15,7 @@ const Searchbar = () => {
     if (currentUser) {
       navigate("/profile/me");
     } else {
-      navigate("/auth/signin"); // 로그인 페이지 경로
+      navigate("/auth/signin");
     }
   };
 
@@ -26,24 +26,23 @@ const Searchbar = () => {
         navigate("/");
       } catch (error) {
         console.error("Logout failed:", error);
-        // 에러 처리 (예: 토스트 메시지 표시)
       }
     } else {
       navigate("/auth/signin");
     }
   };
 
-  // 프로필 이미지 URL 결정
   const dummyProfileImage = 'https://blendeo-s3-bucket.s3.ap-northeast-2.amazonaws.com/profile/image_23ef564e-e0c7-4432-bc6b-a3400c07dc30.jpeg'
   const profileImageUrl = currentUser?.profileImage || dummyProfileImage;
 
   return (
     <>
       <div className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-200">
-        <div className="flex justify-between items-center px-10 py-4 w-full max-w-[1921px] min-h-[65px] max-md:px-5 mx-auto">
+        <div className="flex justify-between items-center px-10 py-4 w-full min-h-[65px] max-md:px-5">
+          {/* 로고 영역 - 최소 너비 확보 */}
           <div
             onClick={goToMain}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer min-w-[120px]"
           >
             <img
               loading="lazy"
@@ -51,11 +50,12 @@ const Searchbar = () => {
               alt="Logo"
               className="w-8 h-8 object-contain"
             />
-            <span className="text-lg font-bold text-neutral-900">BLENDEO</span>
+            <span className="text-xl font-bold text-neutral-900">BLENDEO</span>
           </div>
 
-          <div className="flex items-center gap-6">
-            <form className="relative" role="search">
+          {/* 오른쪽 요소들 - 반응형 간격 및 검색창 조정 */}
+          <div className="flex items-center gap-6 max-lg:gap-4 max-md:gap-2">
+            <form className="relative max-md:hidden" role="search">
               <div className="flex items-center bg-gray-100 rounded-full overflow-hidden">
                 <div className="flex items-center justify-center pl-4">
                   <Search className="w-5 h-5 text-gray-400" />
@@ -63,20 +63,23 @@ const Searchbar = () => {
                 <input
                   type="search"
                   placeholder="Search"
-                  className="w-64 py-2 px-3 text-base bg-transparent outline-none text-gray-700 placeholder-gray-500"
+                  className="w-64 max-xl:w-48 max-lg:w-40 py-2 px-3 text-base bg-transparent outline-none text-gray-700 placeholder-gray-500"
                 />
               </div>
             </form>
 
-            {/* Sign In/Sign Out 버튼 */}
-            <button
-              onClick={handleAuthButton}
-              className="px-6 py-2 text-sm font-bold text-white bg-violet-700 hover:bg-violet-800 rounded-full transition-colors"
-            >
-              {currentUser ? "Sign Out" : "Sign In"}
+            {/* 모바일에서만 보이는 검색 아이콘 */}
+            <button className="hidden max-md:flex items-center justify-center p-2 hover:bg-gray-100 rounded-full">
+              <Search className="w-5 h-5 text-gray-600" />
             </button>
 
-            {/* 프로필 사진 */}
+            <button
+              onClick={handleAuthButton}
+              className="px-6 py-2 max-lg:px-4 max-md:px-3 text-sm font-bold text-white bg-violet-700 hover:bg-violet-800 rounded-full transition-colors whitespace-nowrap"
+            >
+              {currentUser ? "로그아웃" : "로그인"}
+            </button>
+
             <img
               onClick={goToMypage}
               loading="lazy"
