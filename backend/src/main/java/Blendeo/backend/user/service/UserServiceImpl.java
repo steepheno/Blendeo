@@ -131,7 +131,11 @@ public class UserServiceImpl implements UserService {
     public UserInfoGetRes getUser(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
-        UserInfoGetRes info = new UserInfoGetRes(id, user.getEmail(), user.getNickname(), user.getProfileImage());
+
+        UserInfoGetRes info = UserInfoGetRes.builder()
+                .id(id).email(user.getEmail()).nickname(user.getNickname())
+                .profileImage(user.getProfileImage()).build();
+                
         return info;
     }
 

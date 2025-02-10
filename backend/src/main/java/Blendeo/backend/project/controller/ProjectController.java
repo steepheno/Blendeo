@@ -1,8 +1,12 @@
 package Blendeo.backend.project.controller;
 
+import Blendeo.backend.instrument.dto.InstrumentGetRes;
+import Blendeo.backend.instrument.service.InstrumentService;
 import Blendeo.backend.project.dto.ProjectCreateReq;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 import Blendeo.backend.project.dto.ProjectListDto;
+import Blendeo.backend.project.dto.ProjectCreateRes;
+import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.service.ProjectService;
 import Blendeo.backend.project.service.VideoEditorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +31,7 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final VideoEditorService videoEditorService;
+    private final InstrumentService instrumentService;
 
     @Operation(
             summary = "[STEP1] 영상 업로드 (* 한 개 영상 업로드 or 두 개 영상 합치고 업로드 *)",
@@ -67,6 +72,8 @@ public class ProjectController {
             @RequestParam("content") String content,
             @RequestParam(value = "forkProjectId", required = false) Long forkProjectId,
             @RequestParam("state") boolean state,
+            @RequestParam("instrumentIds") List<Integer> instrumentIds,
+            @RequestParam("etcName") List<String> etcInstrumentNames,
             @RequestParam("videoUrl") URL videoUrl
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -82,11 +89,21 @@ public class ProjectController {
                 .state(state)
                 .duration(duration)
                 .videoUrl(videoUrl)
+                .etcInstrumentNames(etcInstrumentNames)
                 .build();
 
         log.info("영상 길이: " + duration);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(projectCreateReq));
+        Project project = projectService.createProject(projectCreateReq);
+
+        List<InstrumentGetRes> projectInstruments = projectService.saveProjectInstruments(project.getId(), instrumentIds);
+
+        List<InstrumentGetRes> etcInstruments = projectService.saveEtcInstruments(project.getId(), etcInstrumentNames);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProjectCreateRes.builder()
+                .projectId(project.getId())
+                .projectInstruments(projectInstruments)
+                .etcInstruments(etcInstruments).build());
     }
 
     @Operation(
@@ -163,4 +180,5 @@ public class ProjectController {
         int userId = Integer.parseInt(user.getUsername());
         return ResponseEntity.ok().body(projectService.getFollowingProjectList(userId, page, size));
     }
+
 }

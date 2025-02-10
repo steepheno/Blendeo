@@ -1,5 +1,7 @@
 package Blendeo.backend.user.controller;
 
+import Blendeo.backend.instrument.dto.InstrumentGetRes;
+import Blendeo.backend.instrument.service.InstrumentService;
 import Blendeo.backend.user.dto.*;
 import Blendeo.backend.user.service.MailService;
 import Blendeo.backend.user.service.UserService;
@@ -9,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,19 +21,18 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RequestMapping("/api/v1/user")
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 public class UserController {
 
     private final String frontDomain = "localhost";
     private final UserService userService;
     private final MailService mailService;
-
-    public UserController(UserService userService, MailService mailService) {
-        this.userService = userService;
-        this.mailService = mailService;
-    }
+    private final InstrumentService instrumentService;
 
     @Operation(summary = "회원가입")
     @PostMapping("/auth/signup")
@@ -39,6 +41,19 @@ public class UserController {
         int userId = userService.register(userRegisterPostReq);
         return ResponseEntity.ok().body(userId);
     }
+
+//    // 내가 좋아하는 악기 저장하기
+    @Operation(summary = "내가 좋아하는 악기 저장하기")
+    @PostMapping("/favorite/instrument/save")
+    public ResponseEntity<?> saveFavoriteInstrument(@RequestParam("lists") List<Integer> instrumentIds) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        instrumentService.deleteInstrument(Integer.parseInt(user.getUsername()));
+
+        instrumentService.saveInstrument(Integer.parseInt(user.getUsername()), instrumentIds);
+        return ResponseEntity.ok().build();
+    }
+
 
     @Operation(summary = "[STEP1] : 이메일 존재 유무 확인 / 인증번호 발송")
     @PostMapping("/auth/mail/check")
@@ -176,6 +191,8 @@ public class UserController {
     @GetMapping("/get-user/{id}")
     public ResponseEntity<?> getUser(@PathVariable("id") int id) {
         UserInfoGetRes userInfoGetRes = userService.getUser(id);
+        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavoriteInstruments(id);
+        userInfoGetRes.setInstruments(userInstrumentRes);
         return ResponseEntity.ok().body(userInfoGetRes);
     }
 
