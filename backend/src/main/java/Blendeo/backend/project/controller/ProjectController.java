@@ -72,8 +72,8 @@ public class ProjectController {
             @RequestParam("content") String content,
             @RequestParam(value = "forkProjectId", required = false) Long forkProjectId,
             @RequestParam("state") boolean state,
-            @RequestParam("instrumentIds") List<Integer> instrumentIds,
-            @RequestParam("etcName") List<String> etcInstrumentNames,
+            @RequestParam(value = "instrumentIds", required = false) List<Integer> instrumentIds,
+            @RequestParam(value = "etcName", required = false) List<String> etcInstrumentNames,
             @RequestParam("videoUrl") URL videoUrl
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
