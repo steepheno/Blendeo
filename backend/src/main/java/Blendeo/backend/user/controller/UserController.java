@@ -54,15 +54,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "내가 좋아하는 악기 조회하기")
-    @GetMapping("/favorite/instrument")
-    public ResponseEntity<?> getFavoriteInstrument() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavorite(Integer.parseInt(user.getUsername()));
-
-        return ResponseEntity.ok().body(userInstrumentRes);
-    }
 
     @Operation(summary = "[STEP1] : 이메일 존재 유무 확인 / 인증번호 발송")
     @PostMapping("/auth/mail/check")
@@ -205,6 +196,8 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         UserInfoGetRes userInfoGetRes = userService.getUser(id);
+        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavorite(Integer.parseInt(user.getUsername()));
+        userInfoGetRes.setInstruments(userInstrumentRes);
         return ResponseEntity.ok().body(userInfoGetRes);
     }
 
