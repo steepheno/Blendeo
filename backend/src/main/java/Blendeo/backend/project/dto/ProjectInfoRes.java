@@ -23,7 +23,7 @@ public class ProjectInfoRes {
     private boolean state;
     private String thumbnail;
     private String videoUrl;
-    private int runningTime;
+    private int duration;
     private int viewCnt;
     private List<InstrumentGetRes> projectInstruments;
     private List<InstrumentGetRes> etcInstruments;
@@ -39,7 +39,7 @@ public class ProjectInfoRes {
         this.createdAt = createdAt;
         this.state = state;
         this.thumbnail = thumbnail;
-        this.runningTime = runningTime;
+        this.duration = runningTime;
         this.viewCnt = viewCnt;
         this.videoUrl = videoUrl;
         this.projectInstruments = projectInstruments;
