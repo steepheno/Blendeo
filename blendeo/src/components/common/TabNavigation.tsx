@@ -1,36 +1,28 @@
-// TabNavigation.tsx
+// @/components/common/TabNavigation.tsx
 interface TabNavigationProps {
-  activeTab: "uploaded" | "liked";
-  onTabChange: (tab: "uploaded" | "liked") => void;
+  activeTab: string;
+  tabs: Array<{id: string; label: string}>;
+  onTabChange: (tab: string) => void;
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({
   activeTab,
+  tabs,
   onTabChange,
 }) => {
   return (
-    <div className="mt-8 border-b">
-      <div className="flex gap-4">
-        <button
-          onClick={() => onTabChange("uploaded")}
-          className={`px-4 py-2 transition-colors duration-200 border-b-2 ${
-            activeTab === "uploaded"
-              ? "text-purple-600 border-purple-600"
-              : "text-gray-600 border-transparent hover:text-purple-600"
-          }`}
-        >
-          업로드한 영상
-        </button>
-        <button
-          onClick={() => onTabChange("liked")}
-          className={`px-4 py-2 transition-colors duration-200 border-b-2 ${
-            activeTab === "liked"
-              ? "text-purple-600 border-purple-600"
-              : "text-gray-600 border-transparent hover:text-purple-600"
-          }`}
-        >
-          좋아요 한 영상
-        </button>
+    <div className="flex flex-col pb-3 mt-2.5 w-full text-sm font-bold text-slate-500">
+      <div className="flex flex-wrap justify-between items-start px-4 w-full border-b border-zinc-200">
+        {tabs.map(({ id, label }) => (
+          <div
+            key={id}
+            onClick={() => onTabChange(id)}
+            className={`flex flex-col flex-1 shrink justify-center items-center pt-4 pb-3.5 border-gray-200 basis-0 border-b-[3px] min-w-[240px] cursor-pointer
+              ${activeTab === id ? "text-neutral-900 border-neutral-900" : "border-transparent"}`}
+          >
+            <div>{label}</div>
+          </div>
+        ))}
       </div>
     </div>
   );

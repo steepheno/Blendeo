@@ -47,7 +47,7 @@ interface ProjectStore {
   deleteComment: (commentId: number, projectId: number) => Promise<void>;
   forkProject: (forkedUrl: string, videoFile: string) => Promise<void>;
   uploadBlendedVideo: (forkedUrl: string, videoFile: File) => Promise<void>;
-  getNewProjects: () => Promise<ProjectListItem[]>;
+  getNewProjects: (page?: number, size?: number) => Promise<ProjectListItem[]>;
   contributors: User[];
   getProjectContributors: (projectId: number) => Promise<void>;
   redirectState: RedirectState;

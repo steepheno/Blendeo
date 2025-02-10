@@ -16,7 +16,7 @@ import ForkRecordPage from "@/pages/project/ForkRecordPage";
 // import ForkUploadPage from "@/pages/project/ForkUploadPage";
 
 import ProjectTreePage from "@/pages/project/ProjectTreePage";
-import UserProfilePage from "@/pages/profile/UserProfilePage";
+// import UserProfilePage from "@/pages/profile/UserProfilePage";
 import MyProfilePage from "@/pages/profile/MyProfilePage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
 // import VideoCallPage from "@/pages/chat/VideoCallPage";
@@ -101,10 +101,10 @@ export const router = createBrowserRouter([
   {
     path: "/profile",
     children: [
-      {
-        path: ":userId",
-        element: <UserProfilePage />,
-      },
+      // {
+      //   path: ":userId",
+      //   element: <UserProfilePage />,
+      // },
       {
         path: "me",
         element: (
