@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration // 스프링 설정 클래스임을 나타냅니다.
 public class SwaggerConfig {
@@ -26,7 +27,10 @@ public class SwaggerConfig {
 
         SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
 
-        return new OpenAPI().components(new Components()
+        return new OpenAPI().servers(List.of(
+                        new Server().url("https://api.blendeo.shop")  // HTTPS URL로 설정
+                        ))
+                        .components(new Components()
                         .addSecuritySchemes("bearerAuth", securityScheme)) // API 구성 요소를 설정합니다.
                 .security(Arrays.asList(securityRequirement))
                 .info(apiInfo()); // API 정보를 설정합니다.
