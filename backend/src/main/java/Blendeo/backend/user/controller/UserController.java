@@ -196,7 +196,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         UserInfoGetRes userInfoGetRes = userService.getUser(id);
-        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavorite(Integer.parseInt(user.getUsername()));
+        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavoriteInstruments(Integer.parseInt(user.getUsername()));
         userInfoGetRes.setInstruments(userInstrumentRes);
         return ResponseEntity.ok().body(userInfoGetRes);
     }

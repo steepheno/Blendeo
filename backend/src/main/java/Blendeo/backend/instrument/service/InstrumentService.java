@@ -42,7 +42,7 @@ public class InstrumentService {
         userInstrumentRepository.deleteAll(instruments);
     }
 
-    public List<InstrumentGetRes> getMyFavorite(int userId) {
+    public List<InstrumentGetRes> getMyFavoriteInstruments(int userId) {
         List<UserInstrument> userInstruments = userInstrumentRepository.getUserInstrumentsByUserId(userId)
                 .orElseThrow(()->new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, ErrorCode.ENTITY_NOT_FOUND.getMessage()));
 
