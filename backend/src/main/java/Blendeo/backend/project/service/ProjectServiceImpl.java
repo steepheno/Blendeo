@@ -171,6 +171,7 @@ public class ProjectServiceImpl implements ProjectService {
                         .thumbnail(project.getThumbnail())
                         .viewCnt(project.getViewCnt())
                         .contributionCnt(project.getContributorCnt())
+                        .duration(project.getRunningTime())
                         .authorId(project.getAuthor().getId())
                         .authorNickname(project.getAuthor().getNickname())
                         .authorProfileImage(project.getAuthor().getProfileImage())
@@ -201,6 +202,7 @@ public class ProjectServiceImpl implements ProjectService {
                         .viewCnt(project.getViewCnt())
                         .forkCnt(projectRepository.findCountByForkId(project.getId()))
                         .contributionCnt(project.getContributorCnt())
+                        .duration(project.getRunningTime())
                         .authorId(project.getAuthor().getId())
                         .authorNickname(project.getAuthor().getNickname())
                         .authorProfileImage(project.getAuthor().getProfileImage())
@@ -231,6 +233,7 @@ public class ProjectServiceImpl implements ProjectService {
                         .viewCnt(project.getViewCnt())
                         .forkCnt(projectRepository.findCountByForkId(project.getId()))
                         .contributionCnt(project.getContributorCnt())
+                        .duration(project.getRunningTime())
                         .authorId(project.getAuthor().getId())
                         .authorNickname(project.getAuthor().getNickname())
                         .authorProfileImage(project.getAuthor().getProfileImage())
@@ -261,8 +264,6 @@ public class ProjectServiceImpl implements ProjectService {
 
             projectInstruments.add(projectInstrument);
         }
-
-
 
         return projectInstruments.stream()
                 .map(projectInstrument -> InstrumentGetRes.builder()
