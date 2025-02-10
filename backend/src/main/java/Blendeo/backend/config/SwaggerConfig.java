@@ -2,6 +2,7 @@ package Blendeo.backend.config;
 
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +16,11 @@ import java.util.Arrays;
 public class SwaggerConfig {
     @Bean // 스프링 빈으로 등록합니다.
     public OpenAPI openAPI() {
+
+        Server server = new Server()
+                .url("https://api.blendeo.shop")
+                .description("Production Server");
+
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("Bearer")
