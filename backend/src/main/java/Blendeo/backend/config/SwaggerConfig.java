@@ -17,9 +17,6 @@ public class SwaggerConfig {
     @Bean // 스프링 빈으로 등록합니다.
     public OpenAPI openAPI() {
 
-        Server server = new Server();
-        server.setUrl("https://api.blendeo.shop");
-
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("Bearer")
