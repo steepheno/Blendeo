@@ -96,9 +96,14 @@ public class ProjectController {
 
         Project project = projectService.createProject(projectCreateReq);
 
-        List<InstrumentGetRes> projectInstruments = projectService.saveProjectInstruments(project.getId(), instrumentIds);
-
-        List<InstrumentGetRes> etcInstruments = projectService.saveEtcInstruments(project.getId(), etcInstrumentNames);
+        List<InstrumentGetRes> projectInstruments = null;
+        if (instrumentIds!=null && instrumentIds.isEmpty()) {
+            projectInstruments = projectService.saveProjectInstruments(project.getId(), instrumentIds);
+        }
+        List<InstrumentGetRes> etcInstruments = null;
+        if (etcInstrumentNames!=null && etcInstrumentNames.isEmpty()) {
+            etcInstruments = projectService.saveEtcInstruments(project.getId(), etcInstrumentNames);
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ProjectCreateRes.builder()
                 .projectId(project.getId())
