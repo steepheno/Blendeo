@@ -37,7 +37,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173", // React 개발 서버
                 "http://i12a602.p.ssafy.io:5173",
-                "http://i12a602.p.ssafy.io"
+                "http://i12a602.p.ssafy.io",
+                "https://blendeo.shop"
                 ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
