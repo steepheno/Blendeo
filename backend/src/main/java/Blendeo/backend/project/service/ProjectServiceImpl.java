@@ -307,4 +307,39 @@ public class ProjectServiceImpl implements ProjectService {
                 )
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public ProjectInfoRes getSiblingProject(Long currentProjectId, String direction) {
+        if ("next".equalsIgnoreCase(direction)) {
+            return projectNodeRepository.findNextSibling(currentProjectId)
+                    .or(() -> projectNodeRepository.findFirstSibling(currentProjectId))
+                    .map(this::convertToDto)
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+        } else {
+            return projectNodeRepository.findPreviousSibling(currentProjectId)
+                    .or(() -> projectNodeRepository.findLastSibling(currentProjectId))
+                    .map(this::convertToDto)
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+        }
+    }
+
+    private ProjectInfoRes convertToDto(ProjectNode projectNode) {
+        Project project = projectRepository.findById(projectNode.getProjectId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+        return ProjectInfoRes.builder()
+                .id(project.getId())
+                .title(project.getTitle())
+                .thumbnail(project.getThumbnail())
+                .viewCnt(project.getViewCnt())
+                .contributorCnt(project.getContributorCnt())
+                .runningTime(project.getRunningTime())
+                .createdAt(project.getCreatedAt())
+                .contents(project.getContents())
+                .thumbnail(project.getThumbnail())
+                .videoUrl(project.getVideoUrl().toString())
+                .state(project.isState())
+                .build();
+    }
+
 }
