@@ -87,7 +87,7 @@ export const checkFollowing = async (targetUserId: number): Promise<boolean> => 
   // axiosInstance가 알아서 토큰 처리와 refresh를 해주므로 
   // 단순히 API 호출만 하면 됩니다
   try {
-    const response = await axiosInstance.get<boolean>(`/user/checkfollowing/${targetUserId}`);
+    const response = await axiosInstance.get<boolean>(`/user/checkFollowing/${targetUserId}`);
     return response;
   } catch (error) {
     // 401, 403 등의 인증 에러는 axiosInstance에서 처리됨

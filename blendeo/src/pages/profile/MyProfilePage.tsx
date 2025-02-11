@@ -11,7 +11,34 @@ import { useUser, useAuthStore } from "@/stores/authStore";
 import useMyPageStore from "@/stores/myPageStore";
 import { ProjectType } from "@/stores/myPageStore";
 
-import { CACHE_DURATION, PAGE_SIZE } from "@/stores/myPageStore";
+const useProfileData = (userId: number) => {
+  const {
+    profile,
+    profileLoading,
+    profileError,
+    followData,
+    fetchInitialData,
+    getCurrentProjects,
+    getProjectLoading,
+    getHasMoreProjects,
+    setActiveTab
+  } = useMyPageStore();
+
+  useEffect(() => {
+    fetchInitialData(userId);
+    setActiveTab('uploaded');
+  }, [userId, fetchInitialData, setActiveTab]);
+
+  return {
+    profile,
+    profileLoading,
+    profileError,
+    followData,
+    getCurrentProjects,
+    getProjectLoading,
+    getHasMoreProjects,
+  };
+};
 
 const MyProfilePage = () => {
   const navigate = useNavigate();
@@ -19,51 +46,44 @@ const MyProfilePage = () => {
   const { isAuthenticated } = useAuthStore();
 
   const {
-    // 프로필 관련 상태와 액션
     profile,
     profileLoading,
     profileError,
-    fetchProfile,
+    followData,
+    getCurrentProjects,
+    getProjectLoading,
+    getHasMoreProjects,
+  } = useProfileData(authUser?.id as number);
 
-    // 프로젝트 관련 상태와 액션
+  const {
     activeTab,
-    projectStates,
-    projectLoading,
     setActiveTab,
     loadMore,
-    fetchProjects,
-
-    // 편집 관련 상태와 액션
     isEditMode,
     editData,
     setEditMode,
     updateEditData,
     resetEditData,
     saveProfile,
-
-    //Follow 관련 정보
-    followData,
-    fetchFollowData
   } = useMyPageStore();
 
-  const handleFileChange = (type: 'profileImage' | 'header') => (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((type: 'profileImage' | 'header') => (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       updateEditData({ [type]: file });
     }
-  };
+  }, [updateEditData]);
 
-  const handleProfileUpdate = async () => {
+  const handleProfileUpdate = useCallback(async () => {
     try {
       await saveProfile();
     } catch (err) {
       console.error('프로필 업데이트 실패:', err);
     }
-  };
+  }, [saveProfile]);
 
   const userTabs = [
     { id: "uploaded", label: "업로드한 영상" },
-    // { id: "liked", label: "마음에 들어한 영상" },
     { id: "scraped", label: "스크랩한 영상" },
   ];
 
@@ -75,31 +95,11 @@ const MyProfilePage = () => {
     setActiveTab(tab as ProjectType);
   }, [setActiveTab]);
 
-  // 초기 데이터 로딩을 위한 useEffect
   useEffect(() => {
     if (!isAuthenticated || !authUser?.id) {
       navigate("/auth/signin", { state: { from: "/profile/me" } });
-      return;
     }
-
-    // 최초 로딩시에만 프로필과 팔로우 데이터를 가져옴
-    Promise.all([
-      fetchProfile(authUser.id),
-      fetchFollowData(authUser.id)
-    ]);
-  }, [authUser?.id, isAuthenticated, navigate, fetchProfile, fetchFollowData]);
-
-  // 탭 변경을 위한 별도의 useEffect
-  useEffect(() => {
-    const { lastUpdated, projectStates } = useMyPageStore.getState();
-    const lastUpdate = lastUpdated[activeTab];
-    const hasExpired = !lastUpdate || Date.now() - lastUpdate > CACHE_DURATION;
-    
-    // 데이터가 없거나 캐시가 만료된 경우에만 새로 불러옴
-    if (projectStates[activeTab].items.length === 0 || hasExpired) {
-      fetchProjects(activeTab, PAGE_SIZE, true);
-    }
-  }, [activeTab, fetchProjects]);
+  }, [authUser?.id, isAuthenticated, navigate]);
 
   if (profileLoading) {
     return (
@@ -123,9 +123,9 @@ const MyProfilePage = () => {
     );
   }
 
-  const currentProjects = projectStates[activeTab].items;
-  const hasMore = projectStates[activeTab].hasMore;
-  const loading = projectLoading[activeTab];
+  const currentProjects = getCurrentProjects();
+  const hasMore = getHasMoreProjects();
+  const loading = getProjectLoading();
 
   return (
     <Layout showNotification>
@@ -154,7 +154,6 @@ const MyProfilePage = () => {
 
         {/* 프로필 정보 섹션 */}
         <div className="flex px-4 mb-8">
-          {/* 프로필 이미지 */}
           <div className="relative flex items-center mr-6">
             <img
               src={profile.profileImage || "/api/placeholder/80/80"}
@@ -207,13 +206,13 @@ const MyProfilePage = () => {
                 )}
 
                 <div className="flex gap-4 mt-3">
+                <span className="text-sm">
+                    <span className="font-bold">{followData.followingCount}</span>
+                    <span className="text-gray-600"> 팔로잉</span>
+                  </span>
                   <span className="text-sm">
                     <span className="font-bold">{followData.followerCount}</span>
                     <span className="text-gray-600"> 팔로워</span>
-                  </span>
-                  <span className="text-sm">
-                    <span className="font-bold">{followData.followingCount}</span>
-                    <span className="text-gray-600"> 팔로잉</span>
                   </span>
                 </div>
 
