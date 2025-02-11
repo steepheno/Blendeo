@@ -1,6 +1,8 @@
 import { ProjectListItem } from "@/types/api/project";
 import { create } from "zustand";
 import { mainPageApi } from "@/api/mainPage";
+import { User } from "@/types/api/user";
+import { getUser } from "@/api/user";
 
 export type ProjectType = 'uploaded' | 'liked' ;
 
@@ -11,6 +13,10 @@ interface ProjectState {
 }
 
 export interface UserPageStore {
+  user: User | null;
+  userLoading: boolean;
+  userError: Error | null;
+
   projectStates: {
     [K in ProjectType]: ProjectState;
   };
@@ -30,6 +36,9 @@ export interface UserPageStore {
   getCurrentProjects: () => ProjectListItem[];
   getIsLoading: () => boolean;
   getHasMore: () => boolean;
+
+  fetchUser: (userId: number) => Promise<void>;
+  resetUser: () => void;
 }
 
 const INITIAL_PROJECT_STATE: ProjectState = {
@@ -47,6 +56,11 @@ const createInitialState = () => ({
 });
 
 const useUserPageStore = create<UserPageStore>((set, get) => ({
+  // User 상태 초기값
+  user: null,
+  userLoading: false,
+  userError: null,
+
   projectStates: createInitialState(),
   loading: {
     uploaded: false,
@@ -198,6 +212,31 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
   getHasMore: () => {
     const { projectStates, activeTab } = get();
     return projectStates[activeTab].hasMore;
+  },
+
+  fetchUser: async (userId: number) => {
+    set({ userLoading: true, userError: null });
+    
+    try {
+      const userData: User = await getUser(userId);
+      set({ user: userData });
+      
+      console.log('[Store] User fetched successfully:', userData);
+    } catch (error) {
+      const e = error instanceof Error ? error : new Error('Unknown error');
+      set({ userError: e });
+      console.error('[Store] Failed to fetch user:', error);
+    } finally {
+      set({ userLoading: false });
+    }
+  },
+  
+  resetUser: () => {
+    set({ 
+      user: null, 
+      userLoading: false, 
+      userError: null 
+    });
   },
 }));
 

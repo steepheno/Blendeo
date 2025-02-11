@@ -1,19 +1,22 @@
 import { MessageSquare } from 'lucide-react';
 import { useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import Layout from '@/components/layout/Layout';
 import VideoGrid from '@/components/common/VideoGrid';
 import VideoCard from '@/components/common/VideoCard';
 import TabNavigation from '@/components/common/TabNavigation';
-import { useNavigate } from 'react-router-dom';
 
 import { ProjectType } from '@/stores/userPageStore';
 import useUserPageStore from '@/stores/userPageStore';
 
-
 const UserProfile = () => {
+    const { userId } = useParams(); // URL에서 userId 추출
     const navigate = useNavigate();
     const {
+        user,
+        userLoading,
+        fetchUser,
         activeTab,
         getCurrentProjects,
         getIsLoading,
@@ -27,9 +30,19 @@ const UserProfile = () => {
     const loading = getIsLoading();
     const hasMore = getHasMore();
 
+    // userId가 변경될 때마다 유저 정보 fetch
+    useEffect(() => {
+        if (userId) {
+            const id = parseInt(userId, 10);
+            if (!isNaN(id)) {
+                fetchUser(id);
+            }
+        }
+    }, [userId, fetchUser]);
+
     const userTabs = [
-        { id: "uploaded", label: "업로드한 영상상" },
-        { id: "liked", label: "마음에 들어했어요" },
+        { id: "uploaded", label: "업로드한 영상" },
+        { id: "liked", label: "마음에 들어한 영상" },
     ];
 
     const handleProjectClick = useCallback((projectId: number) => {
@@ -43,6 +56,9 @@ const UserProfile = () => {
     useEffect(() => {
         fetchProjects(activeTab);
     }, [activeTab, fetchProjects]);
+
+    if (userLoading) return <div>Loading...</div>;
+    if (!user) return <div>User not found</div>;
 
     return (
         <Layout showNotification={true}>
@@ -61,30 +77,31 @@ const UserProfile = () => {
                     {/* 프로필 이미지 */}
                     <div className="flex items-center mr-6">
                         <img
-                            src="/api/placeholder/80/80"
-                            alt="Profile"
+                            src={user.profileImage || "/api/placeholder/80/80"}
+                            alt={`${user.nickname}'s profile`}
                             className="w-20 h-20 rounded-full"
                         />
                     </div>
 
-                    {/* 채널 정보 */}
                     <div className="flex-grow py-2">
                         <div className="flex items-start justify-between">
                             <div>
-                                <h1 className="text-xl font-bold">낭젤리PLAYLIST</h1>
-                                <p className="text-gray-600 text-sm">@catgummy0228 · 구독자 4.01천명 · 동영상 41개</p>
-                                <p className="text-gray-600 text-sm mt-1">채널 자세히 알아보기...더보기</p>
+                                <h1 className="text-xl font-bold">{user.nickname}</h1>
+                                <p className="text-gray-600 text-sm">{user.email}</p>
+                                <p className="text-gray-600 text-sm mt-1">{user.intro}</p>
 
-                                {/* 악기 태그 */}
                                 <div className="flex gap-2 mt-3">
-                                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">🎸 기타</span>
-                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">🎹 피아노</span>
-                                    <span className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm">🎤 보컬</span>
-                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">🥁 드럼</span>
+                                    {user.instruments.map((instrument) => (
+                                        <span
+                                            key={instrument.instrument_id}
+                                            className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm"
+                                        >
+                                            {instrument.instrument_name}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
 
-                            {/* 버튼 그룹 */}
                             <div className="flex items-center gap-2">
                                 <button className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700">
                                     팔로우
