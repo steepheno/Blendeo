@@ -9,6 +9,8 @@ import Layout from "@/components/layout/Layout";
 import { useWebSocket } from "@/hooks/chat/useWebSocket";
 import { useChatRooms } from "@/hooks/chat/useChatRooms";
 import { useChatStore } from "@/stores/chatStore";
+import { useAuthStore } from "@/stores/authStore";
+import { useUserStore } from "@/stores/userStore";
 import type { ChatRoom } from "@/types/api/chat";
 
 const ChatPage = () => {
@@ -24,15 +26,33 @@ const ChatPage = () => {
     messagesByRoom,
     inviteUser,
     fetchMessages,
-  } = useChatStore(); // fetchMessages 추가
+  } = useChatStore();
   const { sendMessage, isConnected } = useWebSocket();
 
-  // WebSocket 연결 상태 변경 시 현재 채팅방의 메시지 다시 로드
+  const currentUser = useUserStore((state) => state.currentUser);
+  const userId = useAuthStore((state) => state.userId);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  // 인증 상태 확인
   useEffect(() => {
-    if (currentRoom?.id && isConnected) {
+    const initializeUser = async () => {
+      if (isAuthenticated && userId && !currentUser) {
+        try {
+          await useUserStore.getState().getUser(userId);
+        } catch (error) {
+          console.error("Failed to fetch user data:", error);
+        }
+      }
+    };
+
+    initializeUser();
+  }, [isAuthenticated, userId, currentUser]);
+
+  useEffect(() => {
+    if (currentRoom?.id && isConnected && isAuthenticated) {
       fetchMessages(currentRoom.id);
     }
-  }, [currentRoom?.id, isConnected, fetchMessages]);
+  }, [currentRoom?.id, isConnected, fetchMessages, isAuthenticated]);
 
   const currentMessages = currentRoom
     ? messagesByRoom[currentRoom.id] || []
@@ -44,9 +64,10 @@ const ChatPage = () => {
     ) || [];
 
   const handleRoomClick = async (room: ChatRoom) => {
+    if (!isAuthenticated) return;
+
     setCurrentRoom(room);
     setChatWindowOpened(true);
-    // 채팅방 선택 시 메시지 이력 로드
     if (room.id && isConnected) {
       await fetchMessages(room.id);
     }
@@ -58,28 +79,39 @@ const ChatPage = () => {
   };
 
   const handleCreateRoom = async (roomName: string) => {
+    if (!isAuthenticated) return;
+
     try {
       await createRoom(roomName);
-      await fetchRooms(); // rooms 목록을 새로고침
-      setCreateModalOpen(false); // 모달 닫기
+      await fetchRooms();
+      setCreateModalOpen(false);
     } catch (error) {
       console.error("Failed to create room:", error);
     }
   };
 
   const handleInviteUser = async (userId: number) => {
-    if (currentRoom) {
-      try {
-        await inviteUser(currentRoom.id, userId);
-      } catch (error) {
-        console.error("Failed to invite user:", error);
-      }
+    if (!isAuthenticated || !currentRoom) return;
+
+    try {
+      await inviteUser(currentRoom.id, userId);
+    } catch (error) {
+      console.error("Failed to invite user:", error);
     }
   };
+
+  if (isAuthenticated && !currentUser) {
+    return <div>로딩 중...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <div>로그인이 필요합니다.</div>;
+  }
 
   return (
     <Layout showNotification>
       <div className={`flex flex-1 ${chatWindowOpened ? "gap-0" : ""}`}>
+        {/* 채팅방 목록 */}
         <div
           className={`flex flex-col ${
             chatWindowOpened ? "w-[400px] min-w-[400px]" : "w-full"
@@ -118,14 +150,12 @@ const ChatPage = () => {
           </div>
         </div>
 
+        {/* 채팅 창 */}
         {chatWindowOpened && currentRoom && (
           <div className="flex-1 border-l border-gray-200">
             <div className="h-full relative">
               <ChatWindow
-                user={{
-                  id: currentRoom.id,
-                  name: currentRoom.name,
-                }}
+                room={currentRoom}
                 onClose={handleCloseChat}
                 messages={currentMessages}
                 onSendMessage={sendMessage}

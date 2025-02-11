@@ -1,12 +1,9 @@
 // src/stores/authStore.ts
-import React from "react";
+import { useEffect } from "react";
 import { create } from "zustand";
 import { persist, devtools, createJSONStorage } from "zustand/middleware";
 import * as authApi from "@/api/auth";
-import type {
-  SigninRequest,
-  SignupRequest,
-} from "@/types/api/auth";
+import type { SigninRequest, SignupRequest } from "@/types/api/auth";
 import { User } from "@/types/api/user";
 import { getUser } from "@/api/user";
 import { AuthResponse } from "@/types/api/auth";
@@ -67,8 +64,8 @@ export const useAuthStore = create<AuthStore>()(
             }
           } catch (error) {
             console.error("Failed to fetch user data:", error);
-            set({ 
-              user: null, 
+            set({
+              user: null,
               userId: null,
               isAuthenticated: false,
               isLoading: false
