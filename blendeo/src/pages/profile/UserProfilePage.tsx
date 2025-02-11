@@ -73,9 +73,11 @@ const UserProfile = () => {
         await followUser(parseInt(userId));
       }
     } catch (error) {
+      alert("로그인 후에 팔로우할 수 있어요!");
+      navigate("/auth/signin", { state: { from: `/profile/${userId}` } });
       console.error('Failed to follow/unfollow:', error);
     }
-  }, [userId, user, followData.isFollowing, followUser, unfollowUser]);
+  }, [userId, user, followData.isFollowing, followUser, unfollowUser, navigate]);
 
   const userTabs = [
     { id: "uploaded", label: "업로드한 영상" },
@@ -100,6 +102,8 @@ const UserProfile = () => {
   }
 
   if (userError || !user) {
+    console.log(userError, user);
+    
     return (
       <Layout showNotification>
         <div className="w-full h-screen flex items-center justify-center">

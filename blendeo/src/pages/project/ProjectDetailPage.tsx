@@ -122,9 +122,11 @@ const ProjectDetailPage = () => {
                   title: projectData.title,
                   content: projectData.contents,
                   author: {
-                    name: "Cathy",
-                    profileImage: "/profile.jpg",
+                    id: projectData.authorId,
+                    name: projectData.authorNickname,
+                    profileImage: projectData.authorProfileImage,
                   },
+                  viewCnt: projectData.viewCnt
                 }}
                 isPortrait={true}
               />

@@ -52,7 +52,7 @@ const ProjectNetwork: React.FC<ProjectTreeProps> = ({ data, onNodeClick, initial
 
     const BASE_NODE_SIZE = 100;
     const SIZE_REDUCTION_FACTOR = 0.7;
-    const TARGET_DISPLAY_SIZE = 240;
+    const TARGET_DISPLAY_SIZE = 220;
 
     const calculateNodeSize = (level: number): number => {
       return Math.max(40, BASE_NODE_SIZE * Math.pow(SIZE_REDUCTION_FACTOR, level));

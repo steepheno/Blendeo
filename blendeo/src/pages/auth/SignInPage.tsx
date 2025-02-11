@@ -18,7 +18,7 @@ const SignInPage = () => {
           로그인하여 세상의 모든 음악에 섞여 보세요
         </div>
 
-        <LoginForm />
+        <LoginForm/>
 
         <div className="mt-4 text-center text-sm text-gray-500">
           또는 구글 계정으로 로그인

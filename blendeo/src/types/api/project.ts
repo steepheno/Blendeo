@@ -1,19 +1,28 @@
 import type { User } from "./user";
 
+interface Instrument {
+  instrument_id: number;
+  instrument_name: string;
+}
+
 export interface Project {
-  id: number;
+  projectId: number;
   forkId: number;
-  author: User;
   title: string;
   contents: string;
   contributorCnt: number;
-  createdAt: string;
-  state: boolean;
+  authorId: number;
+  authorNickname: string;
+  authorProfileImage: string;
+  likeCnt: number;
   thumbnail: string;
   videoUrl: string;
-  runningTime: number;
+  duration: number;
   viewCnt: number;
-  likeCnt: number;
+  projectInstruments: Instrument[];
+  etcInstruments: Instrument[];
+  createdAt: string;
+  state: boolean;
 }
 
 export interface CreateProjectRequest {
