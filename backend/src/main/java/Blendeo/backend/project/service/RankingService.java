@@ -43,8 +43,6 @@ public class RankingService {
             Set<String> redisResult = redisTemplate.opsForZSet().reverseRange(RANKING_KEY, start, end);
             List<ProjectListDto> results = new ArrayList<>();
 
-            System.out.println(redisResult);
-
             for(String projectId : redisResult){
                 System.out.println(projectId);
                 Project project = projectRepository.findById(Long.parseLong(projectId))
@@ -183,7 +181,7 @@ public class RankingService {
             int end = page * size - 1;
 
             Set<String> redisResult = redisTemplate.opsForZSet().reverseRange(VIEW_KEY, start, end);
-            System.out.println(redisResult);
+
             List<ProjectListDto> results = new ArrayList<>();
 
             for(String projectId : redisResult){
