@@ -4,7 +4,7 @@ import { mainPageApi } from "@/api/mainPage";
 import { User } from "@/types/api/user";
 import { getUser, updateProfile, getFollowers, getFollowings } from "@/api/user";
 
-export type ProjectType = 'uploaded' | 'liked' | 'scraped';
+export type ProjectType = 'uploaded' | 'scraped' /*| 'liked' */;
 
 interface ProjectState {
   items: ProjectListItem[];
@@ -102,7 +102,7 @@ export const PAGE_SIZE = 12;
 
 const createInitialProjectStates = (): Record<ProjectType, ProjectState> => ({
   uploaded: { ...INITIAL_PROJECT_STATE },
-  liked: { ...INITIAL_PROJECT_STATE },
+  // liked: { ...INITIAL_PROJECT_STATE },
   scraped: { ...INITIAL_PROJECT_STATE },
 });
 
@@ -116,13 +116,13 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
   projectStates: createInitialProjectStates(),
   projectLoading: {
     uploaded: false,
-    liked: false,
+    // liked: false,
     scraped: false,
   },
   activeTab: 'uploaded',
   lastUpdated: {
     uploaded: null,
-    liked: null,
+    // liked: null,
     scraped: null,
   },
 
@@ -187,7 +187,7 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
     try {
       const apiMethod = (() => {
         switch(type) {
-          case 'liked': return mainPageApi.getNewProjects;
+          // case 'liked': return mainPageApi.getNewProjects;
           case 'scraped': return mainPageApi.getNewProjects;
           default: return mainPageApi.getNewProjects;
         }
@@ -239,7 +239,7 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
         projectStates: createInitialProjectStates(),
         lastUpdated: {
           uploaded: null,
-          liked: null,
+          // liked: null,
           scraped: null
         }
       });

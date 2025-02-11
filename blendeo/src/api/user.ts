@@ -75,6 +75,7 @@ export const getFollowings = async (userId: number): Promise<FollowResponse> => 
 export const getFollowers = async (userId: number): Promise<FollowResponse> => {
   try {
     const response = await axiosInstance.get<FollowResponse>(`/user/get-followers/${userId}`);
+    
     return response;
   } catch (error) {
     throw new Error('팔로워 목록을 불러오는데 실패했습니다.'+error);

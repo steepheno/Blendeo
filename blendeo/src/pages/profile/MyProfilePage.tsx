@@ -63,7 +63,7 @@ const MyProfilePage = () => {
 
   const userTabs = [
     { id: "uploaded", label: "업로드한 영상" },
-    { id: "liked", label: "마음에 들어한 영상" },
+    // { id: "liked", label: "마음에 들어한 영상" },
     { id: "scraped", label: "스크랩한 영상" },
   ];
 

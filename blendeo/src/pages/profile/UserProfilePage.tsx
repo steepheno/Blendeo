@@ -42,7 +42,7 @@ const UserProfile = () => {
 
     const userTabs = [
         { id: "uploaded", label: "업로드한 영상" },
-        { id: "liked", label: "마음에 들어한 영상" },
+        // { id: "liked", label: "마음에 들어한 영상" },
     ];
 
     const handleProjectClick = useCallback((projectId: number) => {

@@ -4,7 +4,7 @@ import { mainPageApi } from "@/api/mainPage";
 import { User } from "@/types/api/user";
 import { getUser } from "@/api/user";
 
-export type ProjectType = 'uploaded' | 'liked' ;
+export type ProjectType = 'uploaded' /*| 'liked' */;
 
 interface ProjectState {
   items: ProjectListItem[];
@@ -52,7 +52,7 @@ const PAGE_SIZE = 10;
 
 const createInitialState = () => ({
   uploaded: { ...INITIAL_PROJECT_STATE },
-  liked: { ...INITIAL_PROJECT_STATE },
+  // liked: { ...INITIAL_PROJECT_STATE },
 });
 
 const useUserPageStore = create<UserPageStore>((set, get) => ({
@@ -64,12 +64,12 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
   projectStates: createInitialState(),
   loading: {
     uploaded: false,
-    liked: false,
+    // liked: false,
   },
   activeTab: 'uploaded',
   lastUpdated: {
     uploaded: null,
-    liked: null,
+    // liked: null,
   },
 
   setActiveTab: (tab: ProjectType) => {
@@ -121,12 +121,12 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
       
       try {
         switch(type) {
-          case 'liked':
-            projects = await mainPageApi.getNewProjects(
-              forceRefresh ? 0 : state.currentPage, 
-              size
-            );
-            break;
+          // case 'liked':
+          //   projects = await mainPageApi.getNewProjects(
+          //     forceRefresh ? 0 : state.currentPage, 
+          //     size
+          //   );
+          //   break;
           case 'uploaded':
           default:
             projects = await mainPageApi.getNewProjects(
