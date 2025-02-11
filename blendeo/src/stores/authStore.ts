@@ -1,5 +1,5 @@
 // src/stores/authStore.ts
-import { useEffect } from "react";
+import React from 'react';
 import { create } from "zustand";
 import { persist, devtools, createJSONStorage } from "zustand/middleware";
 import * as authApi from "@/api/auth";

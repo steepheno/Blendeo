@@ -19,8 +19,13 @@ const publicPaths = [
   "/mail/verify",
   "/user/auth/signup",
   "/user/auth/login",
-  "/api/v1/project/info",
+  "/project/info",
+  "/project/list",
+  "/project/list", // 이 경로 추가
+  "/project/new",  // 필요한 경우 이것도 추가
 ];
+
+const noRedirectPaths = ["/", "/project/list"];
 
 // Request Interceptor
 axiosInstance.interceptors.request.use((config) => {
@@ -55,9 +60,9 @@ axiosInstance.interceptors.request.use((config) => {
           )
           .then((response) => {
             if (!response) {
-              throw new Error('No response from refresh token request');
+              throw new Error("No response from refresh token request");
             }
-            
+
             const cookies = document.cookie.split(";");
             const newAccessToken = cookies
               .find((cookie) => cookie.trim().startsWith("accessToken="))
@@ -67,17 +72,17 @@ axiosInstance.interceptors.request.use((config) => {
               config.headers.Authorization = `Bearer ${newAccessToken}`;
               return config;
             }
-            throw new Error('New access token not found in cookies');
+            throw new Error("New access token not found in cookies");
           })
           .catch((error) => {
-            console.error('Token refresh failed:', error);
+            console.error("Token refresh failed:", error);
             handleLogout();
             throw error; // Promise.reject 대신 throw 사용
           });
       }
-      
+
       handleLogout();
-      throw new Error('No refresh token available');
+      throw new Error("No refresh token available");
     }
   }
   return config;
@@ -107,6 +112,10 @@ axiosInstance.interceptors.response.use(
     return response.data;
   },
   async (error) => {
+    if (!error?.config) {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config;
 
     if (
@@ -155,14 +164,14 @@ axiosInstance.interceptors.response.use(
           ?.split("=")[1];
 
         if (!newAccessToken) {
-          throw new Error('New access token not found in cookies');
+          throw new Error("New access token not found in cookies");
         }
 
         // 새로운 요청 시도
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
+        console.error("Token refresh failed:", refreshError);
         handleLogout();
         return Promise.reject(refreshError);
       }
@@ -172,8 +181,13 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// 로그아웃 처리 함수
-const handleLogout = () => {
+// 로그아웃 처리 함수 수정
+const handleLogout = (currentPath: string = window.location.pathname) => {
+  // 현재 경로가 noRedirectPaths에 포함되어 있다면 리다이렉트하지 않음
+  const shouldRedirect = !noRedirectPaths.some(
+    (path) => currentPath === path || currentPath.startsWith(path)
+  );
+
   // 모든 쿠키 삭제
   document.cookie.split(";").forEach((cookie) => {
     document.cookie = cookie
@@ -181,7 +195,11 @@ const handleLogout = () => {
       .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
   });
   useUserStore.getState().setCurrentUser(null);
-  window.location.href = "/auth/signin";
+
+  // 리다이렉트가 필요한 경우에만 수행
+  if (shouldRedirect) {
+    window.location.href = "/auth/signin";
+  }
 };
 
 export default axiosInstance;
