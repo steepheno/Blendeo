@@ -4,7 +4,7 @@ import Blendeo.backend.global.util.S3Utils;
 import Blendeo.backend.project.util.VideoDurationExtractor;
 import Blendeo.backend.project.util.VideoInfoGetter;
 import Blendeo.backend.project.util.VideoMerger;
-import Blendeo.backend.project.util.VideoThumnailExtractor;
+import Blendeo.backend.project.util.VideoThumbnailExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +21,7 @@ import java.util.UUID;
 public class VideoEditorServiceImpl implements VideoEditorService {
 
     private final VideoDurationExtractor videoDurationExtractor;
-    private final VideoThumnailExtractor videoThumnailExtractor;
+    private final VideoThumbnailExtractor videoThumbnailExtractor;
     private final VideoMerger videoMerger;
     private final VideoInfoGetter videoInfo;
     private final S3Utils s3Utils;
@@ -32,7 +32,7 @@ public class VideoEditorServiceImpl implements VideoEditorService {
         File tempFile = null;
         try {
             tempFile = s3Utils.extractFileFromS3(videoUrl);
-            URL thumbnailUrl = videoThumnailExtractor.extractThumbnail(tempFile);
+            URL thumbnailUrl = videoThumbnailExtractor.extractThumbnail(tempFile);
 
             videoMerger.cleanupTempFiles(tempFile);
             return thumbnailUrl;

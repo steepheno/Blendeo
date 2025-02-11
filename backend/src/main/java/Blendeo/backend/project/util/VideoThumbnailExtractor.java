@@ -14,7 +14,7 @@ import java.util.UUID;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class VideoThumnailExtractor {
+public class VideoThumbnailExtractor {
 
     @Value("${ffmpeg.path}")
     private String ffmpegPath;
