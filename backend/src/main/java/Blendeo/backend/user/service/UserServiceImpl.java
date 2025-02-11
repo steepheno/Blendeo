@@ -290,4 +290,16 @@ public class UserServiceImpl implements UserService {
                 .followingCount(followingCount)
                 .build();
     }
+
+    @Override
+    public boolean isFollowing(int myId, int otherId) {
+        FollowingListRes followingListRes = getFollowings(myId);
+
+        for (int id : followingListRes.getFollowingIdList()) {
+            if (id == otherId) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

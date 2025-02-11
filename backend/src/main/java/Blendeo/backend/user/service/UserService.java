@@ -27,4 +27,6 @@ public interface UserService {
     FollowerListRes getFollowers(int userId);
 
     FollowingListRes getFollowings(int userId);
+
+    boolean isFollowing(int myId, int otherId);
 }
