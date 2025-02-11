@@ -1,5 +1,6 @@
 package Blendeo.backend.project.controller;
 
+import Blendeo.backend.project.dto.ProjectListDto;
 import Blendeo.backend.project.dto.ProjectScrapRes;
 import Blendeo.backend.project.service.ScrapService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,7 +58,7 @@ public class ScrapController {
             description = "스크랩한 프로젝트 목록을 불러온다."
     )
     @GetMapping("/")
-    public ResponseEntity<List<ProjectScrapRes>> getScrapProject(){
+    public ResponseEntity<List<ProjectListDto>> getScrapProject(){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
 

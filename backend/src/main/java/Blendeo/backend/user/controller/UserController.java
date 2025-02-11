@@ -261,14 +261,14 @@ public class UserController {
     }
 
     @Operation(summary = "유저의 팔로우 목록 조회")
-    @GetMapping("/get-followings/{userId}")
+    @GetMapping("/follow/get-followings/{userId}")
     public ResponseEntity<FollowingListRes> getFollowings(@PathVariable("userId") int userId) {
         FollowingListRes followingList = userService.getFollowings(userId);
         return ResponseEntity.ok().body(followingList);
     }
 
     @Operation(summary = "유저의 팔로워 목록 조회")
-    @GetMapping("/get-followers/{userId}")
+    @GetMapping("/follow/get-followers/{userId}")
     public ResponseEntity<FollowerListRes> getFollowers(@PathVariable("userId") int userId) {
         FollowerListRes followerList = userService.getFollowers(userId);
         return ResponseEntity.ok().body(followerList);

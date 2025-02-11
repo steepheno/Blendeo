@@ -11,6 +11,7 @@ import Blendeo.backend.instrument.repository.EtcInstrumentRepository;
 import Blendeo.backend.instrument.repository.InstrumentRepository;
 import Blendeo.backend.instrument.repository.ProjectInstrumentRepository;
 import Blendeo.backend.project.dto.ProjectCreateReq;
+import Blendeo.backend.project.dto.ProjectGetRes;
 import Blendeo.backend.project.dto.ProjectInfoRes;
 import Blendeo.backend.project.dto.ProjectListDto;
 import Blendeo.backend.project.entity.Project;
@@ -89,7 +90,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public ProjectInfoRes getProjectInfo(Long projectId) {
+    public ProjectGetRes getProjectInfo(Long projectId) {
 
         // 조회수 1 증가
         projectRepository.updateViewCount(projectId);
@@ -100,12 +101,15 @@ public class ProjectServiceImpl implements ProjectService {
 
         List<ProjectInstrument> projectInstruments = projectInstrumentRepository.getAllByProjectId(projectId);
 
-        return ProjectInfoRes.builder()
+        return ProjectGetRes.builder()
                 .id(project.getId())
                 .title(project.getTitle())
                 .state(project.isState())
                 .forkId(project.getForkId())
                 .contributorCnt(project.getContributorCnt())
+                .authorId(project.getAuthor().getId())
+                .authorNickname(project.getAuthor().getNickname())
+                .authorProfileImage(project.getAuthor().getProfileImage())
                 .runningTime(project.getRunningTime())
                 .createdAt(project.getCreatedAt())
                 .contents(project.getContents())
@@ -200,7 +204,6 @@ public class ProjectServiceImpl implements ProjectService {
                         .title(project.getTitle())
                         .thumbnail(project.getThumbnail())
                         .viewCnt(project.getViewCnt())
-                        .forkCnt(projectRepository.findCountByForkId(project.getId()))
                         .contributionCnt(project.getContributorCnt())
                         .duration(project.getRunningTime())
                         .authorId(project.getAuthor().getId())
@@ -231,7 +234,6 @@ public class ProjectServiceImpl implements ProjectService {
                         .title(project.getTitle())
                         .thumbnail(project.getThumbnail())
                         .viewCnt(project.getViewCnt())
-                        .forkCnt(projectRepository.findCountByForkId(project.getId()))
                         .contributionCnt(project.getContributorCnt())
                         .duration(project.getRunningTime())
                         .authorId(project.getAuthor().getId())
@@ -255,6 +257,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
+        log.info(String.valueOf(project.getId()));
         List<ProjectInstrument> projectInstruments = new ArrayList<>();
         for (Integer instrumentId : instrumentIds) {
             ProjectInstrument projectInstrument = projectInstrumentRepository.save(ProjectInstrument.builder()

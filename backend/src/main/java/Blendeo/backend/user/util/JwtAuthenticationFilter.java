@@ -38,7 +38,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || request.getRequestURI().startsWith("/api/v1/rank")
                 || request.getRequestURI().startsWith("/api/v1/instrument")
                 || request.getRequestURI().startsWith("/ws-stomp")
-                || request.getRequestURI().startsWith("/api/v1/comment/get-all");
+                || request.getRequestURI().startsWith("/api/v1/comment/get-all")
+                || request.getRequestURI().startsWith("/api/v1/user/follow/");
     }
 
     @Override

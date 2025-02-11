@@ -15,7 +15,6 @@ public class ProjectListDto {
     private String title;
     private String thumbnail;
     private int viewCnt;
-    private int forkCnt;
     private int contributionCnt;
     private int duration;
     private int authorId;
@@ -25,12 +24,11 @@ public class ProjectListDto {
     private LocalDateTime createdAt;
 
     @Builder
-    public ProjectListDto(Long projectId, String title, String thumbnail, int viewCnt, int forkCnt, int contributionCnt, int duration, int authorId, String authorNickname, URL authorProfileImage, List<String> instruments, LocalDateTime createdAt) {
+    public ProjectListDto(Long projectId, String title, String thumbnail, int viewCnt, int contributionCnt, int duration, int authorId, String authorNickname, URL authorProfileImage, List<String> instruments, LocalDateTime createdAt) {
         this.projectId = projectId;
         this.title = title;
         this.thumbnail = thumbnail;
         this.viewCnt = viewCnt;
-        this.forkCnt = forkCnt;
         this.contributionCnt = contributionCnt;
         this.duration = duration;
         this.authorId = authorId;
