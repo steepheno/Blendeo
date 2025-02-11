@@ -1,5 +1,6 @@
 // src/components/chat/ChatWindow.tsx
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import type { ChatMessage } from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -21,9 +22,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onSendMessage,
   isConnected,
 }) => {
+  const navigate = useNavigate();
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userId = useAuthStore((state) => state.userId);
+
+  const handleVideoCall = () => {
+    navigate(`/chat/video?roomId=${room.id}`);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -91,32 +97,57 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
           <div>
             <h2 className="font-semibold text-lg">{room.name}</h2>
-            <span
-              className={`text-sm ${isConnected ? "text-green-500" : "text-gray-500"}`}
-            >
-              {isConnected ? "Connected" : "Disconnected"}
-            </span>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-full"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="flex items-center gap-3">
+          <span
+            className={`text-sm ${isConnected ? "text-green-500" : "text-gray-500"}`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            {isConnected ? "Connected" : "Disconnected"}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleVideoCall}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              title="Start video call"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              title="Close chat"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

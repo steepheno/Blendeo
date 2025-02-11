@@ -1,60 +1,164 @@
+// src/pages/chat/VideoCallPage.tsx
+import { useEffect, useState, useCallback } from "react";
+import {
+  useSearchParams,
+  useNavigate,
+  NavigateFunction,
+} from "react-router-dom";
+import { OpenVidu, Publisher, Session, Subscriber } from "openvidu-browser";
 import { CallParticipant } from "@/components/videoCall/CallParticipant";
 import { CallControl } from "@/components/videoCall/CallControl";
 import Layout from "@/components/layout/Layout";
+import { getToken } from "@/api/openvidu";
+import { useAuthStore } from "@/stores/authStore";
 
 const VideoCallPage = () => {
-  const participants = [
-    {
-      id: "1",
-      name: "You",
-      imageUrl:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/382c8ba4e5132d09f1c36415c4160bcb66ebae06960e70f038ba90b757a3a07b?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-    },
-    {
-      id: "2",
-      name: "Anna",
-      imageUrl:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/1142f923a5475ac87fd13f8f7306aafe89d7d8776fdb9ae01c6ab3e1c831b272?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-    },
-    {
-      id: "3",
-      name: "Barbara",
-      imageUrl:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/d47a2a70979d5bfa8f20829b60d59dcaad7671179d1f33d439c7f71077196723?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-    },
-    {
-      id: "4",
-      name: "Cathy",
-      imageUrl:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/7c4bb2ce7bc5838c563452d44cb378dece3f25b35e83ee512e4a61d8867df75f?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-    },
-  ];
+  const [searchParams] = useSearchParams();
+  const navigate: NavigateFunction = useNavigate();
+  const roomId = searchParams.get("roomId");
+  const userId = useAuthStore((state) => state.userId);
+
+  const [session, setSession] = useState<Session | undefined>(undefined);
+  const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [OV, setOV] = useState<OpenVidu | undefined>(undefined);
+  const [duration, setDuration] = useState<string>("00:00:00");
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+
+  // Timer useEffect
+  useEffect(() => {
+    const startTime: number = Date.now();
+    const timer = setInterval(() => {
+      const diff = Date.now() - startTime;
+      const hours = Math.floor(diff / 3600000)
+        .toString()
+        .padStart(2, "0");
+      const minutes = Math.floor((diff % 3600000) / 60000)
+        .toString()
+        .padStart(2, "0");
+      const seconds = Math.floor((diff % 60000) / 1000)
+        .toString()
+        .padStart(2, "0");
+      setDuration(`${hours}:${minutes}:${seconds}`);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Session cleanup
+  useEffect(() => {
+    return () => {
+      if (session) {
+        session.disconnect();
+      }
+    };
+  }, [session]);
+
+  // Initialize session
+  useEffect(() => {
+    if (!roomId) {
+      navigate("/chat");
+      return;
+    }
+
+    const initializeSession = async () => {
+      const ov = new OpenVidu();
+      setOV(ov);
+
+      const session = ov.initSession();
+      setSession(session);
+
+      session.on("streamCreated", ({ stream }) => {
+        const subscriber = session.subscribe(stream, undefined);
+        setSubscribers((prev) => [...prev, subscriber]);
+      });
+
+      session.on("streamDestroyed", ({ stream }) => {
+        setSubscribers((prev) =>
+          prev.filter((sub) => sub.stream.streamId !== stream.streamId)
+        );
+      });
+
+      try {
+        const token = await getToken(roomId);
+        await session.connect(token, { userId });
+
+        const publisher = await ov.initPublisherAsync(undefined, {
+          audioSource: undefined,
+          videoSource: undefined,
+          publishAudio: true,
+          publishVideo: true,
+          resolution: "640x480",
+          frameRate: 30,
+          insertMode: "APPEND",
+          mirror: false,
+        });
+
+        session.publish(publisher);
+        setPublisher(publisher);
+      } catch (error) {
+        console.error("Error connecting to session:", error);
+      }
+    };
+
+    initializeSession();
+  }, [roomId, userId, navigate]);
+
+  const handleScreenShare = useCallback(async () => {
+    if (!session || !OV) return;
+
+    try {
+      if (!isScreenSharing) {
+        const screenPublisher = await OV.initPublisherAsync(undefined, {
+          videoSource: "screen",
+          publishAudio: false,
+          mirror: false,
+        });
+
+        await session.publish(screenPublisher);
+        setIsScreenSharing(true);
+      } else {
+        // Stop screen sharing logic
+        setIsScreenSharing(false);
+      }
+    } catch (error) {
+      console.error("Error sharing screen:", error);
+    }
+  }, [session, OV, isScreenSharing]);
 
   const controls = [
     {
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/2ccdc9521569a4bf870d4bb5ad4719302eb5eed6e6c1dfdd1422e677f5cd558c?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-      alt: "Mute audio",
+      type: "audio" as const,
+      isActive: publisher?.stream.audioActive,
+      onClick: () => publisher?.publishAudio(!publisher.stream.audioActive),
+      disabled: !publisher,
     },
     {
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/acb669e26ea735003951d116a1f177a053d347bbc4815ad792ac4c4eb6cdd18d?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-      alt: "Disable video",
+      type: "video" as const,
+      isActive: publisher?.stream.videoActive,
+      onClick: () => publisher?.publishVideo(!publisher.stream.videoActive),
+      disabled: !publisher,
     },
     {
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/72f0b6dc668fbfd9cc40cdba322ef4a1717cf5e322603a76b42f8d77b802893d?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-      alt: "Share screen",
+      type: "screen" as const,
+      isActive: isScreenSharing,
+      onClick: handleScreenShare,
+      disabled: !session,
     },
     {
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/dc450210cb3f936b5d056b0cc0f8de07d9dc2e4619e0effd1bdbf037be4dc1f7?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-      alt: "More options",
+      type: "more" as const,
+      onClick: () => {},
     },
     {
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/18a40f26b48b365ee39c2283a3572312d5787d8cb27bf8106bc1c97b054c2494?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-      alt: "Chat",
+      type: "chat" as const,
+      onClick: () => navigate(`/chat?roomId=${roomId}`),
     },
     {
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/543e9e29791d3a099956b5aba23d924e6343ba9fcd20b25794f98682c3bf4286?placeholderIfAbsent=true&apiKey=95b36dcff62b461b9ec9bc990aba2675",
-      alt: "End call",
-      isActive: true,
+      type: "end" as const,
+      onClick: () => {
+        session?.disconnect();
+        navigate(`/chat`);
+      },
     },
   ];
 
@@ -66,28 +170,14 @@ const VideoCallPage = () => {
             <div className="flex flex-col w-full">
               {/* Header Section */}
               <header className="flex flex-wrap gap-3 items-center px-4 pt-4 pb-2 w-full border-b-2 border-violet-100 bg-gray-100 bg-opacity-0 max-md:max-w-full">
-                <div className="flex items-center self-stretch my-auto w-12 min-h-[48px]">
-                  <img
-                    loading="lazy"
-                    src="/api/placeholder/24/24"
-                    alt="Call status icon"
-                    className="object-contain self-stretch my-auto w-6 aspect-square"
-                  />
-                </div>
                 <div className="flex-1 shrink self-stretch my-auto text-3xl font-bold leading-none text-black min-w-[240px] max-md:max-w-full">
-                  {participants.map((p) => p.name).join(", ")}
+                  Video Call
                 </div>
                 <div className="self-stretch my-auto text-xl leading-10 text-neutral-500">
-                  01:08:23
+                  {duration}
                 </div>
                 <div className="flex gap-1.5 justify-center items-center self-stretch my-auto w-12">
-                  <img
-                    loading="lazy"
-                    src="/api/placeholder/24/24"
-                    alt="Participants count"
-                    className="w-6 h-6"
-                  />
-                  <span className="text-2xl">{participants.length}</span>
+                  <span className="text-2xl">{subscribers.length + 1}</span>
                 </div>
               </header>
 
@@ -96,10 +186,16 @@ const VideoCallPage = () => {
                 <div className="flex flex-wrap gap-3 justify-center items-center self-stretch my-auto min-w-[240px] w-[1012px]">
                   <div className="flex grow shrink items-start self-stretch my-auto min-w-[240px] w-[950px] max-md:max-w-full">
                     <div className="flex flex-wrap gap-3 justify-center items-center min-h-[722px] min-w-[240px] w-[954px]">
-                      {participants.map((participant) => (
+                      {publisher && (
                         <CallParticipant
-                          key={participant.id}
-                          participant={participant}
+                          streamManager={publisher}
+                          isMainUser={true}
+                        />
+                      )}
+                      {subscribers.map((subscriber) => (
+                        <CallParticipant
+                          key={subscriber.stream.connection.connectionId}
+                          streamManager={subscriber}
                         />
                       ))}
                     </div>

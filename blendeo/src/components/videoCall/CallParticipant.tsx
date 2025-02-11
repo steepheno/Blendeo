@@ -1,23 +1,36 @@
-import { ParticipantData } from "@/types/components/video/videoCall";
+// src/components/videoCall/CallParticipant.tsx
+import React, { useEffect, useRef } from "react";
+import { StreamManager } from "openvidu-browser";
 
 interface CallParticipantProps {
-  participant: ParticipantData;
+  streamManager: StreamManager;
+  isMainUser?: boolean;
 }
 
-export function CallParticipant({ participant }: CallParticipantProps) {
+export const CallParticipant: React.FC<CallParticipantProps> = ({
+  streamManager,
+  isMainUser = false,
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (streamManager && videoRef.current) {
+      streamManager.addVideoElement(videoRef.current);
+    }
+  }, [streamManager]);
+
   return (
-    <div className="flex overflow-hidden flex-col grow shrink self-stretch my-auto rounded-xl min-w-[240px] w-[376px] max-md:max-w-full">
-      <div className="flex overflow-hidden relative flex-col pt-52 w-full rounded-xl min-h-[339px] max-md:pt-24 max-md:max-w-full">
-        <img
-          loading="lazy"
-          src={participant.imageUrl}
-          alt={`Video feed of ${participant.name}`}
-          className="object-cover absolute inset-0 size-full"
-        />
-        <div className="flex overflow-hidden relative flex-col pt-24 pb-3 pl-3 min-h-[138px] max-md:pt-24 max-md:max-w-full">
-          <div className="w-full max-md:max-w-full">{participant.name}</div>
-        </div>
+    <div className="flex flex-col gap-2 justify-center items-center p-2.5 bg-neutral-800 grow basis-[0%] rounded-xl min-w-[240px] max-w-[470px] min-h-[350px]">
+      <video
+        autoPlay
+        ref={videoRef}
+        className="w-full h-full object-cover rounded-lg"
+      />
+      <div className="absolute bottom-4 left-4 text-white bg-black bg-opacity-50 px-2 py-1 rounded">
+        {isMainUser
+          ? "You"
+          : `Participant ${streamManager.stream.connection.connectionId}`}
       </div>
     </div>
   );
-}
+};
