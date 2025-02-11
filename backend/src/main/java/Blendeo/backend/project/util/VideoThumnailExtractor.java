@@ -47,7 +47,7 @@ public class VideoThumnailExtractor {
             }
 
             // 생성된 썸네일을 S3에 업로드하고 URL 반환
-            s3Utils.uploadToS3(thumbnailFile, filename + ".jpeg", "thumbnail/jpeg");
+            s3Utils.uploadToS3(thumbnailFile, "thumbnail/" + filename + ".jpeg", "thumbnail/jpeg");
             String thumbnailUrl = s3Utils.getUrlByFileName(filename + ".jpeg");
             return new URL(thumbnailUrl);
 
