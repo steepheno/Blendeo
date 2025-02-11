@@ -1,10 +1,13 @@
 package Blendeo.backend.chat.controller;
 
+import Blendeo.backend.chat.dto.UserChatInfoRes;
 import Blendeo.backend.chat.entity.ChatMessage;
 import Blendeo.backend.chat.entity.ChatRoom;
 import Blendeo.backend.chat.entity.ChatRoomParticipant;
 import Blendeo.backend.chat.repoository.ChatRoomParticipantRepository;
 import Blendeo.backend.chat.service.ChatService;
+import Blendeo.backend.search.service.SearchService;
+import Blendeo.backend.user.dto.UserInfoGetRes;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +20,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ public class ChatController {
     private final ChatService chatService;
     private final SimpMessageSendingOperations messagingTemplate;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
+    private final SearchService searchService;
 
     // 채팅방에 들어와서 메시지 전송
     @MessageMapping("/chat/message") // 클라이언트에서 보낸 /pub/chat/message 처리!
@@ -87,5 +92,20 @@ public class ChatController {
         List<ChatRoom> chatRooms = chatService.getMyChatRooms(Integer.parseInt(user.getUsername()));
 
         return ResponseEntity.ok(chatRooms);
+    }
+
+    // 아이디로 유저 정보 조회하기
+    @Operation(summary = "아이디로 유저 정보 조회하기")
+    @GetMapping("/api/v1/chat/search/user/email")
+    public ResponseEntity<List<UserChatInfoRes>> searchUserByEmail(@RequestParam(value="email", required=false) String email,
+                                                                   @RequestParam(defaultValue = "0", value = "page") int page,
+                                                                   @RequestParam(defaultValue = "10", value = "size") int size){
+        return ResponseEntity.ok().body(searchService.searchUserByEmail(email, page, size)
+                .stream().map(userInfoGetRes -> UserChatInfoRes.builder()
+                        .userId(userInfoGetRes.getId())
+                        .email(userInfoGetRes.getEmail())
+                        .profileImage(userInfoGetRes.getProfileImage())
+                        .build())
+                .collect(Collectors.toList()));
     }
 }
