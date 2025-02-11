@@ -65,7 +65,7 @@ export const unfollowUser = async (userId: number): Promise<void> => {
 
 export const getFollowings = async (userId: number): Promise<FollowResponse> => {
   try {
-    const response = await axiosInstance.get<FollowResponse>(`/user/get-followings/${userId}`);
+    const response = await axiosInstance.get<FollowResponse>(`/user/follow/get-followings/${userId}`);
     return response;
   } catch (error) {
     throw new Error('팔로잉 목록을 불러오는데 실패했습니다.'+error);
@@ -74,7 +74,7 @@ export const getFollowings = async (userId: number): Promise<FollowResponse> => 
 
 export const getFollowers = async (userId: number): Promise<FollowResponse> => {
   try {
-    const response = await axiosInstance.get<FollowResponse>(`/user/get-followers/${userId}`);
+    const response = await axiosInstance.get<FollowResponse>(`/user/follow/get-followers/${userId}`);
     
     return response;
   } catch (error) {
