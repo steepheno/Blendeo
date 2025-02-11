@@ -79,6 +79,7 @@ public class ProjectController {
         int userId = Integer.parseInt(user.getUsername());
 
         int duration = videoEditorService.getLength(videoUrl.toString());
+        URL thumbnailUrl = videoEditorService.getThumbnailUrl(videoUrl.toString());
 
         ProjectCreateReq projectCreateReq = ProjectCreateReq.builder()
                 .title(title)
@@ -87,6 +88,7 @@ public class ProjectController {
                 .forkProjectId(forkProjectId)
                 .state(state)
                 .duration(duration)
+                .thumbnailUrl(thumbnailUrl)
                 .videoUrl(videoUrl)
                 .build();
 

@@ -2,6 +2,8 @@ package Blendeo.backend.project.dto;
 
 import Blendeo.backend.project.dto.ProjectNodeLink.Link;
 import Blendeo.backend.project.entity.Project;
+
+import java.net.URL;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,12 +31,12 @@ public class ProjectHierarchyRes {
     public static class ProjectNodeInfo {
         private Long projectId;
         private String title;
-        private String thumbnail;
+        private URL thumbnail;
         private String authorNickname;
         private int viewCnt;
 
         @Builder
-        public ProjectNodeInfo(Long projectId, String title, String thumbnail, String authorNickname, int viewCnt) {
+        public ProjectNodeInfo(Long projectId, String title, URL thumbnail, String authorNickname, int viewCnt) {
             this.projectId = projectId;
             this.title = title;
             this.thumbnail = thumbnail;

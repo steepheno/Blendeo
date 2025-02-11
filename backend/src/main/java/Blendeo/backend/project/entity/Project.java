@@ -40,7 +40,7 @@ public class Project {
     private boolean state;
 
     @Column
-    private String thumbnail;
+    private URL thumbnail;
 
     @Column(columnDefinition = "INTEGER DEFAULT 0")
     private int runningTime;
@@ -53,7 +53,7 @@ public class Project {
 
     @Builder
     public Project(Long forkId, User author, String title, String contents,
-                   String thumbnail, int contributorCnt, URL videoUrl, int runningTime) {
+                   URL thumbnail, int contributorCnt, URL videoUrl, int runningTime) {
         this.forkId = forkId;
         this.author = author;
         this.title = title;

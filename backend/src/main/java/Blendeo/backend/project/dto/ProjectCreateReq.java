@@ -17,16 +17,18 @@ public class ProjectCreateReq {
     private Long forkProjectId;
     private boolean state;
     private int duration;
+    private URL thumbnailUrl;
     private URL videoUrl;
 
     @Builder
-    public ProjectCreateReq(String title, String content, int userId, Long forkProjectId, boolean state, int duration, URL videoUrl) {
+    public ProjectCreateReq(String title, String content, int userId, Long forkProjectId, boolean state, int duration, URL thumbnailUrl, URL videoUrl) {
         this.title = title;
         this.content = content;
         this.userId = userId;
         this.forkProjectId = forkProjectId;
         this.state = state;
         this.duration = duration;
+        this.thumbnailUrl = thumbnailUrl;
         this.videoUrl = videoUrl;
     }
 }
