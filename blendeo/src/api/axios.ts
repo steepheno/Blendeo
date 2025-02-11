@@ -23,6 +23,8 @@ const publicPaths = [
   "/project/list",
   "/project/list", // 이 경로 추가
   "/project/new",  // 필요한 경우 이것도 추가
+  "/user/follow/get-follow",
+
 ];
 
 const noRedirectPaths = ["/", "/project/list"];

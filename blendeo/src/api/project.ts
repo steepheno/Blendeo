@@ -8,6 +8,8 @@ import {
   ProjectListItem,
 } from "@/types/api/project";
 
+import type { ProjectTreeData } from "@/types/components/project/project";
+
 interface CreateProjectResponse {
   projectId: number; // 또는 실제 API 응답 구조에 맞게 수정
 }
@@ -137,4 +139,11 @@ export const getNewProjects = async (page: number = 0, size: number = 10) => {
 
 export const getProjectContributors = async (projectId: number) => {
   return axiosInstance.get<User[]>(`/project/contributors/${projectId}`);
+};
+
+export const projectTreeAPI = {
+  getProjectTree: async (projectId: number): Promise<ProjectTreeData> => {
+    const response = await axiosInstance.get<ProjectTreeData>(`/fork/hierarchy/${projectId}`);
+    return response;
+  },
 };
