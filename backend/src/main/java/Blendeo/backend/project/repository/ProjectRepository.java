@@ -11,7 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query("SELECT new Blendeo.backend.project.dto.ProjectRankRes(p.id, p.title, p.author.id, p.author.nickname) " +
             "FROM Project p " +
