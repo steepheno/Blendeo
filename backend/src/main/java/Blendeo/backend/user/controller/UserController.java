@@ -208,7 +208,15 @@ public class UserController {
         return ResponseEntity.ok().body(userInfoGetRes);
     }
 
-    // 전체 조회?
+    @Operation(summary = "팔로우 여부 조회")
+    @GetMapping("/checkFollowing/{otherId}")
+    public ResponseEntity<Boolean> checkFollowing(@PathVariable("otherId") int otherId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        int myId = Integer.parseInt(user.getUsername());
+
+        return ResponseEntity.ok().body(userService.isFollowing(myId, otherId));
+    }
 
     @Operation(summary = "회원정보 수정")
     @PutMapping(value = "/update-user",
