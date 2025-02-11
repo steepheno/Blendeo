@@ -34,8 +34,8 @@ public class CommentController {
                 .body("댓글이 성공적으로 등록되었습니다.");
     }
 
-    @DeleteMapping("/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable Long commentId) {
+    @DeleteMapping("/delete/{commentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable("commentId") Long commentId) {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
@@ -46,8 +46,8 @@ public class CommentController {
                 .body("댓글이 성공적으로 삭제되었습니다.");
     }
 
-    @GetMapping("/{projectId}")
-    public ResponseEntity<List<CommentRes>> getAllComments(@PathVariable Long projectId) {
+    @GetMapping("/get-all/{projectId}")
+    public ResponseEntity<List<CommentRes>> getAllComments(@PathVariable("projectId") Long projectId) {
         return ResponseEntity.ok(commentService.getComments(projectId));
     }
 }
