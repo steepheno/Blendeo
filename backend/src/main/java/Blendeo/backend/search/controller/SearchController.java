@@ -22,7 +22,6 @@ public class SearchController {
 
     private final SearchService searchService;
 
-    // 게시글 검색
     @Operation(
             summary =  "게시글 검색"
     )
@@ -34,18 +33,6 @@ public class SearchController {
         return ResponseEntity.ok().body(searchService.searchByProjectTitle(title, page, size));
     }
 
-    // 유저 검색
-    @Operation(
-            summary = "유저 검색"
-    )
-    @GetMapping("/user")
-    public ResponseEntity<List<UserInfoGetRes>> searchUserByNickname(@RequestParam(value="nickname", required=false) String nickname,
-                                                                     @RequestParam(defaultValue = "0", value = "page") int page,
-                                                                     @RequestParam(defaultValue = "10", value = "size") int size){
-        return ResponseEntity.ok().body(searchService.searchUserByNickname(nickname, page, size));
-    }
-
-    // 유저 프로젝트 검색
     @Operation(
             summary = "유저의 프로젝트 검색"
     )
@@ -54,5 +41,25 @@ public class SearchController {
                                                                         @RequestParam(defaultValue = "0", value = "page") int page,
                                                                         @RequestParam(defaultValue = "10", value = "size") int size){
         return ResponseEntity.ok().body(searchService.searchProjectByNickname(nickname, page, size));
+    }
+
+    @Operation(
+            summary = "닉네임으로 유저 검색"
+    )
+    @GetMapping("/user/nickname")
+    public ResponseEntity<List<UserInfoGetRes>> searchUserByNickname(@RequestParam(value="nickname", required=false) String nickname,
+                                                                     @RequestParam(defaultValue = "0", value = "page") int page,
+                                                                     @RequestParam(defaultValue = "10", value = "size") int size){
+        return ResponseEntity.ok().body(searchService.searchUserByNickname(nickname, page, size));
+    }
+
+    @Operation(
+            summary = "이메일로 유저 검색"
+    )
+    @GetMapping("/user/email")
+    public ResponseEntity<List<UserInfoGetRes>> searchUserByEmail(@RequestParam(value="email", required=false) String email,
+                                                                  @RequestParam(defaultValue = "0", value = "page") int page,
+                                                                  @RequestParam(defaultValue = "10", value = "size") int size){
+        return ResponseEntity.ok().body(searchService.searchUserByEmail(email, page, size));
     }
 }
