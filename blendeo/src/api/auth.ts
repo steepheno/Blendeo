@@ -8,18 +8,7 @@ export const signup = async (data: SignupRequest) => {
 };
 
 export const signin = async (data: SigninRequest) => {
-  const response = await axiosInstance.post<AuthResponse>(
-    "/user/auth/login",
-    data
-  );
-
-  if (response) {
-    // 토큰은 쿠키에 저장 (현재 코드 유지)
-    document.cookie = `accessToken=${response.accessToken}; path=/; secure; samesite=strict; max-age=3600`;
-    document.cookie = `refreshToken=${response.refreshToken}; path=/; secure; samesite=strict; max-age=86400`;
-  }
-
-  return response;
+  return axiosInstance.post<AuthResponse>("/user/auth/login", data);
 };
 
 export const logout = async () => {

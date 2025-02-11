@@ -13,10 +13,10 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-    allowedHosts: ["i12a602.p.ssafy.io"],
+    allowedHosts: ["api.blendeo.shop"],
     proxy: {
       "/api": {
-        target: "http://i12a602.p.ssafy.io:8080",
+        target: " https://api.blendeo.shop",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, "/api"),

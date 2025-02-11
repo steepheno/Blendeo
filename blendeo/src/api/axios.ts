@@ -1,3 +1,4 @@
+// src/api/axios.ts
 import axios from "axios";
 import type { CustomAxiosInstance } from "@/types/api/axios";
 import { useUserStore } from "@/stores/userStore";
@@ -43,6 +44,24 @@ axiosInstance.interceptors.request.use((config) => {
 // Response Interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
+    // 로그인 응답에서 토큰 처리 - 서버가 Set-Cookie를 보내지 않는 경우에만 처리
+    if (
+      response.config.url?.includes("/user/auth/login") &&
+      !response.headers["set-cookie"] // 서버가 Set-Cookie를 보내지 않는 경우에만
+    ) {
+      const { accessToken, refreshToken } = response.data;
+      if (accessToken && refreshToken) {
+        // 기존 토큰 삭제
+        document.cookie =
+          "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+        document.cookie =
+          "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+
+        // 새 토큰 설정
+        document.cookie = `accessToken=${accessToken}; path=/; secure; samesite=strict; max-age=3600`;
+        document.cookie = `refreshToken=${refreshToken}; path=/; secure; samesite=strict; max-age=86400`;
+      }
+    }
     return response.data;
   },
   async (error) => {
@@ -59,7 +78,6 @@ axiosInstance.interceptors.response.use(
       error.config.url?.includes(path)
     );
 
-    // accessToken이 만료된 경우
     if (
       error.response?.status === 403 &&
       !isPublicAPI &&
@@ -68,7 +86,6 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // refreshToken으로 새로운 accessToken 발급 시도
         const cookies = document.cookie.split(";");
         const refreshToken = cookies
           .find((cookie) => cookie.trim().startsWith("refreshToken="))
@@ -85,12 +102,17 @@ axiosInstance.interceptors.response.use(
             }
           );
 
-          // 새로운 요청 시도
-          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-          return axiosInstance(originalRequest);
+          if (response.data.accessToken) {
+            // 새로운 accessToken 저장
+            document.cookie =
+              "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+            document.cookie = `accessToken=${response.data.accessToken}; path=/; secure; samesite=strict; max-age=3600`;
+
+            originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+            return axiosInstance(originalRequest);
+          }
         }
       } catch (refreshError) {
-        // refresh 실패 시 로그아웃 처리
         document.cookie.split(";").forEach((cookie) => {
           document.cookie = cookie
             .replace(/^ +/, "")

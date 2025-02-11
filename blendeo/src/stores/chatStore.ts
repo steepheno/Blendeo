@@ -1,8 +1,10 @@
 import { create } from "zustand";
-import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { chatAPI } from "@/api/chat";
 import type { ChatRoom, ChatMessage, WebSocketStatus } from "@/types/api/chat";
+import { useAuthStore } from "@/stores/authStore";
+import { useUserStore } from "@/stores/userStore";
+import { Client, StompSubscription } from "@stomp/stompjs";
 
 interface ChatState {
   rooms: ChatRoom[];
@@ -13,6 +15,7 @@ interface ChatState {
   wsStatus: WebSocketStatus;
   stompClient: Client | null;
   isInitialized: boolean; // 초기화 상태 추가
+  currentSubscription: StompSubscription | null;
 }
 // Actions 인터페이스 정의
 interface ChatActions {
@@ -47,6 +50,7 @@ const initialState: ChatState = {
   wsStatus: "CLOSED",
   stompClient: null,
   isInitialized: false,
+  currentSubscription: null,
 };
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -54,10 +58,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   // ===== 초기화 메서드 추가 =====
   initialize: async () => {
-    const { connectWebSocket, fetchRooms } = get();
+    const { connectWebSocket, fetchRooms, currentRoom, fetchMessages } = get();
+    const isAuthenticated = useAuthStore.getState().isAuthenticated;
 
-    if (!get().isInitialized) {
+    if (!get().isInitialized && isAuthenticated) {
       await fetchRooms();
+      if (currentRoom) {
+        await fetchMessages(currentRoom.id);
+      }
       connectWebSocket();
       set({ isInitialized: true });
     }
@@ -70,7 +78,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         webSocketFactory: () =>
           new SockJS("http://i12a602.p.ssafy.io:8080/ws-stomp"),
         connectHeaders: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          userId: String(useAuthStore.getState().userId),
         },
         debug: function (str) {
           console.log(str);
@@ -80,27 +88,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         heartbeatOutgoing: 4000,
       });
 
-      stompClient.onConnect = async () => {
+      stompClient.onConnect = () => {
         set({ wsStatus: "OPEN", error: null });
-        const { currentRoom } = get();
-
-        // 웹소켓 연결 시 현재 방의 메시지를 다시 불러옵니다
-        if (currentRoom) {
-          await get().fetchMessages(currentRoom.id);
-          stompClient.subscribe(
-            `/sub/chat/room/${currentRoom.id}`,
-            (message) => {
-              try {
-                const receivedMessage = JSON.parse(message.body) as ChatMessage;
-                if (receivedMessage.type === "TALK") {
-                  get().addMessage(receivedMessage);
-                }
-              } catch (error) {
-                console.error("Message parsing error:", error);
-              }
-            }
-          );
-        }
+        // 여기서 구독 로직 제거
       };
 
       stompClient.onDisconnect = () => {
@@ -147,17 +137,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
 
     try {
-      const userData = localStorage.getItem("user");
-      if (!userData) {
-        console.error("User data not found");
+      const userId = useAuthStore.getState().userId;
+      if (!userId) {
+        console.error("User ID not found");
         return;
       }
 
-      const { id: userId } = JSON.parse(userData);
       const message = {
-        type: "TALK",
+        type: "TALK" as const,
         chatRoomId: currentRoom.id,
-        userId,
+        userId, // useAuthStore에서 가져온 userId 사용
         content,
         timestamp: new Date().toISOString(),
       };
@@ -189,34 +178,34 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   setCurrentRoom: async (room: ChatRoom | null) => {
     const { stompClient } = get();
-    const currentRoom = get().currentRoom;
+    const currentSubscription = get().currentSubscription;
 
-    // 이전 방 구독 해제
-    if (currentRoom && stompClient) {
-      try {
-        stompClient.unsubscribe(`/sub/chat/room/${currentRoom.id}`);
-      } catch (error) {
-        console.error("Unsubscribe error:", error);
-      }
+    // 이전 구독 해제
+    if (currentSubscription) {
+      currentSubscription.unsubscribe();
     }
 
-    set({ currentRoom: room });
+    set({ currentRoom: room, currentSubscription: null });
 
-    // 새로운 방이 선택되면 항상 메시지를 가져옵니다
     if (room) {
       await get().fetchMessages(room.id);
 
       if (stompClient?.connected) {
-        stompClient.subscribe(`/sub/chat/room/${room.id}`, (message) => {
-          try {
-            const receivedMessage = JSON.parse(message.body) as ChatMessage;
-            if (receivedMessage.type === "TALK") {
-              get().addMessage(receivedMessage);
+        const newSubscription = stompClient.subscribe(
+          `/sub/chat/room/${room.id}`,
+          (message) => {
+            try {
+              const receivedMessage = JSON.parse(message.body);
+              if (receivedMessage.type === "TALK") {
+                get().addMessage(receivedMessage);
+              }
+            } catch (error) {
+              console.error("Message parsing error:", error);
             }
-          } catch (error) {
-            console.error("Message parsing error:", error);
           }
-        });
+        );
+
+        set({ currentSubscription: newSubscription });
       }
     }
   },
@@ -254,12 +243,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   // ===== Message 관련 메서드 =====
+  // src/stores/chatStore.ts
   fetchMessages: async (roomId: number) => {
     try {
       set({ isLoading: true, error: null });
       const response = await chatAPI.getRoomMessages(roomId);
 
-      if (!response || !response.messages) {
+      if (!response) {
         set((state) => ({
           messagesByRoom: {
             ...state.messagesByRoom,
@@ -270,8 +260,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         return;
       }
 
-      // 모든 메시지를 포함하도록 수정
-      const messages = response.messages;
+      // response 구조 로깅
+      console.log("Messages response:", response);
+
+      const messages = Array.isArray(response) ? response : response.messages;
       const sortedMessages = [...messages].sort(
         (a, b) =>
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -285,7 +277,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         isLoading: false,
       }));
     } catch (error) {
-      console.error("메시지 조회 실패:", error);
+      console.error(`메시지 조회 실패 (방 ${roomId}):`, error);
       set((state) => ({
         error: "Failed to fetch messages",
         isLoading: false,
@@ -300,10 +292,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   addMessage: (message: ChatMessage) => {
     set((state) => {
       const currentMessages = state.messagesByRoom[message.chatRoomId] || [];
+      // 메시지에 사용자 정보 포함
+      const user = useUserStore.getState().currentUser;
+      const messageWithUser = {
+        ...message,
+        user: user?.id === message.userId ? user : undefined,
+      };
+
       return {
         messagesByRoom: {
           ...state.messagesByRoom,
-          [message.chatRoomId]: [...currentMessages, message],
+          [message.chatRoomId]: [...currentMessages, messageWithUser],
         },
       };
     });
