@@ -157,7 +157,7 @@ const ProjectDetailPage = () => {
             activeTab={activeTab}
             content={
               activeTab === "comments" ? (
-                <CommentsSection />
+                <CommentsSection projectId={projectData.projectId}/>
               ) : (
                 <ContributorsSection />
               )
