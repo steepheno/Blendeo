@@ -27,6 +27,9 @@ public class InstrumentService {
     }
 
     public void saveInstrument(int userId, List<Integer> instrumentIds) {
+        if ( instrumentIds==null || instrumentIds.isEmpty()) {
+            return;
+        }
         for (int instrumentId : instrumentIds) {
             System.out.println(instrumentId);
             Instrument instrument = instrumentRepository.findById(instrumentId)
@@ -37,8 +40,11 @@ public class InstrumentService {
 
     public void deleteInstrument(int userId) {
         List<UserInstrument> instruments = userInstrumentRepository.getUserInstrumentsByUserId(userId)
-                .orElseThrow(()->new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, ErrorCode.ENTITY_NOT_FOUND.getMessage()));
+                .orElseGet(null);
 
+        if (instruments != null) {
+            return;
+        }
         userInstrumentRepository.deleteAll(instruments);
     }
 

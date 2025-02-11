@@ -10,8 +10,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SearchProjectRepository extends JpaRepository<Project, Long> {
-    Page<Project> findByTitleContaining(String title, Pageable pageable);
 
-    @Query("SELECT p From Project p WHERE p.author.nickname = :nickname ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM Project p WHERE p.title LIKE %:title%")
+    Page<Project> findByTitleContaining(@Param("title") String title, Pageable pageable);
+
+    @Query("SELECT p From Project p WHERE p.author.nickname LIKE %:nickname% ORDER BY p.createdAt DESC")
     Page<Project> findByAuthorNicknameContaining(@Param("nickname") String nickname, Pageable pageable);
 }

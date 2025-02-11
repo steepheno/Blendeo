@@ -62,6 +62,34 @@ public class SearchService {
                 .collect(Collectors.toList());
     }
 
+    public List<ProjectListDto> searchProjectByNickname(String nickname, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Project> searchProjectByUserNicknamePage = searchProjectRepository.findByAuthorNicknameContaining(nickname, pageRequest);
+        List<Project> projects = searchProjectByUserNicknamePage.getContent();
+
+        return projects.stream()
+                .map(project -> ProjectListDto.builder()
+                        .projectId(project.getId())
+                        .title(project.getTitle())
+                        .thumbnail(project.getThumbnail())
+                        .viewCnt(project.getViewCnt())
+                        .contributionCnt(project.getContributorCnt())
+                        .duration(project.getRunningTime())
+                        .authorId(project.getAuthor().getId())
+                        .authorNickname(project.getAuthor().getNickname())
+                        .authorProfileImage(project.getAuthor().getProfileImage())
+                        .instruments(
+                                projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                        .map(projectInstrument ->
+                                                projectInstrument.getInstrument() != null
+                                                        ? projectInstrument.getInstrument().getName()
+                                                        : projectInstrument.getEtcInstrument().getName()
+                                        ).collect(Collectors.toList())
+                        )
+                        .createdAt(project.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
     public List<UserInfoGetRes> searchUserByNickname(String nickname, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
@@ -90,31 +118,29 @@ public class SearchService {
                 .collect(Collectors.toList());
     }
 
-    public List<ProjectListDto> searchProjectByNickname(String nickname, int page, int size) {
+    public List<UserInfoGetRes> searchUserByEmail(String email, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<Project> searchProjectByUserNicknamePage = searchProjectRepository.findByAuthorNicknameContaining(nickname, pageRequest);
-        List<Project> projects = searchProjectByUserNicknamePage.getContent();
+        Page<User> searchUserByEmailPage = searchUserRepository.findByEmailContaining(email, pageRequest);
+        List<User> users = searchUserByEmailPage.getContent();
 
-        return projects.stream()
-                .map(project -> ProjectListDto.builder()
-                        .projectId(project.getId())
-                        .title(project.getTitle())
-                        .thumbnail(project.getThumbnail())
-                        .viewCnt(project.getViewCnt())
-                        .contributionCnt(project.getContributorCnt())
-                        .duration(project.getRunningTime())
-                        .authorId(project.getAuthor().getId())
-                        .authorNickname(project.getAuthor().getNickname())
-                        .authorProfileImage(project.getAuthor().getProfileImage())
+        return users.stream()
+                .map(user -> UserInfoGetRes.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .nickname(user.getNickname())
+                        .profileImage(user.getProfileImage())
+                        .header(user.getHeader())
+                        .intro(user.getIntro())
                         .instruments(
-                                projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
-                                        .map(projectInstrument ->
-                                                projectInstrument.getInstrument() != null
-                                                        ? projectInstrument.getInstrument().getName()
-                                                        : projectInstrument.getEtcInstrument().getName()
+                                uesrInstrumentRepository.getUserInstrumentsByUserId(user.getId())
+                                        .orElseGet(Collections::emptyList)
+                                        .stream()
+                                        .map(userInstrument -> InstrumentGetRes.builder()
+                                                .instrument_id(userInstrument.getInstrument().getId())
+                                                .instrument_name(userInstrument.getInstrument().getName())
+                                                .build()
                                         ).collect(Collectors.toList())
                         )
-                        .createdAt(project.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
