@@ -2,6 +2,9 @@ package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
+import Blendeo.backend.instrument.entity.ProjectInstrument;
+import Blendeo.backend.instrument.repository.ProjectInstrumentRepository;
+import Blendeo.backend.project.dto.ProjectListDto;
 import Blendeo.backend.project.dto.ProjectScrapRes;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.entity.Scrap;
@@ -23,6 +26,7 @@ public class ScrapService {
     private final ScrapRepository scrapRepository;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final ProjectInstrumentRepository projectInstrumentRepository;
 
     @Transactional
     public void scrapProject(int userId, long projectId){
@@ -54,7 +58,7 @@ public class ScrapService {
 
     }
 
-    public List<ProjectScrapRes> getScrapProject(int userId) {
+    public List<ProjectListDto> getScrapProject(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 
@@ -69,12 +73,23 @@ public class ScrapService {
                     User author = userRepository.findById(project.getAuthor().getId())
                             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 
-                    return ProjectScrapRes.builder()
+                    return ProjectListDto.builder()
                             .projectId(project.getId())
-                            .projectName(project.getTitle())
+                            .title(project.getTitle())
+                            .thumbnail(project.getThumbnail())
+                            .viewCnt(project.getViewCnt())
+                            .contributionCnt(project.getContributorCnt())
+                            .duration(project.getRunningTime())
                             .authorId(author.getId())
                             .authorNickname(author.getNickname())
+                            .authorProfileImage(author.getProfileImage())
                             .viewCnt(project.getViewCnt())
+                            .instruments(projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                    .map(projectInstrument ->
+                                            projectInstrument.getInstrument() != null
+                                                    ? projectInstrument.getInstrument().getName()
+                                                    : projectInstrument.getEtcInstrument().getName()
+                                    ).collect(Collectors.toList()))
                             .createdAt(project.getCreatedAt())
                             .build();
                 })

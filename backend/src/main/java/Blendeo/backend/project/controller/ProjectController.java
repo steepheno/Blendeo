@@ -2,10 +2,7 @@ package Blendeo.backend.project.controller;
 
 import Blendeo.backend.instrument.dto.InstrumentGetRes;
 import Blendeo.backend.instrument.service.InstrumentService;
-import Blendeo.backend.project.dto.ProjectCreateReq;
-import Blendeo.backend.project.dto.ProjectInfoRes;
-import Blendeo.backend.project.dto.ProjectListDto;
-import Blendeo.backend.project.dto.ProjectCreateRes;
+import Blendeo.backend.project.dto.*;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.service.ProjectService;
 import Blendeo.backend.project.service.VideoEditorService;
@@ -18,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,6 +65,7 @@ public class ProjectController {
     @PostMapping(
             value = "/create"
     )
+    @Transactional
     public ResponseEntity<?> createProject(
             @RequestParam("title") String title,
             @RequestParam("content") String content,
@@ -89,7 +88,6 @@ public class ProjectController {
                 .state(state)
                 .duration(duration)
                 .videoUrl(videoUrl)
-                .etcInstrumentNames(etcInstrumentNames)
                 .build();
 
         log.info("영상 길이: " + duration);
@@ -97,11 +95,11 @@ public class ProjectController {
         Project project = projectService.createProject(projectCreateReq);
 
         List<InstrumentGetRes> projectInstruments = null;
-        if (instrumentIds!=null && instrumentIds.isEmpty()) {
+        if (instrumentIds!=null && !instrumentIds.isEmpty()) {
             projectInstruments = projectService.saveProjectInstruments(project.getId(), instrumentIds);
         }
         List<InstrumentGetRes> etcInstruments = null;
-        if (etcInstrumentNames!=null && etcInstrumentNames.isEmpty()) {
+        if (etcInstrumentNames!=null && !etcInstrumentNames.isEmpty()) {
             etcInstruments = projectService.saveEtcInstruments(project.getId(), etcInstrumentNames);
         }
 
@@ -115,10 +113,10 @@ public class ProjectController {
             summary = "프로젝트 조회"
     )
     @GetMapping("/info/{id}")
-    public ResponseEntity<ProjectInfoRes> getProject(@PathVariable("id") Long id) {
-        ProjectInfoRes projectInfo = projectService.getProjectInfo(id);
+    public ResponseEntity<ProjectGetRes> getProject(@PathVariable("id") Long id) {
+        ProjectGetRes projectGetRes = projectService.getProjectInfo(id);
 
-        return ResponseEntity.ok(projectInfo);
+        return ResponseEntity.ok(projectGetRes);
     }
 
 
