@@ -1,150 +1,226 @@
-// import React, { useState } from "react";
-// import { Camera, Edit3, Music, Users, Share2 } from "lucide-react";
-// import Button from "@/components/common/Button";
-// import Layout from "@/components/layout/Layout";
-// import TabNavigation from "@/components/common/TabNavigation";
-// import VideoGrid from "@/components/common/VideoGrid";
+import { MessageSquare } from 'lucide-react';
+import { useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
-// interface UserProfileProps {
-//   isMyProfile?: boolean;
-// }
+import Layout from '@/components/layout/Layout';
+import VideoGrid from '@/components/common/VideoGrid';
+import VideoCard from '@/components/common/VideoCard';
+import TabNavigation from '@/components/common/TabNavigation';
 
-// const UserPage: React.FC<UserProfileProps> = ({ isMyProfile = false }) => {
-//   const [isEditing, setIsEditing] = useState(false);
-//   const [activeTab, setActiveTab] = useState<"uploaded" | "liked">("uploaded");
+import { ProjectType } from '@/stores/userPageStore';
+import useUserPageStore from '@/stores/userPageStore';
 
-//   return (
-//     <Layout>
-//       <div className="w-full bg-white">
-//         {/* Channel Header */}
-//         <div className="relative w-full h-40 bg-gradient-to-r from-purple-500 to-blue-500">
-//           <img
-//             src="/api/placeholder/1200/300"
-//             alt="Channel header"
-//             className="w-full h-40 object-cover"
-//           />
-//           {isMyProfile && (
-//             <button className="absolute right-4 bottom-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70">
-//               <Camera className="w-5 h-5" />
-//             </button>
-//           )}
-//         </div>
+const useProfileData = (userId: number) => {
+  const {
+    user,
+    userLoading,
+    userError,
+    followData,
+    getCurrentProjects,
+    getProjectLoading,
+    getHasMoreProjects,
+    fetchInitialData,
+    setActiveTab
+  } = useUserPageStore();
 
-//         {/* Main Content */}
-//         <div className="max-w-5xl mx-auto px-4">
-//           <div className="relative -mt-16">
-//             {/* Profile Info Container */}
-//             <div className="flex flex-col md:flex-row items-start gap-6">
-//               {/* Profile Image */}
-//               <div className="relative">
-//                 <img
-//                   src="/api/placeholder/128/128"
-//                   alt="Profile"
-//                   className="w-32 h-32 rounded-full border-4 border-white object-cover"
-//                 />
-//                 {isMyProfile && (
-//                   <button className="absolute right-2 bottom-2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70">
-//                     <Camera className="w-4 h-4" />
-//                   </button>
-//                 )}
-//               </div>
+  useEffect(() => {
+    if (userId) {
+      fetchInitialData(userId);
+      setActiveTab('uploaded');
+    }
+  }, [userId, fetchInitialData, setActiveTab]);
 
-//               {/* User Info */}
-//               <div className="flex-1 pt-4">
-//                 <div className="flex items-center justify-between">
-//                   <div>
-//                     <h1 className="text-2xl font-bold">김블렌디오</h1>
-//                     <p className="text-gray-600">@blendeo_kim</p>
-//                   </div>
-//                   <div className="flex gap-2">
-//                     {isMyProfile ? (
-//                       <Button
-//                         onClick={() => setIsEditing(!isEditing)}
-//                         variant="outline"
-//                         className="flex items-center gap-2"
-//                       >
-//                         <Edit3 className="w-4 h-4" />
-//                         프로필 수정
-//                       </Button>
-//                     ) : (
-//                       <>
-//                         <Button
-//                           variant="outline"
-//                           className="flex items-center gap-2"
-//                         >
-//                           <Share2 className="w-4 h-4" />
-//                           공유
-//                         </Button>
-//                         <Button>팔로우</Button>
-//                       </>
-//                     )}
-//                   </div>
-//                 </div>
+  return {
+    user,
+    userLoading,
+    userError,
+    followData,
+    getCurrentProjects,
+    getProjectLoading,
+    getHasMoreProjects,
+  };
+};
 
-//                 {/* Stats */}
-//                 <div className="flex gap-6 mt-4">
-//                   <div className="flex items-center gap-2">
-//                     <Users className="w-5 h-5 text-gray-600" />
-//                     <div>
-//                       <p className="font-semibold">1.3M</p>
-//                       <p className="text-sm text-gray-600">팔로워</p>
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <p className="font-semibold">546</p>
-//                     <p className="text-sm text-gray-600">팔로잉</p>
-//                   </div>
-//                   <div>
-//                     <p className="font-semibold">238</p>
-//                     <p className="text-sm text-gray-600">업로드</p>
-//                   </div>
-//                 </div>
+const UserProfile = () => {
+  const { userId } = useParams();
+  const navigate = useNavigate();
+  
+  const {
+    user,
+    userLoading,
+    userError,
+    followData,
+    getCurrentProjects,
+    getProjectLoading,
+    getHasMoreProjects,
+  } = useProfileData(parseInt(userId as string));
 
-//                 {/* Instruments */}
-//                 <div className="flex items-center gap-2 mt-4">
-//                   <Music className="w-5 h-5 text-gray-600" />
-//                   <span className="text-gray-600">주 악기:</span>
-//                   <div className="flex gap-2">
-//                     <span className="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-sm">
-//                       기타
-//                     </span>
-//                     <span className="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-sm">
-//                       드럼
-//                     </span>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
+  const {
+    activeTab,
+    setActiveTab,
+    loadMore,
+    followUser,
+    unfollowUser,
+  } = useUserPageStore();
 
-//           {/* 탭 네비게이션과 컨텐츠 */}
-//           <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+  const handleFollowClick = useCallback(async () => {
+    if (!userId || !user) return;
+    
+    try {
+      if (followData.isFollowing) {
+        await unfollowUser(parseInt(userId));
+      } else {
+        await followUser(parseInt(userId));
+      }
+    } catch (error) {
+      console.error('Failed to follow/unfollow:', error);
+    }
+  }, [userId, user, followData.isFollowing, followUser, unfollowUser]);
 
-//           {/* 탭 전환 애니메이션을 위한 컨테이너 */}
-//           <div className="relative">
-//             <div
-//               className={`transition-opacity duration-200 ${
-//                 activeTab === "uploaded"
-//                   ? "opacity-100"
-//                   : "opacity-0 absolute inset-0"
-//               }`}
-//             >
-//               {activeTab === "uploaded" && <VideoGrid type="uploaded" />}
-//             </div>
-//             <div
-//               className={`transition-opacity duration-200 ${
-//                 activeTab === "liked"
-//                   ? "opacity-100"
-//                   : "opacity-0 absolute inset-0"
-//               }`}
-//             >
-//               {activeTab === "liked" && <VideoGrid type="liked" />}
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </Layout>
-//   );
-// };
+  const userTabs = [
+    { id: "uploaded", label: "업로드한 영상" },
+  ];
 
-// export default UserPage;
+  const handleProjectClick = useCallback((projectId: number) => {
+    navigate(`/project/${projectId}`);
+  }, [navigate]);
+
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab as ProjectType);
+  }, [setActiveTab]);
+
+  if (userLoading) {
+    return (
+      <Layout showNotification>
+        <div className="w-full h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (userError || !user) {
+    return (
+      <Layout showNotification>
+        <div className="w-full h-screen flex items-center justify-center">
+          <div className="text-xl text-gray-600">
+            사용자를 찾을 수 없습니다.
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const currentProjects = getCurrentProjects();
+  const hasMore = getHasMoreProjects();
+  const loading = getProjectLoading();
+
+  return (
+    <Layout showNotification>
+      <div className="max-w-4xl mx-auto bg-white">
+        {/* 배경 이미지 */}
+        <div className="w-full h-48 bg-gray-200 rounded-lg mb-4">
+          <img
+            src={user.header || "/api/placeholder/1200/300"}
+            alt="Channel banner"
+            className="w-full h-full object-cover rounded-lg"
+          />
+        </div>
+
+        {/* 프로필 정보 섹션 */}
+        <div className="flex px-4 mb-8">
+          {/* 프로필 이미지 */}
+          <div className="flex items-center mr-6">
+            <img
+              src={user.profileImage || "/api/placeholder/80/80"}
+              alt={`${user.nickname}'s profile`}
+              className="w-20 h-20 rounded-full"
+            />
+          </div>
+
+          <div className="flex-grow py-2">
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-xl font-bold">{user.nickname}</h1>
+                <p className="text-gray-600 text-sm">{user.email}</p>
+                <p className="text-gray-600 text-sm mt-1">{user.intro}</p>
+
+                <div className="flex gap-4 mt-2">
+                  <span className="text-gray-700">
+                    <strong>{followData.followingCount}</strong> 팔로잉
+                  </span>
+                  <span className="text-gray-700">
+                    <strong>{followData.followerCount}</strong> 팔로워
+                  </span>
+                </div>
+
+                <div className="flex gap-2 mt-3">
+                  {user.instruments.map((instrument) => (
+                    <span
+                      key={instrument.instrument_id}
+                      className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm"
+                    >
+                      {instrument.instrument_name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleFollowClick}
+                  disabled={followData.loading}
+                  className={`px-6 py-2 rounded-full ${
+                    followData.isFollowing
+                      ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  } disabled:opacity-50`}
+                >
+                  {followData.loading
+                    ? '처리 중...'
+                    : followData.isFollowing
+                    ? '언팔로우'
+                    : '팔로우'}
+                </button>
+                <button className="p-2 hover:bg-gray-100 rounded-full">
+                  <MessageSquare className="w-6 h-6 text-gray-700" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <TabNavigation
+          activeTab={activeTab}
+          tabs={userTabs}
+          onTabChange={handleTabChange}
+        />
+
+        <VideoGrid type="uploaded">
+          {currentProjects.map((project) => (
+            <VideoCard
+              key={`project-${project.projectId}`}
+              project={project}
+              onClick={() => handleProjectClick(project.projectId)}
+            />
+          ))}
+        </VideoGrid>
+
+        {hasMore && (
+          <div className="flex justify-center mt-4 mb-8">
+            <button
+              type="button"
+              onClick={() => loadMore()}
+              disabled={loading}
+              className="px-8 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Load More"}
+            </button>
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
+};
+
+export default UserProfile;

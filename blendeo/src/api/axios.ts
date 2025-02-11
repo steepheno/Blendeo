@@ -34,8 +34,50 @@ axiosInstance.interceptors.request.use((config) => {
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+      return config;
     } else {
-      console.log("No authentication token found");
+      // accessToken이 없는 경우 refresh 시도
+      const refreshToken = cookies
+        .find((cookie) => cookie.trim().startsWith("refreshToken="))
+        ?.split("=")[1];
+
+      if (refreshToken) {
+        return axios
+          .post(
+            `${baseURL}/user/auth/refresh`,
+            {},
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${refreshToken}`,
+              },
+            }
+          )
+          .then((response) => {
+            if (!response) {
+              throw new Error('No response from refresh token request');
+            }
+            
+            const cookies = document.cookie.split(";");
+            const newAccessToken = cookies
+              .find((cookie) => cookie.trim().startsWith("accessToken="))
+              ?.split("=")[1];
+
+            if (newAccessToken) {
+              config.headers.Authorization = `Bearer ${newAccessToken}`;
+              return config;
+            }
+            throw new Error('New access token not found in cookies');
+          })
+          .catch((error) => {
+            console.error('Token refresh failed:', error);
+            handleLogout();
+            throw error; // Promise.reject 대신 throw 사용
+          });
+      }
+      
+      handleLogout();
+      throw new Error('No refresh token available');
     }
   }
   return config;
@@ -91,41 +133,55 @@ axiosInstance.interceptors.response.use(
           .find((cookie) => cookie.trim().startsWith("refreshToken="))
           ?.split("=")[1];
 
-        if (refreshToken) {
-          const response = await axios.post(
-            `${baseURL}/user/auth/refresh`,
-            {},
-            {
-              headers: {
-                Authorization: `Bearer ${refreshToken}`,
-              },
-            }
-          );
-
-          if (response.data.accessToken) {
-            // 새로운 accessToken 저장
-            document.cookie =
-              "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
-            document.cookie = `accessToken=${response.data.accessToken}; path=/; secure; samesite=strict; max-age=3600`;
-
-            originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-            return axiosInstance(originalRequest);
-          }
+        if (!refreshToken) {
+          throw new Error("No refresh token found");
         }
+
+        await axios.post(
+          `${baseURL}/user/auth/refresh`,
+          {},
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          }
+        );
+
+        // 새로운 쿠키가 설정된 후의 accessToken 가져오기
+        const newCookies = document.cookie.split(";");
+        const newAccessToken = newCookies
+          .find((cookie) => cookie.trim().startsWith("accessToken="))
+          ?.split("=")[1];
+
+        if (!newAccessToken) {
+          throw new Error('New access token not found in cookies');
+        }
+
+        // 새로운 요청 시도
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return axiosInstance(originalRequest);
       } catch (refreshError) {
-        document.cookie.split(";").forEach((cookie) => {
-          document.cookie = cookie
-            .replace(/^ +/, "")
-            .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
-        });
-        useUserStore.getState().setCurrentUser(null);
-        window.location.href = "/auth/signin";
-        console.log(refreshError);
+        console.error('Token refresh failed:', refreshError);
+        handleLogout();
+        return Promise.reject(refreshError);
       }
     }
 
     return Promise.reject(error);
   }
 );
+
+// 로그아웃 처리 함수
+const handleLogout = () => {
+  // 모든 쿠키 삭제
+  document.cookie.split(";").forEach((cookie) => {
+    document.cookie = cookie
+      .replace(/^ +/, "")
+      .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+  });
+  useUserStore.getState().setCurrentUser(null);
+  window.location.href = "/auth/signin";
+};
 
 export default axiosInstance;

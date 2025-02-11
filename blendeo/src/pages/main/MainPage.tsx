@@ -41,7 +41,6 @@ const MainPage = () => {
   }, [setActiveTab]);
 
   const handleGenreSelect = useCallback((genre: string) => {
-    // Genre 관련 로직은 store로 이동할 수 있습니다
     console.log("Selected genre:", genre);
   }, []);
 
