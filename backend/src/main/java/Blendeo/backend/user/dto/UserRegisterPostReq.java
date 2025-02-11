@@ -1,18 +1,29 @@
 package Blendeo.backend.user.dto;
 
 import Blendeo.backend.user.entity.User;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
+import org.aspectj.lang.annotation.RequiredTypes;
+import org.checkerframework.checker.units.qual.N;
+
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 public class UserRegisterPostReq {
+    @NotNull
+    @NotBlank
     private String email;
+    @NotNull
+    @NotBlank
     private String password;
+    @NotNull
+    @NotBlank
     private String nickname;
+
+    private List<Integer> instrumentIds;
 
     @Builder
     public UserRegisterPostReq(String email, String password, String nickname) {
