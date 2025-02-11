@@ -184,4 +184,18 @@ public class ProjectController {
         return ResponseEntity.ok().body(projectService.getFollowingProjectList(userId, page, size));
     }
 
+    @Operation(
+            summary = "다음/이전 형제 프로젝트 조회",
+            description = "현재 프로젝트의 다음 또는 이전 형제 프로젝트 반환"
+                    + "next: 다음"
+                    + "before: 이전"
+    )
+    @GetMapping("/sibling")
+    public ResponseEntity<ProjectInfoRes> getSiblingProject(
+            @RequestParam Long currentProjectId,
+            @RequestParam(defaultValue = "next") String direction) {
+
+        return ResponseEntity.ok()
+                .body(projectService.getSiblingProject(currentProjectId, direction));
+    }
 }

@@ -18,7 +18,7 @@ public class ForkController {
     private final ForkService forkService;
 
     @GetMapping("/hierarchy/{projectId}")
-    public ResponseEntity<List<ProjectHierarchyRes>> getHierarchy(@PathVariable Long projectId) {
+    public ResponseEntity<ProjectHierarchyRes> getHierarchy(@PathVariable Long projectId) {
         return ResponseEntity.ok(forkService.getHierarchy(projectId));
     }
 }
