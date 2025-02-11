@@ -1,5 +1,5 @@
 import { MessageSquare } from 'lucide-react';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import Layout from '@/components/layout/Layout';
@@ -11,8 +11,10 @@ import { ProjectType } from '@/stores/userPageStore';
 import useUserPageStore from '@/stores/userPageStore';
 
 const UserProfile = () => {
-    const { userId } = useParams(); // URL에서 userId 추출
+    const { userId } = useParams();
     const navigate = useNavigate();
+    const [followCounts, setFollowCounts] = useState({ followingCount: 0, followerCount: 0 });
+    
     const {
         user,
         userLoading,
@@ -24,21 +26,57 @@ const UserProfile = () => {
         setActiveTab,
         loadMore,
         fetchProjects,
+        followUser,
+        unfollowUser,
+        getFollowCounts,
+        followLoading,
+        isFollowing,
+        checkIsFollowing,
     } = useUserPageStore();
 
     const projects = getCurrentProjects();
     const loading = getIsLoading();
     const hasMore = getHasMore();
 
-    // userId가 변경될 때마다 유저 정보 fetch
+    // 팔로우 수 fetch
+    const fetchFollowCounts = useCallback(async () => {
+        if (userId) {
+            try {
+                const counts = await getFollowCounts(parseInt(userId));
+                setFollowCounts(counts);
+            } catch (error) {
+                console.error('Failed to fetch follow counts:', error);
+            }
+        }
+    }, [userId, getFollowCounts]);
+
+    // userId가 변경될 때마다 유저 정보와 팔로우 수 fetch
     useEffect(() => {
         if (userId) {
             const id = parseInt(userId, 10);
             if (!isNaN(id)) {
                 fetchUser(id);
+                fetchFollowCounts();
+                checkIsFollowing(id);
             }
         }
-    }, [userId, fetchUser]);
+    }, [userId, fetchUser, fetchFollowCounts, checkIsFollowing]);
+
+    const handleFollowClick = useCallback(async () => {
+        if (!userId || !user) return;
+        
+        try {
+            if (isFollowing) {
+                await unfollowUser(parseInt(userId));
+            } else {
+                await followUser(parseInt(userId));
+            }
+            // 팔로우 수 갱신
+            fetchFollowCounts();
+        } catch (error) {
+            console.error('Failed to follow/unfollow:', error);
+        }
+    }, [userId, user, followUser, unfollowUser, fetchFollowCounts, isFollowing]);
 
     const userTabs = [
         { id: "uploaded", label: "업로드한 영상" },
@@ -90,6 +128,15 @@ const UserProfile = () => {
                                 <p className="text-gray-600 text-sm">{user.email}</p>
                                 <p className="text-gray-600 text-sm mt-1">{user.intro}</p>
 
+                                <div className="flex gap-4 mt-2">
+                                    <span className="text-gray-700">
+                                        팔로잉 <strong>{followCounts.followingCount}</strong>
+                                    </span>
+                                    <span className="text-gray-700">
+                                        팔로워 <strong>{followCounts.followerCount}</strong>
+                                    </span>
+                                </div>
+
                                 <div className="flex gap-2 mt-3">
                                     {user.instruments.map((instrument) => (
                                         <span
@@ -103,8 +150,20 @@ const UserProfile = () => {
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <button className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700">
-                                    팔로우
+                                <button 
+                                    onClick={handleFollowClick}
+                                    disabled={followLoading}
+                                    className={`px-6 py-2 rounded-full ${
+                                        isFollowing
+                                            ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                                    } disabled:opacity-50`}
+                                >
+                                    {followLoading
+                                        ? '처리 중...'
+                                        : isFollowing
+                                        ? '언팔로우'
+                                        : '팔로우'}
                                 </button>
                                 <button className="p-2 hover:bg-gray-100 rounded-full">
                                     <MessageSquare className="w-6 h-6 text-gray-700" />
@@ -134,7 +193,6 @@ const UserProfile = () => {
                         <button
                             type="button"
                             onClick={() => loadMore()}
-
                             disabled={loading}
                             className="px-8 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
                         >

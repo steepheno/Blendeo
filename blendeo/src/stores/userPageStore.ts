@@ -2,9 +2,17 @@ import { ProjectListItem } from "@/types/api/project";
 import { create } from "zustand";
 import { mainPageApi } from "@/api/mainPage";
 import { User } from "@/types/api/user";
-import { getUser } from "@/api/user";
+import {
+  getUser,
+  followUser as apiFollowUser,
+  unfollowUser as apiUnfollowUser,
+  getFollowers,
+  getFollowings,
+  checkFollowing,
+} from "@/api/user";
+import { useAuthStore } from "./authStore";
 
-export type ProjectType = 'uploaded' /*| 'liked' */;
+export type ProjectType = "uploaded" /*| 'liked' */;
 
 interface ProjectState {
   items: ProjectListItem[];
@@ -16,6 +24,11 @@ export interface UserPageStore {
   user: User | null;
   userLoading: boolean;
   userError: Error | null;
+  followLoading: boolean;
+
+  isFollowing: boolean;
+  followCheckLoading: boolean;
+  checkIsFollowing: (userId: number) => Promise<void>;
 
   projectStates: {
     [K in ProjectType]: ProjectState;
@@ -27,18 +40,29 @@ export interface UserPageStore {
   lastUpdated: {
     [K in ProjectType]: number | null;
   };
-  
+
   setActiveTab: (tab: ProjectType) => void;
-  fetchProjects: (type: ProjectType, size?: number, forceRefresh?: boolean) => Promise<void>;
+  fetchProjects: (
+    type: ProjectType,
+    size?: number,
+    forceRefresh?: boolean
+  ) => Promise<void>;
   loadMore: (size?: number) => Promise<void>;
   resetState: (type: ProjectType) => void;
-  
+
   getCurrentProjects: () => ProjectListItem[];
   getIsLoading: () => boolean;
   getHasMore: () => boolean;
 
   fetchUser: (userId: number) => Promise<void>;
   resetUser: () => void;
+
+  // Follow 관련 메서드
+  followUser: (userId: number) => Promise<void>;
+  unfollowUser: (userId: number) => Promise<void>;
+  getFollowCounts: (
+    userId: number
+  ) => Promise<{ followingCount: number; followerCount: number }>;
 }
 
 const INITIAL_PROJECT_STATE: ProjectState = {
@@ -60,77 +84,85 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
   user: null,
   userLoading: false,
   userError: null,
+  followLoading: false,
 
   projectStates: createInitialState(),
   loading: {
     uploaded: false,
     // liked: false,
   },
-  activeTab: 'uploaded',
+  activeTab: "uploaded",
   lastUpdated: {
     uploaded: null,
     // liked: null,
   },
 
+  isFollowing: false,
+  followCheckLoading: false,
+
   setActiveTab: (tab: ProjectType) => {
-    console.log('[Store] Setting active tab to:', tab);
+    console.log("[Store] Setting active tab to:", tab);
     set({ activeTab: tab });
-    
+
     const store = get();
     const lastUpdate = store.lastUpdated[tab];
     const hasExpired = !lastUpdate || Date.now() - lastUpdate > CACHE_DURATION;
-    
-    console.log('[Store] Cache status:', {
+
+    console.log("[Store] Cache status:", {
       lastUpdate,
       hasExpired,
-      itemsCount: store.projectStates[tab].items.length
+      itemsCount: store.projectStates[tab].items.length,
     });
-    
+
     // 캐시된 데이터가 없거나 만료된 경우에만 새로 fetch
     if (store.projectStates[tab].items.length === 0 || hasExpired) {
       get().fetchProjects(tab, PAGE_SIZE, true);
     }
   },
 
-  fetchProjects: async (type: ProjectType, size = PAGE_SIZE, forceRefresh = false) => {
+  fetchProjects: async (
+    type: ProjectType,
+    size = PAGE_SIZE,
+    forceRefresh = false
+  ) => {
     const store = get();
     const state = store.projectStates[type];
-    
+
     // 이미 로딩 중이거나 더 이상 불러올 데이터가 없으면 중단
     if (store.loading[type] || (!forceRefresh && !state.hasMore)) {
-      console.log('[Store] Skipping fetch:', { 
-        type, 
-        loading: store.loading[type], 
+      console.log("[Store] Skipping fetch:", {
+        type,
+        loading: store.loading[type],
         hasMore: state.hasMore,
-        forceRefresh 
+        forceRefresh,
       });
       return;
     }
-    
+
     set((state: UserPageStore) => ({
-      loading: { ...state.loading, [type]: true }
+      loading: { ...state.loading, [type]: true },
     }));
-    
+
     try {
       console.log(`[Store] Fetching ${type} projects:`, {
         page: forceRefresh ? 0 : state.currentPage,
-        size
+        size,
       });
 
       let projects: ProjectListItem[];
-      
+
       try {
-        switch(type) {
+        switch (type) {
           // case 'liked':
           //   projects = await mainPageApi.getNewProjects(
-          //     forceRefresh ? 0 : state.currentPage, 
+          //     forceRefresh ? 0 : state.currentPage,
           //     size
           //   );
           //   break;
-          case 'uploaded':
+          case "uploaded":
           default:
             projects = await mainPageApi.getNewProjects(
-              forceRefresh ? 0 : state.currentPage, 
+              forceRefresh ? 0 : state.currentPage,
               size
             );
             break;
@@ -146,60 +178,62 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
           projectStates: {
             ...state.projectStates,
             [type]: {
-              items: forceRefresh 
-                ? projects 
+              items: forceRefresh
+                ? projects
                 : [...state.projectStates[type].items, ...projects],
               hasMore: projects.length === size,
-              currentPage: forceRefresh ? 1 : state.projectStates[type].currentPage + 1,
-            }
+              currentPage: forceRefresh
+                ? 1
+                : state.projectStates[type].currentPage + 1,
+            },
           },
           lastUpdated: {
             ...state.lastUpdated,
-            [type]: forceRefresh ? Date.now() : state.lastUpdated[type]
-          }
+            [type]: forceRefresh ? Date.now() : state.lastUpdated[type],
+          },
         };
 
         console.log(`[Store] New state after update:`, {
           type,
-          newState: newState.projectStates[type]
+          newState: newState.projectStates[type],
         });
 
         return newState;
       });
     } finally {
       set((state: UserPageStore) => ({
-        loading: { ...state.loading, [type]: false }
+        loading: { ...state.loading, [type]: false },
       }));
     }
   },
 
   loadMore: async (size = PAGE_SIZE) => {
     const { activeTab } = get();
-    console.log('[Store] Loading more items for:', activeTab);
+    console.log("[Store] Loading more items for:", activeTab);
     await get().fetchProjects(activeTab, size);
   },
 
   resetState: (type: ProjectType) => {
-    console.log('[Store] Resetting state for:', type);
+    console.log("[Store] Resetting state for:", type);
     set((state: UserPageStore) => ({
       projectStates: {
         ...state.projectStates,
-        [type]: { ...INITIAL_PROJECT_STATE }
+        [type]: { ...INITIAL_PROJECT_STATE },
       },
       lastUpdated: {
         ...state.lastUpdated,
-        [type]: null
-      }
+        [type]: null,
+      },
     }));
   },
 
   getCurrentProjects: () => {
     const { projectStates, activeTab } = get();
     const projects = projectStates[activeTab].items;
-    console.log('[Store] Getting current projects:', {
+    console.log("[Store] Getting current projects:", {
       tab: activeTab,
       count: projects.length,
-      projects
+      projects,
     });
     return projects;
   },
@@ -216,27 +250,98 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
 
   fetchUser: async (userId: number) => {
     set({ userLoading: true, userError: null });
-    
+
     try {
       const userData: User = await getUser(userId);
       set({ user: userData });
-      
-      console.log('[Store] User fetched successfully:', userData);
+
+      console.log("[Store] User fetched successfully:", userData);
     } catch (error) {
-      const e = error instanceof Error ? error : new Error('Unknown error');
+      const e = error instanceof Error ? error : new Error("Unknown error");
       set({ userError: e });
-      console.error('[Store] Failed to fetch user:', error);
+      console.error("[Store] Failed to fetch user:", error);
     } finally {
       set({ userLoading: false });
     }
   },
-  
+
   resetUser: () => {
-    set({ 
-      user: null, 
-      userLoading: false, 
-      userError: null 
+    set({
+      user: null,
+      userLoading: false,
+      userError: null,
     });
+  },
+
+  followUser: async (userId: number) => {
+    set({ followLoading: true });
+    try {
+      await apiFollowUser(userId);
+      // 팔로우 후 유저 정보 리프레시
+      await get().fetchUser(userId);
+      console.log("[Store] Successfully followed user:", userId);
+    } catch (error) {
+      console.error("[Store] Failed to follow user:", error);
+      throw error;
+    } finally {
+      set({ followLoading: false });
+    }
+  },
+
+  unfollowUser: async (userId: number) => {
+    set({ followLoading: true });
+    try {
+      await apiUnfollowUser(userId);
+      // 언팔로우 후 유저 정보 리프레시
+      await get().fetchUser(userId);
+      console.log("[Store] Successfully unfollowed user:", userId);
+    } catch (error) {
+      console.error("[Store] Failed to unfollow user:", error);
+      throw error;
+    } finally {
+      set({ followLoading: false });
+    }
+  },
+
+  getFollowCounts: async (userId: number) => {
+    try {
+      const [followings, followers] = await Promise.all([
+        getFollowings(userId),
+        getFollowers(userId),
+      ]);
+
+      console.log("[Store] Follow counts fetched:", {
+        followingCount: followings.followingCount,
+        followerCount: followers.followingCount,
+      });
+
+      return {
+        followingCount: followings.followingCount,
+        followerCount: followers.followingCount,
+      };
+    } catch (error) {
+      console.error("[Store] Failed to fetch follow counts:", error);
+      throw error;
+    }
+  },
+
+  checkIsFollowing: async (userId: number) => {
+    const isAuthenticated = useAuthStore.getState().isAuthenticated;
+    if (!isAuthenticated) {
+      set({ isFollowing: false });
+      return;
+    }
+
+    set({ followCheckLoading: true });
+    try {
+      const isFollowing = await checkFollowing(userId);
+      set({ isFollowing });
+    } catch (error) {
+      console.error('Failed to check following status:', error);
+      set({ isFollowing: false });
+    } finally {
+      set({ followCheckLoading: false });
+    }
   },
 }));
 

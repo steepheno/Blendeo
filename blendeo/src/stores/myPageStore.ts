@@ -2,9 +2,14 @@ import { ProjectListItem } from "@/types/api/project";
 import { create } from "zustand";
 import { mainPageApi } from "@/api/mainPage";
 import { User } from "@/types/api/user";
-import { getUser, updateProfile, getFollowers, getFollowings } from "@/api/user";
+import {
+  getUser,
+  updateProfile,
+  getFollowers,
+  getFollowings,
+} from "@/api/user";
 
-export type ProjectType = 'uploaded' | 'scraped' /*| 'liked' */;
+export type ProjectType = "uploaded" | "scraped" /*| 'liked' */;
 
 interface ProjectState {
   items: ProjectListItem[];
@@ -18,7 +23,6 @@ interface EditData {
   profileImage: File | null;
   header: File | null;
 }
-
 
 interface FollowState {
   followingIdList: number[];
@@ -49,19 +53,23 @@ export interface MyPageStore {
 
   // Follow 상태
   followData: FollowState;
-  
+
   // Profile 관련 액션
   fetchProfile: (userId: number) => Promise<void>;
   resetProfile: () => void;
   updateProfileData: (data: Partial<User>) => Promise<void>;
-  
+
   // Project 관련 액션
   setActiveTab: (tab: ProjectType) => void;
-  fetchProjects: (type: ProjectType, size?: number, forceRefresh?: boolean) => Promise<void>;
+  fetchProjects: (
+    type: ProjectType,
+    size?: number,
+    forceRefresh?: boolean
+  ) => Promise<void>;
   loadMore: () => Promise<void>;
   resetProjects: (type?: ProjectType) => void;
-  shouldFetchProjects: (type: ProjectType) => boolean;  // 추가된 부분
-  
+  shouldFetchProjects: (type: ProjectType) => boolean; // 추가된 부분
+
   // Edit 관련 액션
   setEditMode: (isEdit: boolean) => void;
   updateEditData: (data: Partial<EditData>) => void;
@@ -70,7 +78,6 @@ export interface MyPageStore {
 
   //Follow 액션
   fetchFollowData: (userId: number) => Promise<void>;
-
 }
 
 const INITIAL_PROJECT_STATE: ProjectState = {
@@ -80,8 +87,8 @@ const INITIAL_PROJECT_STATE: ProjectState = {
 };
 
 const INITIAL_EDIT_DATA: EditData = {
-  nickname: '',
-  intro: '',
+  nickname: "",
+  intro: "",
   profileImage: null,
   header: null,
 };
@@ -119,7 +126,7 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
     // liked: false,
     scraped: false,
   },
-  activeTab: 'uploaded',
+  activeTab: "uploaded",
   lastUpdated: {
     uploaded: null,
     // liked: null,
@@ -140,7 +147,8 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
       const profile = await getUser(userId);
       set({ profile });
     } catch (error) {
-      const profileError = error instanceof Error ? error : new Error('Failed to fetch profile');
+      const profileError =
+        error instanceof Error ? error : new Error("Failed to fetch profile");
       set({ profileError });
       throw profileError;
     } finally {
@@ -149,17 +157,17 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
   },
 
   resetProfile: () => {
-    set({ 
-      profile: null, 
-      profileLoading: false, 
-      profileError: null 
+    set({
+      profile: null,
+      profileLoading: false,
+      profileError: null,
     });
   },
 
   updateProfileData: async (data: Partial<User>) => {
     const { profile } = get();
     if (!profile) return;
-    
+
     set({ profile: { ...profile, ...data } });
   },
 
@@ -174,22 +182,28 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
     return projectStates[type].items.length === 0 || hasExpired;
   },
 
-  fetchProjects: async (type: ProjectType, size = PAGE_SIZE, forceRefresh = false) => {
+  fetchProjects: async (
+    type: ProjectType,
+    size = PAGE_SIZE,
+    forceRefresh = false
+  ) => {
     const { projectLoading, projectStates, shouldFetchProjects } = get();
-    
+
     // 이미 로딩 중이거나, 강제 새로고침이 아니고, 캐시가 유효하면 중단
     if (projectLoading[type] || (!forceRefresh && !shouldFetchProjects(type))) {
       return;
     }
-    
+
     set({ projectLoading: { ...projectLoading, [type]: true } });
-    
+
     try {
       const apiMethod = (() => {
-        switch(type) {
+        switch (type) {
           // case 'liked': return mainPageApi.getNewProjects;
-          case 'scraped': return mainPageApi.getNewProjects;
-          default: return mainPageApi.getNewProjects;
+          case "scraped":
+            return mainPageApi.getNewProjects;
+          default:
+            return mainPageApi.getNewProjects;
         }
       })();
 
@@ -200,19 +214,21 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
         projectStates: {
           ...state.projectStates,
           [type]: {
-            items: forceRefresh ? projects : [...state.projectStates[type].items, ...projects],
+            items: forceRefresh
+              ? projects
+              : [...state.projectStates[type].items, ...projects],
             hasMore: projects.length === size,
             currentPage: currentPage + 1,
-          }
+          },
         },
         lastUpdated: {
           ...state.lastUpdated,
-          [type]: Date.now()
-        }
+          [type]: Date.now(),
+        },
       }));
     } finally {
       set((state) => ({
-        projectLoading: { ...state.projectLoading, [type]: false }
+        projectLoading: { ...state.projectLoading, [type]: false },
       }));
     }
   },
@@ -227,12 +243,12 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
       set((state) => ({
         projectStates: {
           ...state.projectStates,
-          [type]: { ...INITIAL_PROJECT_STATE }
+          [type]: { ...INITIAL_PROJECT_STATE },
         },
         lastUpdated: {
           ...state.lastUpdated,
-          [type]: null
-        }
+          [type]: null,
+        },
       }));
     } else {
       set({
@@ -240,8 +256,8 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
         lastUpdated: {
           uploaded: null,
           // liked: null,
-          scraped: null
-        }
+          scraped: null,
+        },
       });
     }
   },
@@ -249,27 +265,29 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
   // Edit 관련 액션
   setEditMode: (isEdit: boolean) => {
     const { profile } = get();
-    set({ 
+    set({
       isEditMode: isEdit,
-      editData: isEdit ? {
-        nickname: profile?.nickname || '',
-        intro: profile?.intro || '',
-        profileImage: null,
-        header: null,
-      } : INITIAL_EDIT_DATA
+      editData: isEdit
+        ? {
+            nickname: profile?.nickname || "",
+            intro: profile?.intro || "",
+            profileImage: null,
+            header: null,
+          }
+        : INITIAL_EDIT_DATA,
     });
   },
 
   updateEditData: (data: Partial<EditData>) => {
     set((state) => ({
-      editData: { ...state.editData, ...data }
+      editData: { ...state.editData, ...data },
     }));
   },
 
   resetEditData: () => {
     set({
       editData: INITIAL_EDIT_DATA,
-      isEditMode: false
+      isEditMode: false,
     });
   },
 
@@ -288,26 +306,28 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
       await get().fetchProfile(profile.id);
       set({
         isEditMode: false,
-        editData: INITIAL_EDIT_DATA
+        editData: INITIAL_EDIT_DATA,
       });
     } catch (error) {
-      throw error instanceof Error ? error : new Error('Failed to update profile');
+      throw error instanceof Error
+        ? error
+        : new Error("Failed to update profile");
     }
   },
   // Follow 액션 추가
   fetchFollowData: async (userId: number) => {
-    set(state => ({
+    set((state) => ({
       followData: {
         ...state.followData,
         loading: true,
-        error: null
-      }
+        error: null,
+      },
     }));
 
     try {
       const [followersResponse, followingsResponse] = await Promise.all([
         getFollowers(userId),
-        getFollowings(userId)
+        getFollowings(userId),
       ]);
 
       set({
@@ -315,16 +335,19 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
           ...followersResponse,
           ...followingsResponse,
           loading: false,
-          error: null
-        }
+          error: null,
+        },
       });
     } catch (error) {
-      set(state => ({
+      set((state) => ({
         followData: {
           ...state.followData,
           loading: false,
-          error: error instanceof Error ? error : new Error('Failed to fetch follow data')
-        }
+          error:
+            error instanceof Error
+              ? error
+              : new Error("Failed to fetch follow data"),
+        },
       }));
     }
   },

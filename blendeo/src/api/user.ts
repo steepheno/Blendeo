@@ -81,3 +81,18 @@ export const getFollowers = async (userId: number): Promise<FollowResponse> => {
     throw new Error('팔로워 목록을 불러오는데 실패했습니다.'+error);
   }
 };
+
+
+export const checkFollowing = async (targetUserId: number): Promise<boolean> => {
+  // axiosInstance가 알아서 토큰 처리와 refresh를 해주므로 
+  // 단순히 API 호출만 하면 됩니다
+  try {
+    const response = await axiosInstance.get<boolean>(`/user/checkfollowing/${targetUserId}`);
+    return response;
+  } catch (error) {
+    // 401, 403 등의 인증 에러는 axiosInstance에서 처리됨
+    // 그 외의 에러는 false 리턴
+    if(error) return false;
+    return false;
+  }
+};
