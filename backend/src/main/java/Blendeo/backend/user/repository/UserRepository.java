@@ -17,8 +17,8 @@ public interface UserRepository extends JpaRepository<User, Integer> { // 사용
 
     @Modifying
     @Transactional
-    @Query("UPDATE User u SET u.nickname = :nickname, u.profileImage = :profileImage WHERE u.id = :id")
-    void updateUser(@Param("id") int id, @Param("nickname") String nickname, @Param("profileImage") URL profileImage);
+    @Query("UPDATE User u SET u.nickname = :nickname, u.profileImage = :profileImage, u.header = :header, u.intro = :intro WHERE u.id = :id")
+    void updateUser(@Param("id") int id, @Param("nickname") String nickname, @Param("profileImage") URL profileImage, @Param("header") URL header, @Param("intro") String intro);
 
     boolean existsByEmail(String email);
 }

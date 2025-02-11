@@ -134,6 +134,8 @@ public class UserServiceImpl implements UserService {
 
         UserInfoGetRes info = UserInfoGetRes.builder()
                 .id(id).email(user.getEmail()).nickname(user.getNickname())
+                .header(user.getHeader())
+                .intro(user.getIntro())
                 .profileImage(user.getProfileImage()).build();
                 
         return info;
@@ -147,14 +149,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(int userId, String nickname, MultipartFile profileImage) {
+    public void updateUser(int userId, String nickname, MultipartFile profileImage, MultipartFile headerImage, String intro) {
         User user = userRepository.findById(userId)
                 .orElseThrow(EntityNotFoundException::new);
 
-        // user 에 원래 존재했던 프로필 사진을 S3에서 삭제하기.
-        if (user.getProfileImage()!=null) {
-            s3Utils.deleteFromS3ByUrl(user.getProfileImage().toString());
-        }
+        String newNickname = nickname == null ? user.getNickname() : nickname;
 
         // 들어온 사진이 없다면, URL null로 저장.
         URL profileImgUrl = null;
@@ -178,7 +177,40 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        userRepository.updateUser(userId, nickname, profileImgUrl);
+        if (profileImgUrl == null) {
+            profileImgUrl = user.getProfileImage();
+        }
+
+        // 들어온 사진이 없다면, URL null로 저장.
+        URL headerImgUrl = null;
+
+        if (headerImage != null && !headerImage.isEmpty()) {
+            File tempFile = null;
+
+            try {
+                String fileName = "header/image_"+ UUID.randomUUID().toString();
+                tempFile = File.createTempFile(fileName, ".jpeg");
+
+                headerImage.transferTo(tempFile);
+
+                s3Utils.uploadToS3(tempFile, fileName + ".jpeg", "headerImage/jpeg");
+
+                String urlString = s3Utils.getUrlByFileName(fileName + ".jpeg");
+                headerImgUrl = new URL(urlString);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (headerImgUrl == null) {
+            headerImgUrl = user.getProfileImage();
+        }
+
+        String newIntro = intro == null ? user.getIntro() : intro;
+
+        if (nickname != null && !nickname.isEmpty()) {
+            userRepository.updateUser(userId, newNickname, profileImgUrl, headerImgUrl, newIntro);
+        }
+
     }
 
     @Transactional

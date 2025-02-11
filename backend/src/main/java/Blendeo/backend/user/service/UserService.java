@@ -18,7 +18,7 @@ public interface UserService {
 
     void deleteUser(int id);
 
-    void updateUser(int userId, String nickname, MultipartFile profileImage);
+    void updateUser(int userId, String nickname, MultipartFile profileImage, MultipartFile headerImage, String intro);
 
     void follow(int userId, int targetId);
 

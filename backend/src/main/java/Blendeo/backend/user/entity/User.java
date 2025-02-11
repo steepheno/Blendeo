@@ -28,6 +28,10 @@ public class User {
     @Column
     private String nickname;
     @Column
+    private URL header;
+    @Column
+    private String intro;
+    @Column
     private URL profileImage;
 
     @OneToMany(mappedBy = "followPK.follower", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -41,11 +45,13 @@ public class User {
     }
 
     @Builder
-    User(int id, String email, String password, String nickname, URL profileImage) {
+    User(int id, String email, String password, String nickname, URL header, String intro, URL profileImage) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+        this.header = header;
+        this.intro = intro;
         this.profileImage = profileImage;
     }
 

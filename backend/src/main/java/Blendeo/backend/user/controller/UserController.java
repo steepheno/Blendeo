@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,15 +38,25 @@ public class UserController {
 
     @Operation(summary = "회원가입")
     @PostMapping("/auth/signup")
-    public ResponseEntity<?> register(@RequestBody UserRegisterPostReq userRegisterPostReq) {
+    @Transactional
+    public ResponseEntity<?> register(@Valid @RequestBody UserRegisterPostReq userRegisterPostReq) {
         log.info("UserRegisterPostReq: {}", userRegisterPostReq);
         int userId = userService.register(userRegisterPostReq);
+
+        instrumentService.deleteInstrument(userId);
+
+        if (userRegisterPostReq.getInstrumentIds()!=null && !userRegisterPostReq.getInstrumentIds().isEmpty()) {
+            instrumentService.saveInstrument(userId, userRegisterPostReq.getInstrumentIds());
+        }
+
         return ResponseEntity.ok().body(userId);
     }
 
 //    // 내가 좋아하는 악기 저장하기
-    @Operation(summary = "내가 좋아하는 악기 저장하기")
-    @PostMapping("/favorite/instrument/save")
+    @Operation(summary = "내가 좋아하는 악기 수정하기"
+    , description = "유저의 기존 악기 리스트 목록은 삭제되고 완전히 새로 추가됨.")
+    @PatchMapping("/favorite/instrument/save")
+    @Transactional
     public ResponseEntity<?> saveFavoriteInstrument(@RequestParam("lists") List<Integer> instrumentIds) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -201,11 +213,13 @@ public class UserController {
     @Operation(summary = "회원정보 수정")
     @PutMapping(value = "/update-user",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateUser(@RequestParam("nickname") String nickname,
-                                        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+    public ResponseEntity<?> updateUser(@RequestParam(value = "nickname", required = false) String nickname,
+                                        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
+                                        @RequestParam(value = "header", required = false) MultipartFile headerImage,
+                                        @RequestParam(value = "intro", required = false) String intro) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-            userService.updateUser(Integer.parseInt(user.getUsername()), nickname, profileImage);
+            userService.updateUser(Integer.parseInt(user.getUsername()), nickname, profileImage, headerImage, intro);
         return ResponseEntity.ok().build();
     }
 

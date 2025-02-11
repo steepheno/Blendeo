@@ -13,6 +13,8 @@ public class UserInfoGetRes {
     private String email;
     private String nickname;
     private URL profileImage;
+    private URL header;
+    private String intro;
     private List<InstrumentGetRes> instruments;
 
     public void setInstruments(List<InstrumentGetRes> instruments) {
@@ -20,11 +22,13 @@ public class UserInfoGetRes {
     }
 
     @Builder
-    public UserInfoGetRes(int id, String email, String nickname, URL profileImage, List<InstrumentGetRes> instruments) {
+    public UserInfoGetRes(int id, String email, String nickname, URL profileImage, URL header, String intro, List<InstrumentGetRes> instruments) {
         this.id = id;
         this.email = email;
         this.nickname = nickname;
         this.profileImage = profileImage;
+        this.header = header;
+        this.intro = intro;
         this.instruments = instruments;
     }
 }
