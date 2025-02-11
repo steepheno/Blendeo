@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,8 +22,8 @@ public class ProjectInfoRes {
     private String contents;
     private int contributorCnt;
     private boolean state;
-    private String thumbnail;
-    private String videoUrl;
+    private URL thumbnail;
+    private URL videoUrl;
     private int duration;
     private int viewCnt;
     private List<InstrumentGetRes> projectInstruments;
@@ -30,7 +31,7 @@ public class ProjectInfoRes {
     private LocalDateTime createdAt;
 
     @Builder
-    public ProjectInfoRes(Long id, Long forkId, String title, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, String thumbnail, int runningTime, int viewCnt, String videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments) {
+    public ProjectInfoRes(Long id, Long forkId, String title, String contents, int contributorCnt, LocalDateTime createdAt, boolean state, URL thumbnail, int runningTime, int viewCnt, URL videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments) {
         this.projectId = id;
         this.forkId = forkId;
         this.title = title;

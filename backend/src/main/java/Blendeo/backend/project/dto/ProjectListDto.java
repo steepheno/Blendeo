@@ -13,7 +13,7 @@ import java.util.List;
 public class ProjectListDto {
     private Long projectId;
     private String title;
-    private String thumbnail;
+    private URL thumbnail;
     private int viewCnt;
     private int contributionCnt;
     private int duration;
@@ -24,7 +24,7 @@ public class ProjectListDto {
     private LocalDateTime createdAt;
 
     @Builder
-    public ProjectListDto(Long projectId, String title, String thumbnail, int viewCnt, int contributionCnt, int duration, int authorId, String authorNickname, URL authorProfileImage, List<String> instruments, LocalDateTime createdAt) {
+    public ProjectListDto(Long projectId, String title, URL thumbnail, int viewCnt, int contributionCnt, int duration, int authorId, String authorNickname, URL authorProfileImage, List<String> instruments, LocalDateTime createdAt) {
         this.projectId = projectId;
         this.title = title;
         this.thumbnail = thumbnail;

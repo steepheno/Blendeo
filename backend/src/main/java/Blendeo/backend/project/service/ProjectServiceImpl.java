@@ -65,11 +65,12 @@ public class ProjectServiceImpl implements ProjectService {
 
         Project project = Project.builder()
                 .title(projectCreateReq.getTitle())
+                .contents(projectCreateReq.getContent())
                 .author(user)
                 .forkId(projectCreateReq.getForkProjectId())
-                .contents(projectCreateReq.getContent())
                 .runningTime(projectCreateReq.getDuration())
                 .contributorCnt(contributorCnt)
+                .thumbnail(projectCreateReq.getThumbnailUrl())
                 .videoUrl(projectCreateReq.getVideoUrl())
                 .build();
 
@@ -114,7 +115,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .createdAt(project.getCreatedAt())
                 .contents(project.getContents())
                 .thumbnail(project.getThumbnail())
-                .videoUrl(project.getVideoUrl().toString())
+                .videoUrl(project.getVideoUrl())
                 .viewCnt(project.getViewCnt())
                 .projectInstruments(projectInstruments.stream()
                         .filter(projectInstrument -> projectInstrument.getInstrument() != null) // Instrument가 널이면!
@@ -340,7 +341,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .createdAt(project.getCreatedAt())
                 .contents(project.getContents())
                 .thumbnail(project.getThumbnail())
-                .videoUrl(project.getVideoUrl().toString())
+                .videoUrl(project.getVideoUrl())
                 .state(project.isState())
                 .build();
     }
