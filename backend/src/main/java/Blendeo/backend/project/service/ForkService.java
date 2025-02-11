@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +36,8 @@ public class ForkService {
 
         List<Long> projectIds = new ArrayList<>(projectIdSet);
 
-        List<Project> projects = projectRepository.findAllByIdIn(projectIds);
+        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+        Page<Project> projects = projectRepository.findAllByIdIn(projectIds, pageable);
 
         Map<Long, Project> projectMap = new HashMap<>();
         for (Project project : projects) {

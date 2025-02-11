@@ -32,7 +32,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     Page<Project> findByFollowingUserAtDesc(@Param("userId") int userId, Pageable pageable);
 
     @Query("SELECT p FROM Project p WHERE p.id IN :ids")
-    List<Project> findAllByIdIn(@Param("ids") List<Long> ids);
+    Page<Project> findAllByIdIn(@Param("ids") List<Long> ids, Pageable pageable);
 
     @Modifying
     @Query("UPDATE Project p SET p.viewCnt = p.viewCnt + 1 WHERE p.id = :projectId")
