@@ -4,6 +4,11 @@ export interface SignupRequest {
   password: string;
   nickname: string;
 }
+// 악기 정보를 위한 인터페이스
+interface Instrument {
+  instrument_id: number;
+  instrument_name: string;
+}
 
 export interface SigninRequest {
   email: string;
@@ -16,6 +21,7 @@ export interface AuthResponse {
   email: string;
   nickname: string;
   profileImage: string | null;
+  instruments?: Instrument[];
   accessToken: string;
   refreshToken: string;
 }

@@ -60,6 +60,7 @@ export interface MyPageStore {
   fetchProjects: (type: ProjectType, size?: number, forceRefresh?: boolean) => Promise<void>;
   loadMore: () => Promise<void>;
   resetProjects: (type?: ProjectType) => void;
+  shouldFetchProjects: (type: ProjectType) => boolean;  // 추가된 부분
   
   // Edit 관련 액션
   setEditMode: (isEdit: boolean) => void;
@@ -96,8 +97,8 @@ const INITIAL_FOLLOW_STATE: FollowState = {
   error: null,
 };
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5분
-const PAGE_SIZE = 12;
+export const CACHE_DURATION = 5 * 60 * 1000; // 5분
+export const PAGE_SIZE = 12;
 
 const createInitialProjectStates = (): Record<ProjectType, ProjectState> => ({
   uploaded: { ...INITIAL_PROJECT_STATE },
@@ -162,23 +163,22 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
     set({ profile: { ...profile, ...data } });
   },
 
-  // Project 관련 액션
   setActiveTab: (tab: ProjectType) => {
     set({ activeTab: tab });
-    
+  },
+
+  shouldFetchProjects: (type: ProjectType) => {
     const { lastUpdated, projectStates } = get();
-    const lastUpdate = lastUpdated[tab];
+    const lastUpdate = lastUpdated[type];
     const hasExpired = !lastUpdate || Date.now() - lastUpdate > CACHE_DURATION;
-    
-    if (projectStates[tab].items.length === 0 || hasExpired) {
-      get().fetchProjects(tab, PAGE_SIZE, true);
-    }
+    return projectStates[type].items.length === 0 || hasExpired;
   },
 
   fetchProjects: async (type: ProjectType, size = PAGE_SIZE, forceRefresh = false) => {
-    const { projectLoading, projectStates } = get();
+    const { projectLoading, projectStates, shouldFetchProjects } = get();
     
-    if (projectLoading[type] || (!forceRefresh && !projectStates[type].hasMore)) {
+    // 이미 로딩 중이거나, 강제 새로고침이 아니고, 캐시가 유효하면 중단
+    if (projectLoading[type] || (!forceRefresh && !shouldFetchProjects(type))) {
       return;
     }
     
@@ -202,12 +202,12 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
           [type]: {
             items: forceRefresh ? projects : [...state.projectStates[type].items, ...projects],
             hasMore: projects.length === size,
-            currentPage: forceRefresh ? 1 : state.projectStates[type].currentPage + 1,
+            currentPage: currentPage + 1,
           }
         },
         lastUpdated: {
           ...state.lastUpdated,
-          [type]: forceRefresh ? Date.now() : state.lastUpdated[type]
+          [type]: Date.now()
         }
       }));
     } finally {

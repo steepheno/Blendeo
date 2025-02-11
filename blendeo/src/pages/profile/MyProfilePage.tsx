@@ -11,6 +11,8 @@ import { useUser, useAuthStore } from "@/stores/authStore";
 import useMyPageStore from "@/stores/myPageStore";
 import { ProjectType } from "@/stores/myPageStore";
 
+import { CACHE_DURATION, PAGE_SIZE } from "@/stores/myPageStore";
+
 const MyProfilePage = () => {
   const navigate = useNavigate();
   const authUser = useUser();
@@ -29,7 +31,7 @@ const MyProfilePage = () => {
     projectLoading,
     setActiveTab,
     loadMore,
-    // fetchProjects,
+    fetchProjects,
 
     // 편집 관련 상태와 액션
     isEditMode,
@@ -43,14 +45,6 @@ const MyProfilePage = () => {
     followData,
     fetchFollowData
   } = useMyPageStore();
-
-  // const handleEditToggle = () => {
-  //   if (isEditMode) {
-  //     resetEditData();
-  //   } else {
-  //     setEditMode(true);
-  //   }
-  // };
 
   const handleFileChange = (type: 'profileImage' | 'header') => (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -81,18 +75,31 @@ const MyProfilePage = () => {
     setActiveTab(tab as ProjectType);
   }, [setActiveTab]);
 
+  // 초기 데이터 로딩을 위한 useEffect
   useEffect(() => {
     if (!isAuthenticated || !authUser?.id) {
       navigate("/auth/signin", { state: { from: "/profile/me" } });
       return;
     }
 
-    fetchProfile(authUser.id);
+    // 최초 로딩시에만 프로필과 팔로우 데이터를 가져옴
     Promise.all([
       fetchProfile(authUser.id),
       fetchFollowData(authUser.id)
     ]);
   }, [authUser?.id, isAuthenticated, navigate, fetchProfile, fetchFollowData]);
+
+  // 탭 변경을 위한 별도의 useEffect
+  useEffect(() => {
+    const { lastUpdated, projectStates } = useMyPageStore.getState();
+    const lastUpdate = lastUpdated[activeTab];
+    const hasExpired = !lastUpdate || Date.now() - lastUpdate > CACHE_DURATION;
+    
+    // 데이터가 없거나 캐시가 만료된 경우에만 새로 불러옴
+    if (projectStates[activeTab].items.length === 0 || hasExpired) {
+      fetchProjects(activeTab, PAGE_SIZE, true);
+    }
+  }, [activeTab, fetchProjects]);
 
   if (profileLoading) {
     return (
