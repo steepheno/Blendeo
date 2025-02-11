@@ -1,17 +1,14 @@
 // src/stores/authStore.ts
-import React from "react";
+import { useEffect } from "react";
 import { create } from "zustand";
 import { persist, devtools, createJSONStorage } from "zustand/middleware";
 import * as authApi from "@/api/auth";
-import type {
-  SigninRequest,
-  SignupRequest,
-} from "@/types/api/auth";
+import type { SigninRequest, SignupRequest } from "@/types/api/auth";
 import { User } from "@/types/api/user";
 import { getUser } from "@/api/user";
 
 interface AuthStore {
-  userId : number | null;
+  userId: number | null;
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -52,10 +49,10 @@ export const useAuthStore = create<AuthStore>()(
             }
           } catch (error) {
             console.error("Failed to fetch user data:", error);
-            set({ 
-              user: null, 
+            set({
+              user: null,
               userId: null,
-              isAuthenticated: false 
+              isAuthenticated: false,
             });
           }
         },
@@ -148,7 +145,7 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: state.isAuthenticated,
         }),
       }
-    ),
+    )
   )
 );
 
@@ -156,12 +153,14 @@ export const useAuthStore = create<AuthStore>()(
 export const useInitializeAuth = () => {
   const fetchUserData = useAuthStore((state) => state.fetchUserData);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const userId = useAuthStore((state) => state.userId);
 
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      fetchUserData();
+  useEffect(() => {
+    if (isAuthenticated && userId) {
+      console.log("Initializing auth with userId:", userId);
+      fetchUserData().catch(console.error);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, userId, fetchUserData]);
 };
 
 export const useUser = () => useAuthStore((state) => state.user);

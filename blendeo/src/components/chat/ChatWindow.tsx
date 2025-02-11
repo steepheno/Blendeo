@@ -1,9 +1,10 @@
 // src/components/chat/ChatWindow.tsx
 import React, { useState, useRef, useEffect } from "react";
 import type { ChatMessage } from "@/types/api/chat";
+import { useAuthStore } from "@/stores/authStore";
 
 interface ChatWindowProps {
-  user: {
+  room: {
     id: number;
     name: string;
   };
@@ -14,7 +15,7 @@ interface ChatWindowProps {
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
-  user,
+  room,
   onClose,
   messages,
   onSendMessage,
@@ -22,6 +23,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const userId = useAuthStore((state) => state.userId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,13 +49,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const renderMessage = (message: ChatMessage) => {
-    const userData = localStorage.getItem("user");
-    const currentUserId = userData ? JSON.parse(userData).id : null;
-    const isCurrentUser = message.userId === currentUserId;
+    const isCurrentUser = message.userId === userId;
 
     return (
       <div
-        key={`${message.chatRoomId}-${message.timestamp}`}
+        // timestamp만으로는 부족할 수 있으므로 더 고유한 키 생성
+        key={`${message.chatRoomId}-${message.userId}-${message.timestamp}`}
         className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-4`}
       >
         <div
@@ -65,7 +66,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         >
           <div className="flex flex-col">
             <span className="text-sm font-semibold mb-1">
-              {isCurrentUser ? "You" : user.name}
+              {isCurrentUser ? "You" : message.user?.nickname || "Unknown User"}
             </span>
             <span className="break-words">{message.content}</span>
             <span
@@ -86,10 +87,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-600 mr-3">
-            {user.name.charAt(0)}
+            {room.name.charAt(0)}
           </div>
           <div>
-            <h2 className="font-semibold text-lg">{user.name}</h2>
+            <h2 className="font-semibold text-lg">{room.name}</h2>
             <span
               className={`text-sm ${isConnected ? "text-green-500" : "text-gray-500"}`}
             >

@@ -1,4 +1,5 @@
 import type { ChatRoom, ChatMessage } from "@/types/api/chat";
+import type { User } from "@/types/api/user"; // User 타입 import
 
 // 채팅방 검색바 컴포넌트 Props
 export interface ChatSearchBarProps {
@@ -19,6 +20,7 @@ export interface ChatRoomListProps {
 export interface ChatRoomProps {
   room: ChatRoom;
   messages: ChatMessage[];
+  currentUser: User | null; // 현재 사용자 정보 추가
   onSendMessage: (message: string) => void;
   onInviteUser: (userId: number) => void;
 }
@@ -27,6 +29,7 @@ export interface ChatRoomProps {
 export interface ChatMessageItemProps {
   message: ChatMessage;
   isOwnMessage: boolean;
+  user?: User; // 메시지 작성자 정보
 }
 
 // 채팅 입력 컴포넌트 Props
