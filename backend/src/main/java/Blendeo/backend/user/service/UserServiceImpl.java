@@ -202,7 +202,7 @@ public class UserServiceImpl implements UserService {
             }
         }
         if (headerImgUrl == null) {
-            headerImgUrl = user.getProfileImage();
+            headerImgUrl = user.getHeader();
         }
 
         String newIntro = intro == null ? user.getIntro() : intro;
