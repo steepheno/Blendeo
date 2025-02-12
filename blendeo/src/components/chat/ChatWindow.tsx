@@ -27,8 +27,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userId = useAuthStore((state) => state.userId);
 
-  const handleVideoCall = () => {
-    navigate(`/chat/${room.id}/video`); // URL 패턴 변경
+  const handleVideoCall = async () => {
+    try {
+      // 화상 통화 페이지로 이동
+      navigate(`/chat/${room.id}/video`);
+    } catch (error) {
+      console.error("Failed to initialize video call:", error);
+      // 에러 처리를 위한 알림 등을 추가할 수 있습니다.
+    }
   };
 
   const scrollToBottom = () => {
@@ -59,7 +65,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
     return (
       <div
-        // timestamp만으로는 부족할 수 있으므로 더 고유한 키 생성
         key={`${message.chatRoomId}-${message.userId}-${message.timestamp}`}
         className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-4`}
       >
@@ -108,12 +113,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={handleVideoCall}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
               title="Start video call"
+              disabled={!isConnected}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-500"
+                className={`h-5 w-5 ${
+                  isConnected
+                    ? "text-blue-500 hover:text-blue-600"
+                    : "text-gray-400"
+                }`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

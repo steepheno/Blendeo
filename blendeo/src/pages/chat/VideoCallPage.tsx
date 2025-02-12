@@ -1,336 +1,87 @@
 // src/pages/chat/VideoCallPage.tsx
-import { OpenVidu } from "openvidu-browser";
-import axios from "axios";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useUserStore } from "@/stores/userStore";
+import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
-import VideoComponent from "@/components/videoCall/VideoComponent";
+import { useOpenVidu } from "@/hooks/useOpenVidu";
 import Layout from "@/components/layout/Layout";
-import {
-  Session,
-  Publisher,
-  Subscriber,
-  VideoDevice,
-  OpenViduInstance,
-  StreamEvent,
-  ExceptionEvent,
-} from "@/types/components/video/openvidu";
-
-const APPLICATION_SERVER_URL = import.meta.env.VITE_OPENVIDU_SERVER_URL;
+import VideoComponent from "@/components/video/VideoComponent";
 
 const VideoCallPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const currentUser = useUserStore((state) => state.currentUser);
+  const userId = useAuthStore((state) => state.userId);
   const currentRoom = useChatStore((state) => state.currentRoom);
 
-  const [session, setSession] = useState<Session | undefined>(undefined);
-  const [mainStreamManager, setMainStreamManager] = useState<
-    Publisher | undefined
-  >(undefined);
-  const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
-  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
-  const [currentVideoDevice, setCurrentVideoDevice] = useState<
-    VideoDevice | undefined
-  >(undefined);
-  const [OV, setOV] = useState<OpenViduInstance | null>(null);
-
-  const createSession = useCallback(async (sessionId: string) => {
-    try {
-      // 먼저 세션이 존재하는지 확인
-      const checkSession = await axios
-        .get(`${APPLICATION_SERVER_URL}openvidu/api/sessions/${sessionId}`, {
-          headers: {
-            Authorization: `Basic ${btoa(`OPENVIDUAPP:${import.meta.env.VITE_OPENVIDU_SECRET}`)}`,
-          },
-        })
-        .catch(() => null);
-
-      if (checkSession?.data) {
-        return sessionId;
-      }
-
-      const response = await axios.post(
-        APPLICATION_SERVER_URL + "openvidu/api/sessions",
-        { customSessionId: sessionId },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${btoa(`OPENVIDUAPP:${import.meta.env.VITE_OPENVIDU_SECRET}`)}`,
-          },
-        }
-      );
-      return response.data.sessionId;
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 409) {
-        return sessionId;
-      }
-      console.error("Error creating session:", error);
-      throw error;
-    }
-  }, []);
-
-  const createToken = useCallback(async (sessionId: string) => {
-    try {
-      const response = await axios.post(
-        APPLICATION_SERVER_URL +
-          `openvidu/api/sessions/${sessionId}/connection`,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${btoa(`OPENVIDUAPP:${import.meta.env.VITE_OPENVIDU_SECRET}`)}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error creating token:", error);
-      throw error;
-    }
-  }, []);
-
-  const getToken = useCallback(async () => {
-    if (!roomId) throw new Error("Room ID is required");
-    try {
-      const sessionId = await createSession(roomId);
-      if (!sessionId) throw new Error("Failed to create session");
-
-      const tokenResponse = await createToken(sessionId);
-      return tokenResponse.token;
-    } catch (error) {
-      console.error("Error getting token:", error);
-      if (axios.isAxiosError(error) && error.response?.status === 409) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return getToken();
-      }
-      throw error;
-    }
-  }, [roomId, createSession, createToken]);
-
-  const leaveSession = useCallback(() => {
-    if (!session) {
-      return;
-    }
-
-    try {
-      session.disconnect();
-    } catch (error) {
-      console.error("Error disconnecting from session:", error);
-    } finally {
-      setOV(null);
-      setSession(undefined);
-      setSubscribers([]);
-      setMainStreamManager(undefined);
-      setPublisher(undefined);
-      navigate(`/chat/${roomId}`);
-    }
-  }, [session, navigate, roomId]);
-
-  const handleMainVideoStream = useCallback(
-    (stream: Publisher | Subscriber) => {
-      if (mainStreamManager !== stream) {
-        setMainStreamManager(stream);
-      }
-    },
-    [mainStreamManager]
-  );
-
-  const switchCamera = useCallback(async () => {
-    if (!OV || !session || !currentVideoDevice || !mainStreamManager) {
-      console.error("Required objects are not initialized");
-      return;
-    }
-
-    try {
-      const devices = await OV.getDevices();
-      const videoDevices = devices.filter(
-        (device): device is VideoDevice => device.kind === "videoinput"
-      );
-
-      if (videoDevices && videoDevices.length > 1) {
-        const newVideoDevice = videoDevices.filter(
-          (device) => device.deviceId !== currentVideoDevice.deviceId
-        );
-
-        if (newVideoDevice.length > 0) {
-          const newPublisher = OV.initPublisher(undefined, {
-            videoSource: newVideoDevice[0].deviceId,
-            publishAudio: true,
-            publishVideo: true,
-            mirror: true,
-          });
-
-          await session.unpublish(mainStreamManager);
-          await session.publish(newPublisher);
-
-          setCurrentVideoDevice(newVideoDevice[0]);
-          setMainStreamManager(newPublisher);
-          setPublisher(newPublisher);
-        }
-      }
-    } catch (e) {
-      console.error("Error switching camera:", e);
-    }
-  }, [OV, session, mainStreamManager, currentVideoDevice]);
-
-  const joinSession = useCallback(async () => {
-    if (session) {
-      console.log("Session already exists");
-      return;
-    }
-
-    try {
-      const newOV = new OpenVidu() as unknown as OpenViduInstance;
-
-      if (OV) {
-        setOV(null);
-        setSession(undefined);
-      }
-
-      setOV(newOV);
-
-      const newSession = newOV.initSession();
-
-      // 이벤트 리스너 설정 전에 이전 리스너 제거
-      if (newSession.removeAllListeners) {
-        newSession.removeAllListeners("streamCreated");
-        newSession.removeAllListeners("streamDestroyed");
-        newSession.removeAllListeners("exception");
-      }
-
-      newSession.on("streamCreated", (event: StreamEvent) => {
-        const subscriber = newSession.subscribe(event.stream, undefined);
-        setSubscribers((prevSubscribers) => [...prevSubscribers, subscriber]);
-      });
-
-      newSession.on("streamDestroyed", (event: StreamEvent) => {
-        setSubscribers((prevSubscribers) => {
-          const index = prevSubscribers.findIndex(
-            (sub) => sub.stream === event.stream
-          );
-          if (index > -1) {
-            const newSubscribers = [...prevSubscribers];
-            newSubscribers.splice(index, 1);
-            return newSubscribers;
-          }
-          return prevSubscribers;
-        });
-      });
-
-      newSession.on("exception", (exception: ExceptionEvent) => {
-        console.warn("Session exception:", exception);
-      });
-
-      setSession(newSession);
-
-      const token = await getToken();
-      if (!token) {
-        throw new Error("Failed to get token");
-      }
-
-      await newSession.connect(token, {
-        clientData: currentUser?.nickname || "Anonymous",
-      });
-
-      const newPublisher = await newOV.initPublisherAsync(undefined, {
-        audioSource: undefined,
-        videoSource: undefined,
-        publishAudio: true,
-        publishVideo: true,
-        resolution: "640x480",
-        frameRate: 30,
-        insertMode: "APPEND",
-        mirror: false,
-      });
-
-      await newSession.publish(newPublisher);
-
-      const devices = await newOV.getDevices();
-      const videoDevices = devices.filter(
-        (device): device is VideoDevice => device.kind === "videoinput"
-      );
-      const currentVideoDeviceId = newPublisher.stream
-        .getMediaStream()
-        .getVideoTracks()[0]
-        .getSettings().deviceId;
-      const foundVideoDevice = videoDevices.find(
-        (device) => device.deviceId === currentVideoDeviceId
-      );
-
-      if (foundVideoDevice) {
-        setCurrentVideoDevice(foundVideoDevice);
-      }
-      setMainStreamManager(newPublisher);
-      setPublisher(newPublisher);
-    } catch (error) {
-      console.error("Error joining session:", error);
-      if (axios.isAxiosError(error) && error.response?.status === 409) {
-        console.log("Session conflict detected, retrying after delay...");
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        if (currentUser && roomId) {
-          joinSession();
-        }
-      } else {
-        console.error("Fatal error joining session:", error);
-        leaveSession();
-      }
-    }
-  }, [session, OV, currentUser, roomId, getToken, leaveSession]);
+  const {
+    session,
+    error,
+    isLoading,
+    publisher,
+    subscribers,
+    initializeSession,
+    cleanupSession,
+    toggleAudio,
+    toggleVideo,
+  } = useOpenVidu();
 
   useEffect(() => {
-    if (!currentUser || !roomId) {
+    if (!userId || !roomId) {
       navigate("/chat");
       return;
     }
 
-    const onBeforeUnload = () => {
-      if (session) {
-        leaveSession();
-      }
-    };
+    // 컴포넌트 마운트 시 세션 초기화
+    initializeSession();
 
-    window.addEventListener("beforeunload", onBeforeUnload);
-
+    // 컴포넌트 언마운트 시 세션 정리
     return () => {
-      window.removeEventListener("beforeunload", onBeforeUnload);
-      if (session) {
-        leaveSession();
-      }
+      cleanupSession();
     };
-  }, [leaveSession, currentUser, roomId, navigate, session]);
+  }, [userId, roomId, navigate, initializeSession, cleanupSession]);
 
-  // 두 번째 useEffect 수정
-  useEffect(() => {
-    const initSession = async () => {
-      try {
-        if (currentUser && roomId && !session) {
-          await joinSession();
-        }
-      } catch (error) {
-        console.error("Failed to join session:", error);
-      }
-    };
+  const handleLeaveCall = () => {
+    cleanupSession();
+    navigate(`/chat/${roomId}`);
+  };
 
-    initSession();
-  }, [currentUser, roomId, session, joinSession]);
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-xl">Connecting to video call...</div>
+        </div>
+      </Layout>
+    );
+  }
 
-  useEffect(() => {
-    let isComponentMounted = true;
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-screen flex-col gap-4">
+          <div className="text-red-500 text-xl">
+            Failed to connect: {error.message}
+          </div>
+          <button
+            onClick={() => navigate(`/chat/${roomId}`)}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Return to Chat
+          </button>
+        </div>
+      </Layout>
+    );
+  }
 
-    if (currentUser && roomId && !session) {
-      joinSession().catch((error) => {
-        if (isComponentMounted) {
-          console.error("Failed to join session:", error);
-        }
-      });
-    }
-
-    return () => {
-      isComponentMounted = false;
-    };
-  }, [currentUser, roomId, session, joinSession]);
+  if (!session) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-xl">Initializing video call...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -342,44 +93,86 @@ const VideoCallPage: React.FC = () => {
             </h1>
             <div className="space-x-2">
               <button
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                onClick={leaveSession}
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200"
+                onClick={handleLeaveCall}
               >
                 Leave Call
-              </button>
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                onClick={switchCamera}
-              >
-                Switch Camera
               </button>
             </div>
           </div>
 
+          {/* Session Info (Debug/Development purpose) */}
+          <div className="bg-gray-100 p-4 rounded-lg mb-4">
+            <h2 className="font-semibold mb-2">Session Information</h2>
+            <div className="text-sm">
+              <p>Session ID: {session.sessionId}</p>
+              <p>Token: {session.token}</p>
+            </div>
+          </div>
+
+          {/* Video Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mainStreamManager && (
-              <div className="w-full aspect-video bg-gray-900 rounded-lg overflow-hidden">
-                <VideoComponent streamManager={mainStreamManager} />
-              </div>
-            )}
+            {/* Main Video Container */}
+            <div className="w-full aspect-video bg-gray-900 rounded-lg overflow-hidden">
+              {publisher && <VideoComponent streamManager={publisher} />}
+            </div>
+
+            {/* Participants Grid */}
             <div className="grid grid-cols-2 gap-2">
-              {publisher && (
+              {subscribers.map((subscriber) => (
                 <div
-                  className="aspect-video bg-gray-900 rounded-lg overflow-hidden cursor-pointer"
-                  onClick={() => handleMainVideoStream(publisher)}
+                  key={subscriber.id}
+                  className="aspect-video bg-gray-900 rounded-lg overflow-hidden"
                 >
-                  <VideoComponent streamManager={publisher} />
-                </div>
-              )}
-              {subscribers.map((sub) => (
-                <div
-                  key={sub.id}
-                  className="aspect-video bg-gray-900 rounded-lg overflow-hidden cursor-pointer"
-                  onClick={() => handleMainVideoStream(sub)}
-                >
-                  <VideoComponent streamManager={sub} />
+                  <VideoComponent streamManager={subscriber} />
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2">
+            <div className="bg-gray-800 rounded-full px-6 py-3 flex gap-4">
+              <button
+                className="p-3 rounded-full hover:bg-gray-700 text-white"
+                title="Toggle Microphone"
+                onClick={toggleAudio}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
+                </svg>
+              </button>
+              <button
+                className="p-3 rounded-full hover:bg-gray-700 text-white"
+                title="Toggle Camera"
+                onClick={toggleVideo}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         </div>

@@ -1,31 +1,35 @@
 // src/api/openvidu.ts
-import axios from "axios";
+import axiosInstance from "@/api/axios";
+import type { CreateConnectionResponse } from "@/types/api/openvidu";
 
-const API_URL = "https://api.blendeo.shop";
+const OPENVIDU_API_URL = import.meta.env.VITE_API_URL || "/api/v1";
 
-export const getToken = async (sessionId: string): Promise<string> => {
-  try {
-    // 해당 세션 초기화
-    await axios.post(`${API_URL}/api/v1/sessions`, {
-      sessionId,
-      additionalProp1: {},
-      additionalProp2: {},
-      additionalProp3: {},
-    });
-
-    // 초기화된 세션에 대한 토큰 생성
-    const tokenResponse = await axios.post(
-      `${API_URL}/api/v1/sessions/${sessionId}/connections`,
+export const openViduApi = {
+  createSession: async () => {
+    const response = await axiosInstance.post<string>(
+      `${OPENVIDU_API_URL}/sessions`,
       {
         additionalProp1: {},
         additionalProp2: {},
         additionalProp3: {},
       }
     );
+    return response;
+  },
 
-    return tokenResponse.data;
-  } catch (error) {
-    console.error("Error getting token:", error);
-    throw error;
-  }
+  createConnection: async (sessionId: string) => {
+    if (!sessionId) {
+      throw new Error("Session ID is required");
+    }
+
+    const response = await axiosInstance.post<CreateConnectionResponse>(
+      `${OPENVIDU_API_URL}/sessions/${sessionId}/connections`,
+      {
+        additionalProp1: {},
+        additionalProp2: {},
+        additionalProp3: {},
+      }
+    );
+    return response;
+  },
 };
