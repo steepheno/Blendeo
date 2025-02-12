@@ -36,6 +36,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173", // React 개발 서버
+                "http://localhost:3000", // openvidu test 서버
                 "http://i12a602.p.ssafy.io:5173",
                 "http://i12a602.p.ssafy.io",
                 "https://blendeo.shop",
