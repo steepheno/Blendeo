@@ -203,10 +203,26 @@ public class ProjectController {
     // 프로젝트 기여자 목록 조회
     @Operation(summary = "프로젝트 기여자 목록 조회")
     @GetMapping("/get/contributor")
-    public ResponseEntity<List<ProjectContributeInfoRes>> getContributorProjectList(@RequestParam("projectId") int projectId) {
-        List<ProjectContributeInfoRes> projectContributeInfoRes = projectService.getContributorInfo(projectId);
+    public ResponseEntity<List<ProjectNodeInfoRes>> getContributorProjectList(@RequestParam("projectId") long projectId) {
+        List<ProjectNodeInfoRes> projectNodeInfoRes = projectService.getContributorInfo(projectId);
 
-        return ResponseEntity.ok().body(projectContributeInfoRes);
+        return ResponseEntity.ok().body(projectNodeInfoRes);
+    }
+
+    @Operation(summary = "프로젝트 부모 조회")
+    @GetMapping("/get/parent")
+    public ResponseEntity<ProjectInfoRes> getParentProjectList(@RequestParam("projectId") long projectId) {
+        ProjectInfoRes projectInfoRes = projectService.getParentInfo(projectId);
+
+        return ResponseEntity.ok().body(projectInfoRes);
+    }
+
+    @Operation(summary = "프로젝트 자식 목록 조회")
+    @GetMapping("/get/children")
+    public ResponseEntity<List<ProjectInfoRes>> getChildrenProjectList(@RequestParam("projectId") long projectId) {
+        List<ProjectInfoRes> projectInfoRes = projectService.getChildrenInfo(projectId);
+
+        return ResponseEntity.ok().body(projectInfoRes);
     }
 
 }

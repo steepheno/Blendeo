@@ -104,7 +104,23 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
         MATCH path = (child:ProjectNode {projectId: $projectId})-[:FORK*]->(parent:ProjectNode)
         RETURN DISTINCT parent
     """)
-    List<ProjectNode> getContributorInfo(@Param("projectId") int projectId);
+    List<ProjectNode> getContributorInfo(@Param("projectId") long projectId);
+
+    @Query("""
+            MATCH (current:ProjectNode {projectId: $projectId})
+            MATCH (current)-[:FORK]->(parent:ProjectNode)
+            RETURN parent
+            LIMIT 1
+            """)
+    ProjectNode getParentInfo(@Param("projectId") long projectId);
+
+    @Query("""
+            MATCH (parent:ProjectNode {projectId: $projectId})
+            MATCH (child:ProjectNode)-[:FORK]->(parent)
+            RETURN child
+            ORDER BY child.projectId
+            """)
+    List<ProjectNode> getChildrenInfo(@Param("projectId") long projectId);
 
 //    @Query("""
 //        MATCH path = (n)-[*]-(connected)

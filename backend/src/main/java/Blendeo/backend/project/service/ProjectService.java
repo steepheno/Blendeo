@@ -30,5 +30,9 @@ public interface ProjectService {
 
     ProjectInfoRes getSiblingProject(Long currentProjectId, String direction);
 
-    List<ProjectContributeInfoRes> getContributorInfo(int projectId);
+    List<ProjectNodeInfoRes> getContributorInfo(long projectId);
+
+    ProjectInfoRes getParentInfo(long projectId);
+
+    List<ProjectInfoRes> getChildrenInfo(long projectId);
 }

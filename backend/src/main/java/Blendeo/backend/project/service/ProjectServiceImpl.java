@@ -22,13 +22,11 @@ import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -327,7 +325,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectContributeInfoRes> getContributorInfo(int projectId) {
+    public List<ProjectNodeInfoRes> getContributorInfo(long projectId) {
         List<ProjectNode> nodes = projectNodeRepository.getContributorInfo(projectId);
 
         List<Project> projects = new ArrayList<>();
@@ -338,7 +336,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         return projects.stream()
-                .map(project -> ProjectContributeInfoRes.builder()
+                .map(project -> ProjectNodeInfoRes.builder()
                         .userId(project.getAuthor().getId())
                         .nickname(project.getAuthor().getNickname())
                         .profileImage(project.getAuthor().getProfileImage())
@@ -359,6 +357,83 @@ public class ProjectServiceImpl implements ProjectService {
                                 .collect(Collectors.toList())
                         ).build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ProjectInfoRes getParentInfo(long projectId) {
+        ProjectNode projectNode = projectNodeRepository.getParentInfo(projectId);
+
+        Project project = projectRepository.findById(projectNode.getProjectId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+        return ProjectInfoRes.builder()
+                .id(project.getId())
+                .forkId(project.getForkId())
+                .title(project.getTitle())
+                .contents(project.getContents())
+                .contributorCnt(project.getContributorCnt()) // state 반영 안됨.
+                .thumbnail(project.getThumbnail())
+                .videoUrl(project.getThumbnail())
+                .runningTime(project.getRunningTime())
+                .viewCnt(project.getViewCnt())
+                .projectInstruments(projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                        .filter(projectInstrument -> projectInstrument.getInstrument() != null)
+                        .map(projectInstrument -> InstrumentGetRes.builder()
+                                .instrument_id(projectInstrument.getInstrument().getId())
+                                .instrument_name(projectInstrument.getInstrument().getName())
+                                .build()
+                        ).collect(Collectors.toList()))
+                .etcInstruments(projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                        .filter(projectInstrument -> projectInstrument.getEtcInstrument() != null)
+                        .map(projectInstrument -> InstrumentGetRes.builder()
+                                .instrument_id(projectInstrument.getEtcInstrument().getId())
+                                .instrument_name(projectInstrument.getEtcInstrument().getName())
+                                .build()
+                        ).collect(Collectors.toList()))
+                .createdAt(project.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    public List<ProjectInfoRes> getChildrenInfo(long projectId) {
+        List<ProjectNode> nodes = projectNodeRepository.getChildrenInfo(projectId);
+
+        List<Project> projects = new ArrayList<>();
+
+        for (ProjectNode node : nodes) {
+            projects.add(projectRepository.findById(node.getProjectId())
+                    .orElse(null));
+        }
+
+        return projects.stream()
+                        .map(project -> ProjectInfoRes.builder()
+                                .id(project.getId())
+                                .forkId(project.getForkId())
+                                .title(project.getTitle())
+                                .contents(project.getContents())
+                                .contributorCnt(project.getContributorCnt()) // state 반영 안됨.
+                                .thumbnail(project.getThumbnail())
+                                .videoUrl(project.getThumbnail())
+                                .runningTime(project.getRunningTime())
+                                .viewCnt(project.getViewCnt())
+                                .projectInstruments(projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                        .filter(projectInstrument -> projectInstrument.getInstrument() != null)
+                                        .map(projectInstrument -> InstrumentGetRes.builder()
+                                                .instrument_id(projectInstrument.getInstrument().getId())
+                                                .instrument_name(projectInstrument.getInstrument().getName())
+                                                .build()
+                                        ).collect(Collectors.toList()))
+                                .etcInstruments(projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                        .filter(projectInstrument -> projectInstrument.getEtcInstrument() != null)
+                                        .map(projectInstrument -> InstrumentGetRes.builder()
+                                                .instrument_id(projectInstrument.getEtcInstrument().getId())
+                                                .instrument_name(projectInstrument.getEtcInstrument().getName())
+                                                .build()
+                                        ).collect(Collectors.toList()))
+                                .createdAt(project.getCreatedAt())
+                                .build())
+                .collect(Collectors.toList());
+
     }
 
     private ProjectInfoRes convertToDto(ProjectNode projectNode) {

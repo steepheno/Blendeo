@@ -8,7 +8,7 @@ import java.net.URL;
 import java.util.List;
 
 @Getter
-public class ProjectContributeInfoRes {
+public class ProjectNodeInfoRes {
     private int userId;
     private String nickname;
     private URL profileImage;
@@ -16,7 +16,7 @@ public class ProjectContributeInfoRes {
     private List<InstrumentGetRes> etcInstruments;
 
     @Builder
-    public ProjectContributeInfoRes(int userId, String nickname, URL profileImage, List<InstrumentGetRes> instruments, List<InstrumentGetRes> etcInstruments) {
+    public ProjectNodeInfoRes(int userId, String nickname, URL profileImage, List<InstrumentGetRes> instruments, List<InstrumentGetRes> etcInstruments) {
         this.userId = userId;
         this.nickname = nickname;
         this.profileImage = profileImage;
