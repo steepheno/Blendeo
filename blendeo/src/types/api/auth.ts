@@ -3,6 +3,7 @@ export interface SignupRequest {
   email: string;
   password: string;
   nickname: string;
+  instrumentIds: number[];
 }
 // 악기 정보를 위한 인터페이스
 interface Instrument {
