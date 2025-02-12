@@ -42,7 +42,7 @@ public class SecurityConfig {
                 "http://blendeo.shop",           // HTTP 버전 추가
                 "https://api.blendeo.shop",      // API 도메인 추가
                 "http://api.blendeo.shop",        // API 도메인 HTTP 버전 추가
-                "https://ad12-211-192-252-214.ngrok-free.app"
+                "https://ad12-211-192-252-214.ngrok-free.app"  // GPU 서버
                 ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
