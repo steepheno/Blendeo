@@ -5,7 +5,12 @@ import router from "@/routes/Index";
 import { useInitializeAuth } from "@/stores/authStore";
 
 function App() {
-  useInitializeAuth();
+  const { isInitializing } = useInitializeAuth();
+
+  if (isInitializing) {
+    return <div>Loading...</div>;
+  }
+
   return <RouterProvider router={router} />;
 }
 

@@ -62,18 +62,11 @@ const useMainPageStore = create<MainPageStore>((set, get) => ({
   },
 
   setActiveTab: (tab: ProjectType) => {
-    console.log('[Store] Setting active tab to:', tab);
     set({ activeTab: tab });
     
     const store = get();
     const lastUpdate = store.lastUpdated[tab];
     const hasExpired = !lastUpdate || Date.now() - lastUpdate > CACHE_DURATION;
-    
-    console.log('[Store] Cache status:', {
-      lastUpdate,
-      hasExpired,
-      itemsCount: store.projectStates[tab].items.length
-    });
     
     // 캐시된 데이터가 없거나 만료된 경우에만 새로 fetch
     if (store.projectStates[tab].items.length === 0 || hasExpired) {
@@ -87,12 +80,6 @@ const useMainPageStore = create<MainPageStore>((set, get) => ({
     
     // 이미 로딩 중이거나 더 이상 불러올 데이터가 없으면 중단
     if (store.loading[type] || (!forceRefresh && !state.hasMore)) {
-      console.log('[Store] Skipping fetch:', { 
-        type, 
-        loading: store.loading[type], 
-        hasMore: state.hasMore,
-        forceRefresh 
-      });
       return;
     }
     
@@ -101,11 +88,6 @@ const useMainPageStore = create<MainPageStore>((set, get) => ({
     }));
     
     try {
-      console.log(`[Store] Fetching ${type} projects:`, {
-        page: forceRefresh ? 0 : state.currentPage,
-        size
-      });
-
       let projects: ProjectListItem[];
       
       try {
@@ -154,11 +136,6 @@ const useMainPageStore = create<MainPageStore>((set, get) => ({
           }
         };
 
-        console.log(`[Store] New state after update:`, {
-          type,
-          newState: newState.projectStates[type]
-        });
-
         return newState;
       });
     } finally {
@@ -170,12 +147,10 @@ const useMainPageStore = create<MainPageStore>((set, get) => ({
 
   loadMore: async (size = PAGE_SIZE) => {
     const { activeTab } = get();
-    console.log('[Store] Loading more items for:', activeTab);
     await get().fetchProjects(activeTab, size);
   },
 
   resetState: (type: ProjectType) => {
-    console.log('[Store] Resetting state for:', type);
     set((state: MainPageStore) => ({
       projectStates: {
         ...state.projectStates,
@@ -191,11 +166,6 @@ const useMainPageStore = create<MainPageStore>((set, get) => ({
   getCurrentProjects: () => {
     const { projectStates, activeTab } = get();
     const projects = projectStates[activeTab].items;
-    console.log('[Store] Getting current projects:', {
-      tab: activeTab,
-      count: projects.length,
-      projects
-    });
     return projects;
   },
 

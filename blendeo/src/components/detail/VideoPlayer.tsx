@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoPlayerProps } from "@/types/components/video/videoDetail";
-import { Volume2, VolumeX } from "lucide-react";
+import { Eye, Volume2, VolumeX } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function VideoPlayer({
   videoUrl,
@@ -12,6 +13,7 @@ function VideoPlayer({
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);  // 초기값은 음소거 상태
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (videoRef.current) {
@@ -23,7 +25,7 @@ function VideoPlayer({
           setIsPlaying(false);
         }
       };
-      
+
       void playVideo();
     }
   }, []);
@@ -47,6 +49,12 @@ function VideoPlayer({
       setIsMuted(!isMuted);
     }
   };
+
+  const handleNavigate = (id: number) => {
+    console.log(metadata);
+    
+    navigate(`/profile/${id}`);
+  }
 
   return (
     <div
@@ -80,7 +88,7 @@ function VideoPlayer({
 
         {/* Play/Pause Button Overlay - only show when manually paused */}
         {!isPlaying && videoRef.current && !videoRef.current.ended && (videoRef.current.readyState ?? 0) > 2 && (
-          <div 
+          <div
             className="absolute inset-0 flex items-center justify-center 
               bg-black bg-opacity-40 cursor-pointer z-10"
             onClick={handlePlayPause}
@@ -95,7 +103,7 @@ function VideoPlayer({
 
         {/* Volume Control - show when hovered */}
         {isHovered && (
-          <div 
+          <div
             className="absolute bottom-4 right-4 p-2 rounded-full 
               bg-black bg-opacity-60 cursor-pointer z-30"
             onClick={handleVolumeToggle}
@@ -128,9 +136,10 @@ function VideoPlayer({
             from-black to-transparent opacity-90 pointer-events-none"
         />
 
+          <h3 className="font-bold line-clamp-1 text-white relative text-lg pb-2">{metadata.title}</h3>
         <div className="relative flex items-end space-x-3">
           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 
-            border-2 border-white">
+            border-2 border-white" onClick={()=>handleNavigate(metadata.author.id)}>
             <img
               src={metadata.author.profileImage}
               alt={metadata.author.name}
@@ -139,16 +148,22 @@ function VideoPlayer({
           </div>
 
           <div className="text-white space-y-1">
-            <h3 className="font-medium line-clamp-1">{metadata.title}</h3>
             <div
               className={`transition-all duration-300 overflow-hidden
-                ${showDetails ? "max-h-20" : "max-h-0"}`}
+                ${showDetails ? "max-h-50" : "max-h-20"}`}
             >
-              <p className="text-sm opacity-90 line-clamp-2">
-                {metadata.content}
+              <p className="text-sm opacity-90 line-clamp-2 truncate gap gap-8 flex flex-row">
+                <p>{metadata.content}</p>
+                <p>더보기...</p>
               </p>
             </div>
-            <p className="text-sm opacity-80">{metadata.author.name}</p>
+            <div className="flex flex-row gap-4">
+              <p className="text-sm opacity-80">{metadata.author.name}</p>
+              <div className="flex flex-row gap-1 items-center">
+                <Eye className="w-4 h-4"></Eye>
+                <p className="text-sm opacity-80">{metadata.viewCnt}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

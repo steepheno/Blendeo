@@ -28,8 +28,10 @@ const LoginForm = () => {
     setError("");
 
     try {
+      console.log("loc:",location);
+      
       await signin(formData);
-      const from = location.state?.from?.pathname || "/";
+      const from = location.state?.from || "/";
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof AxiosError) {
