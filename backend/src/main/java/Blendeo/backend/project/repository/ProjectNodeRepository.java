@@ -34,14 +34,14 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
 
     @Query("""
         MATCH (current:ProjectNode {projectId: $currentProjectId})
-        MATCH (current)-[:FORK]->(parent:ProjectNode)
-        MATCH (sibling:ProjectNode)-[:FORK]->(parent)
+        OPTIONAL MATCH (current)-[:FORK]->(parent:ProjectNode)
+        OPTIONAL MATCH (sibling:ProjectNode)-[:FORK]->(parent)
         WHERE sibling.projectId > $currentProjectId
         RETURN sibling
         ORDER BY sibling.projectId
         LIMIT 1
     """)
-    Optional<ProjectNode> findNextSibling(Long currentProjectId);
+    Optional<ProjectNode> findNextSibling(@Param("currentProjectId") Long currentProjectId);
 
     // 이전 프로젝트 찾기
     @Query("""
@@ -53,7 +53,7 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
         ORDER BY sibling.projectId DESC
         LIMIT 1
     """)
-    Optional<ProjectNode> findPreviousSibling(Long currentProjectId);
+    Optional<ProjectNode> findPreviousSibling(@Param("currentProjectId") Long currentProjectId);
 
     // 같은 부모를 가진 첫 번째 프로젝트 찾기
     @Query("""
@@ -64,7 +64,7 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
         ORDER BY sibling.projectId
         LIMIT 1
     """)
-    Optional<ProjectNode> findFirstSibling(Long currentProjectId);
+    Optional<ProjectNode> findFirstSibling(@Param("currentProjectId") Long currentProjectId);
 
     // 같은 부모를 가진 마지막 프로젝트 찾기
     @Query("""
@@ -75,7 +75,7 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
         ORDER BY sibling.projectId DESC
         LIMIT 1
     """)
-    Optional<ProjectNode> findLastSibling(Long currentProjectId);
+    Optional<ProjectNode> findLastSibling(@Param("currentProjectId") Long currentProjectId);
 //
     @Query("""
             MATCH path = (n)-[*]-(connected)

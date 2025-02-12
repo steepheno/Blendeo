@@ -114,14 +114,12 @@ public class ProjectController {
     @Operation(
             summary = "프로젝트 조회"
     )
-    @GetMapping("/info/{id}")
+    @GetMapping("/get/info/{id}")
     public ResponseEntity<ProjectGetRes> getProject(@PathVariable("id") Long id) {
         ProjectGetRes projectGetRes = projectService.getProjectInfo(id);
 
         return ResponseEntity.ok(projectGetRes);
     }
-
-
 
     @Operation(
             summary = "프로젝트 삭제"
@@ -156,7 +154,7 @@ public class ProjectController {
     @Operation(
             summary = "최신 프로젝트 목록 조회"
     )
-    @GetMapping("/new")
+    @GetMapping("/get/new")
     public ResponseEntity<List<ProjectListDto>> getNewProjectList(
             @RequestParam(defaultValue = "0", value = "page") int page,
             @RequestParam(defaultValue = "10", value = "size") int size){
@@ -192,18 +190,19 @@ public class ProjectController {
                     + "next: 다음"
                     + "before: 이전"
     )
-    @GetMapping("/sibling")
+    @GetMapping("/get/sibling")
     public ResponseEntity<ProjectInfoRes> getSiblingProject(
             @RequestParam("currentProjectId") Long currentProjectId,
             @RequestParam(value = "direction", defaultValue = "next") String direction) {
 
+        log.info("projectId: " + currentProjectId);
         return ResponseEntity.ok()
                 .body(projectService.getSiblingProject(currentProjectId, direction));
     }
 
     // 프로젝트 기여자 목록 조회
     @Operation(summary = "프로젝트 기여자 목록 조회")
-    @GetMapping("/contributor")
+    @GetMapping("/get/contributor")
     public ResponseEntity<List<ProjectContributeInfoRes>> getContributorProjectList(@RequestParam("projectId") int projectId) {
         List<ProjectContributeInfoRes> projectContributeInfoRes = projectService.getContributorInfo(projectId);
 

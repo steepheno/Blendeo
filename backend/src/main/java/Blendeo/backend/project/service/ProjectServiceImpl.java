@@ -311,7 +311,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectInfoRes getSiblingProject(Long currentProjectId, String direction) {
+        log.info(direction);
         if ("next".equalsIgnoreCase(direction)) {
+            log.info(String.valueOf(projectNodeRepository.findNextSibling(20L).get()));
             return projectNodeRepository.findNextSibling(currentProjectId)
                     .or(() -> projectNodeRepository.findFirstSibling(currentProjectId))
                     .map(this::convertToDto)
