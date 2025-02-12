@@ -15,6 +15,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:5173",
                         "http://i12a602.p.ssafy.io:5173",
+                        "http://localhost:5500",
+                        "http://127.0.0.1:5500",
                         "https://blendeo.shop",
                         "http://blendeo.shop",           // HTTP 버전 추가
                         "https://api.blendeo.shop",      // API 도메인 추가

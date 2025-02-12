@@ -74,6 +74,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     // LocalDateTime 직렬화 위한 모듈
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // OAuth
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 tasks.named('test') {
