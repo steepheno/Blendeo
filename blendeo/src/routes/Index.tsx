@@ -129,7 +129,15 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "video", // /chat/video
+        path: ":roomId", // /chat/:roomId
+        element: (
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ":roomId/video", // /chat/:roomId/video
         element: (
           <ProtectedRoute>
             <VideoCallPage />

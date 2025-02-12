@@ -10,11 +10,13 @@ export const useChatRoom = (roomId: number | null) => {
     currentRoom,
     rooms,
     sendMessage,
-    inviteUser,
+    inviteUserByEmail, // userId 대신 email로 초대하는 함수로 변경
+    searchUserByEmail, // 이메일 검색 함수 추가
+    searchResults, // 검색 결과 추가
+    clearSearchResults, // 검색 결과 초기화 함수 추가
   } = useChatStore();
   const currentUser = useUserStore((state) => state.currentUser);
 
-  // 현재 방의 메시지를 useChatStore에서 직접 가져오기
   const currentMessages = useChatStore((state) =>
     roomId ? state.messagesByRoom[roomId] || [] : []
   );
@@ -42,15 +44,25 @@ export const useChatRoom = (roomId: number | null) => {
       isSubscribed = false;
       if (currentRoom?.id === roomId) {
         setCurrentRoom(null);
+        clearSearchResults(); // 방을 나갈 때 검색 결과 초기화
       }
     };
-  }, [initializeRoom, currentRoom?.id, roomId, setCurrentRoom]);
+  }, [
+    initializeRoom,
+    currentRoom?.id,
+    roomId,
+    setCurrentRoom,
+    clearSearchResults,
+  ]);
 
   return {
     room: currentRoom,
     messages: currentMessages,
     sendMessage,
-    inviteUser,
+    inviteUserByEmail, // 변경된 초대 함수 반환
+    searchUserByEmail, // 검색 함수 추가
+    searchResults, // 검색 결과 추가
+    clearSearchResults, // 검색 결과 초기화 함수 추가
     currentUser,
   };
 };

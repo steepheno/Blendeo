@@ -28,7 +28,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const userId = useAuthStore((state) => state.userId);
 
   const handleVideoCall = () => {
-    navigate(`/chat/video?roomId=${room.id}`);
+    navigate(`/chat/${room.id}/video`); // URL 패턴 변경
   };
 
   const scrollToBottom = () => {

@@ -3,6 +3,7 @@ import type {
   ChatRoom,
   CreateRoomRequest,
   GetMessagesResponse,
+  SearchUserResponse,
 } from "@/types/api/chat";
 
 export const chatAPI = {
@@ -11,7 +12,7 @@ export const chatAPI = {
     try {
       const response = await axiosInstance.get<ChatRoom[]>("/chat/my/rooms");
       console.log("ChatAPI getRooms response:", response);
-      return response as ChatRoom[]; // 타입 단언을 사용
+      return response as ChatRoom[];
     } catch (error) {
       console.error("ChatAPI getRooms error:", error);
       throw error;
@@ -34,13 +35,31 @@ export const chatAPI = {
     return response;
   },
 
-  // 채팅방에 사용자 초대
-  inviteUser: async (roomId: number, userId: number) => {
-    const response = await axiosInstance.post<string>(
-      `/chat/rooms/${roomId}/users/${userId}`
+  searchUserByEmail: async (email: string): Promise<SearchUserResponse[]> => {
+    const response = await axiosInstance.get<SearchUserResponse[]>(
+      `/chat/search/user/email`,
+      {
+        params: {
+          email,
+          page: 0,
+          size: 10,
+        },
+      }
     );
     return response;
   },
-};
 
-export default chatAPI;
+  // 이메일로 채팅방에 사용자 초대
+  inviteUserByEmail: async (roomId: number, email: string) => {
+    try {
+      const response = await axiosInstance.post<string>(
+        `/chat/rooms/${roomId}/invite`,
+        { email }
+      );
+      return response;
+    } catch (error) {
+      console.error("ChatAPI inviteUserByEmail error:", error);
+      throw error;
+    }
+  },
+};

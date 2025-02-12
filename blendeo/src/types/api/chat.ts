@@ -1,11 +1,11 @@
 // src/types/api/chat.ts
-import type { User } from "@/types/api/user"; // User 타입 import
+import type { User } from "@/types/api/user";
 
 export interface ChatMessage {
   type: "TALK" | "ENTER" | "LEAVE";
   chatRoomId: number;
   userId: number;
-  user?: User; // 메시지 작성자 정보
+  user?: User;
   content: string;
   timestamp: string;
 }
@@ -15,7 +15,7 @@ export interface ChatRoom {
   name: string;
   createdAt: string;
   updatedAt: string;
-  participants?: User[]; // 채팅방 참여자 정보
+  participants?: User[];
 }
 
 export interface GetMessagesResponse {
@@ -24,6 +24,18 @@ export interface GetMessagesResponse {
 
 export interface CreateRoomRequest {
   roomName: string;
+}
+
+// 이메일로 사용자 검색 응답 타입 추가
+export interface SearchUserResponse {
+  userId: number;
+  email: string;
+  profileImage: string;
+}
+
+// 사용자 초대 요청 타입 추가
+export interface InviteUserRequest {
+  email: string;
 }
 
 export type WebSocketStatus = "CONNECTING" | "OPEN" | "CLOSING" | "CLOSED";
