@@ -194,10 +194,20 @@ public class ProjectController {
     )
     @GetMapping("/sibling")
     public ResponseEntity<ProjectInfoRes> getSiblingProject(
-            @RequestParam Long currentProjectId,
-            @RequestParam(defaultValue = "next") String direction) {
+            @RequestParam("currentProjectId") Long currentProjectId,
+            @RequestParam(value = "direction", defaultValue = "next") String direction) {
 
         return ResponseEntity.ok()
                 .body(projectService.getSiblingProject(currentProjectId, direction));
     }
+
+    // 프로젝트 기여자 목록 조회
+    @Operation(summary = "프로젝트 기여자 목록 조회")
+    @GetMapping("/contributor")
+    public ResponseEntity<List<ProjectContributeInfoRes>> getContributorProjectList(@RequestParam("projectId") int projectId) {
+        List<ProjectContributeInfoRes> projectContributeInfoRes = projectService.getContributorInfo(projectId);
+
+        return ResponseEntity.ok().body(projectContributeInfoRes);
+    }
+
 }

@@ -2,6 +2,7 @@ package Blendeo.backend.project.repository;
 
 import Blendeo.backend.project.dto.ProjectHierarchyRes;
 import Blendeo.backend.project.dto.ProjectNodeLink;
+import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.entity.ProjectNode;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,12 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
            RETURN nodes, links
     """)
     ProjectNodeLink getProjectHierarchy(@Param("projectId") Long projectId);
+
+    @Query("""
+        MATCH path = (child:ProjectNode {projectId: $projectId})-[:FORK*]->(parent:ProjectNode)
+        RETURN DISTINCT parent
+    """)
+    List<ProjectNode> getContributorInfo(@Param("projectId") int projectId);
 
 //    @Query("""
 //        MATCH path = (n)-[*]-(connected)

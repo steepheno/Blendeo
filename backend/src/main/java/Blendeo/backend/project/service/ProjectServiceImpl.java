@@ -10,10 +10,7 @@ import Blendeo.backend.instrument.entity.ProjectInstrument;
 import Blendeo.backend.instrument.repository.EtcInstrumentRepository;
 import Blendeo.backend.instrument.repository.InstrumentRepository;
 import Blendeo.backend.instrument.repository.ProjectInstrumentRepository;
-import Blendeo.backend.project.dto.ProjectCreateReq;
-import Blendeo.backend.project.dto.ProjectGetRes;
-import Blendeo.backend.project.dto.ProjectInfoRes;
-import Blendeo.backend.project.dto.ProjectListDto;
+import Blendeo.backend.project.dto.*;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.entity.ProjectNode;
 import Blendeo.backend.project.repository.ProjectNodeRepository;
@@ -325,6 +322,41 @@ public class ProjectServiceImpl implements ProjectService {
                     .map(this::convertToDto)
                     .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
         }
+    }
+
+    @Override
+    public List<ProjectContributeInfoRes> getContributorInfo(int projectId) {
+        List<ProjectNode> nodes = projectNodeRepository.getContributorInfo(projectId);
+
+        List<Project> projects = new ArrayList<>();
+
+        for (ProjectNode node : nodes) {
+            projects.add(projectRepository.findById(node.getProjectId())
+                    .orElse(null));
+        }
+
+        return projects.stream()
+                .map(project -> ProjectContributeInfoRes.builder()
+                        .userId(project.getAuthor().getId())
+                        .nickname(project.getAuthor().getNickname())
+                        .profileImage(project.getAuthor().getProfileImage())
+                        .instruments(projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                .filter(instrument -> instrument.getInstrument() != null)
+                                .map(instrument -> InstrumentGetRes.builder()
+                                        .instrument_id(instrument.getInstrument().getId())
+                                        .instrument_name(instrument.getInstrument().getName())
+                                        .build())
+                                .collect(Collectors.toList())
+                        )
+                        .etcInstruments(projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                .filter(etcInstrument -> etcInstrument.getEtcInstrument() != null)
+                                .map(etcInstrument -> InstrumentGetRes.builder()
+                                        .instrument_id(etcInstrument.getEtcInstrument().getId())
+                                        .instrument_name(etcInstrument.getEtcInstrument().getName())
+                                        .build())
+                                .collect(Collectors.toList())
+                        ).build())
+                .collect(Collectors.toList());
     }
 
     private ProjectInfoRes convertToDto(ProjectNode projectNode) {
