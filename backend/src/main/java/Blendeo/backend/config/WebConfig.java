@@ -19,7 +19,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://blendeo.shop",
                         "http://blendeo.shop",           // HTTP 버전 추가
                         "https://api.blendeo.shop",      // API 도메인 추가
-                        "http://api.blendeo.shop"        // API 도메인 HTTP 버전 추가
+                        "http://api.blendeo.shop",        // API 도메인 HTTP 버전 추가
+                        "https://ad12-211-192-252-214.ngrok-free.app"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
