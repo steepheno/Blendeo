@@ -1,7 +1,11 @@
-import type { ChatRoom, ChatMessage } from "@/types/api/chat";
-import type { User } from "@/types/api/user"; // User 타입 import
+// src/types/components/chat/chat.ts
+import type {
+  ChatRoom,
+  ChatMessage,
+  SearchUserResponse,
+} from "@/types/api/chat";
+import type { User } from "@/types/api/user";
 
-// 채팅방 검색바 컴포넌트 Props
 export interface ChatSearchBarProps {
   placeholder: string;
   iconSrc: string;
@@ -9,39 +13,36 @@ export interface ChatSearchBarProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-// 채팅방 목록 컴포넌트 Props
 export interface ChatRoomListProps {
   rooms: ChatRoom[];
   onRoomSelect: (roomId: number) => void;
   selectedRoomId?: number;
 }
 
-// 채팅방 컴포넌트 Props
 export interface ChatRoomProps {
   room: ChatRoom;
   messages: ChatMessage[];
-  currentUser: User | null; // 현재 사용자 정보 추가
+  currentUser: User | null;
   onSendMessage: (message: string) => void;
-  onInviteUser: (userId: number) => void;
+  onInviteUser: (email: string) => void; // userId 대신 email로 변경
 }
 
-// 채팅 메시지 컴포넌트 Props
 export interface ChatMessageItemProps {
   message: ChatMessage;
   isOwnMessage: boolean;
-  user?: User; // 메시지 작성자 정보
+  user?: User;
 }
 
-// 채팅 입력 컴포넌트 Props
 export interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
 }
 
-// 사용자 초대 모달 Props
 export interface InviteUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onInvite: (userId: number) => void;
+  onInvite: (email: string) => Promise<void>; // userId -> email로 변경, Promise 반환 타입 추가
   roomId: number;
+  searchResults?: SearchUserResponse[]; // 이메일 검색 결과 추가
+  onSearch: (email: string) => Promise<void>; // 이메일 검색 함수 추가
 }

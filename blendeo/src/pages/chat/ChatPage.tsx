@@ -24,7 +24,10 @@ const ChatPage = () => {
     currentRoom,
     setCurrentRoom,
     messagesByRoom,
-    inviteUser,
+    inviteUserByEmail, // userId 대신 email로 초대하는 함수로 변경
+    searchUserByEmail, // 이메일 검색 함수 추가
+    searchResults, // 검색 결과 추가
+    clearSearchResults, // 검색 결과 초기화 함수 추가
     fetchMessages,
   } = useChatStore();
   const { sendMessage, isConnected } = useWebSocket();
@@ -33,7 +36,7 @@ const ChatPage = () => {
   const userId = useAuthStore((state) => state.userId);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  // 인증 상태 확인
+  // 인증 상태 확인 (변경 없음)
   useEffect(() => {
     const initializeUser = async () => {
       if (isAuthenticated && userId && !currentUser) {
@@ -53,6 +56,13 @@ const ChatPage = () => {
       fetchMessages(currentRoom.id);
     }
   }, [currentRoom?.id, isConnected, fetchMessages, isAuthenticated]);
+
+  // 모달이 닫힐 때 검색 결과 초기화
+  useEffect(() => {
+    if (!inviteModalOpen) {
+      clearSearchResults();
+    }
+  }, [inviteModalOpen, clearSearchResults]);
 
   const currentMessages = currentRoom
     ? messagesByRoom[currentRoom.id] || []
@@ -90,13 +100,26 @@ const ChatPage = () => {
     }
   };
 
-  const handleInviteUser = async (userId: number) => {
+  // 이메일로 사용자 초대하는 함수로 변경
+  const handleInviteUser = async (email: string) => {
     if (!isAuthenticated || !currentRoom) return;
 
     try {
-      await inviteUser(currentRoom.id, userId);
+      await inviteUserByEmail(currentRoom.id, email);
+      setInviteModalOpen(false); // 성공 시 모달 닫기
     } catch (error) {
       console.error("Failed to invite user:", error);
+    }
+  };
+
+  // 이메일로 사용자 검색하는 함수 추가
+  const handleSearchUser = async (email: string) => {
+    if (!isAuthenticated) return;
+
+    try {
+      await searchUserByEmail(email);
+    } catch (error) {
+      console.error("Failed to search user:", error);
     }
   };
 
@@ -111,7 +134,7 @@ const ChatPage = () => {
   return (
     <Layout showNotification>
       <div className={`flex flex-1 ${chatWindowOpened ? "gap-0" : ""}`}>
-        {/* 채팅방 목록 */}
+        {/* 채팅방 목록 (변경 없음) */}
         <div
           className={`flex flex-col ${
             chatWindowOpened ? "w-[400px] min-w-[400px]" : "w-full"
@@ -150,7 +173,7 @@ const ChatPage = () => {
           </div>
         </div>
 
-        {/* 채팅 창 */}
+        {/* 채팅 창 (변경 없음) */}
         {chatWindowOpened && currentRoom && (
           <div className="flex-1 border-l border-gray-200">
             <div className="h-full relative">
@@ -182,6 +205,8 @@ const ChatPage = () => {
         isOpen={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
         onInvite={handleInviteUser}
+        onSearch={handleSearchUser}
+        searchResults={searchResults}
       />
     </Layout>
   );

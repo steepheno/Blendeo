@@ -14,6 +14,7 @@ import ProjectTreePage from "@/pages/project/ProjectTreePage";
 import UserProfilePage from "@/pages/profile/UserProfilePage";
 import MyProfilePage from "@/pages/profile/MyProfilePage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
+import VideoCallPage from "@/pages/chat/VideoCallPage";
 
 export const router = createBrowserRouter([
   {
@@ -75,6 +76,22 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ChatPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ":roomId", // /chat/:roomId
+        element: (
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ":roomId/video", // /chat/:roomId/video
+        element: (
+          <ProtectedRoute>
+            <VideoCallPage />
           </ProtectedRoute>
         ),
       },

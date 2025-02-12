@@ -1,7 +1,12 @@
 import { create } from "zustand";
 import SockJS from "sockjs-client";
 import { chatAPI } from "@/api/chat";
-import type { ChatRoom, ChatMessage, WebSocketStatus } from "@/types/api/chat";
+import type {
+  ChatRoom,
+  ChatMessage,
+  WebSocketStatus,
+  SearchUserResponse,
+} from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserStore } from "@/stores/userStore";
 import { Client, StompSubscription } from "@stomp/stompjs";
@@ -10,14 +15,15 @@ interface ChatState {
   rooms: ChatRoom[];
   currentRoom: ChatRoom | null;
   messagesByRoom: Record<number, ChatMessage[]>;
+  searchResults: SearchUserResponse[]; // 이메일 검색 결과 추가
   isLoading: boolean;
   error: string | null;
   wsStatus: WebSocketStatus;
   stompClient: Client | null;
-  isInitialized: boolean; // 초기화 상태 추가
+  isInitialized: boolean;
   currentSubscription: StompSubscription | null;
 }
-// Actions 인터페이스 정의
+
 interface ChatActions {
   // WebSocket 관련
   connectWebSocket: () => void;
@@ -28,7 +34,11 @@ interface ChatActions {
   fetchRooms: () => Promise<void>;
   setCurrentRoom: (room: ChatRoom | null) => void;
   createRoom: (roomName: string) => Promise<ChatRoom | void>;
-  inviteUser: (roomId: number, userId: number) => Promise<void>;
+
+  // 사용자 검색 및 초대 관련
+  searchUserByEmail: (email: string) => Promise<void>; // 이메일 검색 메서드 추가
+  inviteUserByEmail: (roomId: number, email: string) => Promise<void>; // 이메일로 초대 메서드 변경
+  clearSearchResults: () => void; // 검색 결과 초기화
 
   // Message 관련
   fetchMessages: (roomId: number) => Promise<void>;
@@ -45,6 +55,7 @@ const initialState: ChatState = {
   rooms: [],
   currentRoom: null,
   messagesByRoom: {},
+  searchResults: [], // 초기 검색 결과 빈 배열로 설정
   isLoading: false,
   error: null,
   wsStatus: "CLOSED",
@@ -55,7 +66,6 @@ const initialState: ChatState = {
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   ...initialState,
-
   // ===== 초기화 메서드 추가 =====
   initialize: async () => {
     const { connectWebSocket, fetchRooms, currentRoom, fetchMessages } = get();
@@ -229,17 +239,41 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       set({ error: "Failed to create room", isLoading: false });
     }
   },
-
-  inviteUser: async (roomId: number, userId: number) => {
+  searchUserByEmail: async (email: string) => {
     try {
       set({ isLoading: true, error: null });
-      await chatAPI.inviteUser(roomId, userId);
+      const response = await chatAPI.searchUserByEmail(email);
+      // 응답을 SearchUserResponse[] 타입으로 명시적 타입 단언
+      set({
+        searchResults: response as SearchUserResponse[],
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("사용자 검색 실패:", error);
+      set({
+        error: "Failed to search user",
+        isLoading: false,
+        searchResults: [],
+      });
+    }
+  },
+
+  // 이메일로 사용자 초대
+  inviteUserByEmail: async (roomId: number, email: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      await chatAPI.inviteUserByEmail(roomId, email);
       set({ isLoading: false });
-      await get().fetchRooms();
+      await get().fetchRooms(); // 방 목록 새로고침
     } catch (error) {
       console.error("초대 실패:", error);
       set({ error: "Failed to invite user", isLoading: false });
     }
+  },
+
+  // 검색 결과 초기화
+  clearSearchResults: () => {
+    set({ searchResults: [] });
   },
 
   // ===== Message 관련 메서드 =====
