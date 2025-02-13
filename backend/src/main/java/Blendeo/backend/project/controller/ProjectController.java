@@ -44,7 +44,8 @@ public class ProjectController {
             @RequestParam(value = "forkedUrl", required = false) String forkedUrl,
             @RequestParam("videoFile") MultipartFile videoFile,
             @RequestParam(value = "startPoint", defaultValue = "0.0", required = false) double startPoint,
-            @RequestParam(value = "duration", defaultValue = "0.0", required = false) double duration
+            @RequestParam(value = "duration", defaultValue = "0.0", required = false) double duration,
+            @RequestParam(value = "loopCnt", defaultValue = "1", required = false) int loopCnt
     ) {
         // startPoint이 0보다 크면 영상 자르기 로직 시도
         String uploadedUrl = null;
@@ -54,7 +55,7 @@ public class ProjectController {
             uploadedUrl = videoEditorService.uploadVideo(videoFile, startPoint, duration);
         } else {
             // 두 영상 합치기
-            uploadedUrl = videoEditorService.blendTwoVideo(forkedUrl, videoFile);
+            uploadedUrl = videoEditorService.blendTwoVideo(forkedUrl, videoFile, loopCnt);
         }
 
         return new ResponseEntity<>(uploadedUrl, HttpStatus.OK);

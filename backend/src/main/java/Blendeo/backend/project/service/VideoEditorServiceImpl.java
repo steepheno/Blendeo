@@ -101,7 +101,7 @@ public class VideoEditorServiceImpl implements VideoEditorService {
     }
 
     @Override
-    public String blendTwoVideo(String forkedUrl, MultipartFile videoFile) {
+    public String blendTwoVideo(String forkedUrl, MultipartFile videoFile, int loopCnt) {
         File tempVideo1 = null;
         File tempVideo2 = null;
 
@@ -127,15 +127,18 @@ public class VideoEditorServiceImpl implements VideoEditorService {
 
                 // 비디오 아래로 합치기
                 mergedVideoPath = videoMerger.mergeVideosVertically
-                        (
-                        tempVideo1.getAbsolutePath(),
-                        tempVideo2.getAbsolutePath()
+                (
+                    tempVideo1.getAbsolutePath(),
+                    tempVideo2.getAbsolutePath(),
+                    loopCnt
                 );
             } else {
                 // 비디오 옆으로 합치기
-                mergedVideoPath = videoMerger.mergeVideosHorizontally(
-                        tempVideo1.getAbsolutePath(),
-                        tempVideo2.getAbsolutePath()
+                mergedVideoPath = videoMerger.mergeVideosHorizontally
+                (
+                    tempVideo1.getAbsolutePath(),
+                    tempVideo2.getAbsolutePath(),
+                    loopCnt
                 );
             }
         } catch (Exception e) {

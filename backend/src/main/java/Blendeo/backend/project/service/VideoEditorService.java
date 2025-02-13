@@ -10,7 +10,7 @@ public interface VideoEditorService {
 
     String uploadVideo(MultipartFile videoFile, double startPoint, double duration);
 
-    String blendTwoVideo(String forkedUrl, MultipartFile videoFile);
+    String blendTwoVideo(String forkedUrl, MultipartFile videoFile, int loopCnt);
 
     URL getThumbnailUrl(String string);
 }
