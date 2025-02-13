@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ChatMessage } from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
+import { ChatMessages } from "./ChatMessages";
 
 interface ChatWindowProps {
   room: {
@@ -10,7 +11,7 @@ interface ChatWindowProps {
     name: string;
   };
   onClose: () => void;
-  messages: ChatMessage[];
+  messages: ChatMessage[] & { isOwnMessage?: boolean }; // isOwnMessage 속성 추가
   onSendMessage: (message: string) => void;
   isConnected: boolean;
 }
@@ -27,8 +28,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userId = useAuthStore((state) => state.userId);
 
-  const handleVideoCall = () => {
-    navigate(`/chat/${room.id}/video`); // URL 패턴 변경
+  const handleVideoCall = async () => {
+    try {
+      if (!isConnected) {
+        alert("채팅 연결이 끊어져 있습니다. 연결 상태를 확인해주세요.");
+        return;
+      }
+
+      // room.id를 문자열로 변환하여 전달
+      navigate(`/chat/${room.id}/video`, {
+        state: { roomName: room.name },
+      });
+    } catch (error) {
+      console.error("화상통화 초기화 실패:", error);
+      alert("화상통화를 시작할 수 없습니다. 다시 시도해주세요.");
+    }
   };
 
   const scrollToBottom = () => {
@@ -47,49 +61,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const renderMessage = (message: ChatMessage) => {
-    const isCurrentUser = message.userId === userId;
-
-    return (
-      <div
-        // timestamp만으로는 부족할 수 있으므로 더 고유한 키 생성
-        key={`${message.chatRoomId}-${message.userId}-${message.timestamp}`}
-        className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-4`}
-      >
-        <div
-          className={`max-w-[70%] p-3 rounded-lg ${
-            isCurrentUser
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-gray-800"
-          }`}
-        >
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold mb-1">
-              {isCurrentUser ? "You" : message.user?.nickname || "Unknown User"}
-            </span>
-            <span className="break-words">{message.content}</span>
-            <span
-              className={`text-xs mt-1 ${
-                isCurrentUser ? "text-blue-100" : "text-gray-500"
-              }`}
-            >
-              {formatTime(message.timestamp)}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col h-full">
+      {/* 헤더 부분 */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-600 mr-3">
@@ -108,12 +82,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={handleVideoCall}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
               title="Start video call"
+              disabled={!isConnected}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-500"
+                className={`h-5 w-5 ${
+                  isConnected
+                    ? "text-blue-500 hover:text-blue-600"
+                    : "text-gray-400"
+                }`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -150,17 +129,26 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       </div>
 
+      {/* 메시지 목록 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map(renderMessage)}
+        {messages.map((message) => (
+          <ChatMessages
+            key={`${message.chatRoomId}-${message.userId}-${message.timestamp}`}
+            message={message}
+            isCurrentUser={message.userId === userId}
+          />
+        ))}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* 연결 상태 알림 */}
       {!isConnected && (
         <div className="bg-yellow-50 p-2 text-center text-yellow-800 text-sm">
           Connecting... Messages will be sent when connection is restored.
         </div>
       )}
 
+      {/* 메시지 입력 폼 */}
       <form onSubmit={handleSubmit} className="border-t p-4">
         <div className="flex space-x-2">
           <input

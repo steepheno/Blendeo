@@ -5,9 +5,17 @@ export interface ChatMessage {
   type: "TALK" | "ENTER" | "LEAVE";
   chatRoomId: number;
   userId: number;
-  user?: User;
+  nickname: string;
+  profileImage: string | null;
   content: string;
   timestamp: string;
+}
+
+export interface RoomParticipant {
+  userId: number;
+  email: string;
+  nickname: string;
+  profileImage: string | null;
 }
 
 export interface ChatRoom {

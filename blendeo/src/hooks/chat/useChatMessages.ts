@@ -1,3 +1,4 @@
+// src/hooks/useChatMessages.ts
 import { useCallback, useMemo } from "react";
 import { useChatStore } from "@/stores/chatStore";
 import type { ChatMessage } from "@/types/api/chat";
@@ -5,23 +6,17 @@ import { useUserStore } from "@/stores/userStore";
 
 export const useChatMessages = (roomId: number) => {
   const { messagesByRoom, addMessage, clearMessages } = useChatStore();
-  const currentUser = useUserStore((state) => state.currentUser); // 추가
+  const currentUser = useUserStore((state) => state.currentUser);
 
-  const messages = useMemo(
-    () => messagesByRoom[roomId] || [],
-    [messagesByRoom, roomId]
-  );
+  // 메시지 처리 (isOwnMessage 추가)
+  const processedMessages = useMemo(() => {
+    return (messagesByRoom[roomId] || []).map((message) => ({
+      ...message,
+      isOwnMessage: message.userId === currentUser?.id,
+    }));
+  }, [messagesByRoom, roomId, currentUser?.id]);
 
-  // 메시지에 isOwnMessage 속성 추가
-  const processedMessages = useMemo(
-    () =>
-      messages.map((message) => ({
-        ...message,
-        isOwnMessage: message.userId === currentUser?.id,
-      })),
-    [messages, currentUser?.id]
-  );
-
+  // 메시지 시간순 정렬
   const sortedMessages = useMemo(
     () =>
       [...processedMessages].sort(
@@ -31,8 +26,9 @@ export const useChatMessages = (roomId: number) => {
     [processedMessages]
   );
 
+  // 날짜별 메시지 그룹화
   const groupMessagesByDate = useCallback(() => {
-    return messages.reduce(
+    return sortedMessages.reduce(
       (groups, message) => {
         const date = new Date(message.timestamp).toLocaleDateString();
         if (!groups[date]) {
@@ -43,7 +39,7 @@ export const useChatMessages = (roomId: number) => {
       },
       {} as Record<string, ChatMessage[]>
     );
-  }, [messages]);
+  }, [sortedMessages]);
 
   return {
     messages: sortedMessages,
