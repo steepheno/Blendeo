@@ -127,7 +127,7 @@ public class ChatService {
                 ChatRoomParticipant.builder()
                         .chatRoomId(roomId)
                         .user(userRepository.findById(userId)
-                                .orElseThrow(()->new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.toString())))
+                                .orElseThrow(()->new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage())))
                         .build()
         );
     }
@@ -136,7 +136,7 @@ public class ChatService {
     public boolean isInThatChatRoom(Long roomId, int userId) {
         boolean isExist = false;
         List<ChatRoomParticipant> roomParticipants = chatRoomParticipantRepository.findAllByChatRoomId(roomId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.CHATROOM_NOT_FOUND, ErrorCode.CHATROOM_NOT_FOUND.toString()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.CHATROOM_NOT_FOUND, ErrorCode.CHATROOM_NOT_FOUND.getMessage()));
         for (ChatRoomParticipant chatRoomParticipant : roomParticipants) {
             if (chatRoomParticipant.getUser().getId() == userId) {
                 isExist = true;
