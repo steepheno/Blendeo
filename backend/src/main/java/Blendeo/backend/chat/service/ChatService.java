@@ -112,7 +112,7 @@ public class ChatService {
         ChatRoomParticipant chatRoomParticipant = ChatRoomParticipant.builder()
                 .chatRoomId(roomId)
                 .user(userRepository.findById(userId)
-                        .orElseThrow(()->new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.toString())))
+                        .orElseThrow(()->new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage())))
                 .build();
         chatRoomParticipantRepository.save(chatRoomParticipant);
     }
