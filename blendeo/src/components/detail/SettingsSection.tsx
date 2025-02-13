@@ -1,36 +1,28 @@
-import { useState, useEffect } from 'react';
-import useCommentStore from '@/stores/commentStore';
+import { useProjectStore } from '@/stores/projectStore';
+import { useNavigate } from 'react-router-dom';
 
 interface SettingsSectionProps {
   projectId: number;
 }
 
 const SettingsSection = ( { projectId } : SettingsSectionProps) => {
-  const [newComment, setNewComment] = useState('');
-  const { comments, loading, error, fetchComments, addComment } =
-    useCommentStore();
-
-  useEffect(() => {
-    console.log("herrrrr,",projectId);
-    
-    fetchComments(projectId);
-  }, [fetchComments, projectId]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newComment.trim()) {
-      await addComment(projectId, newComment.trim());
-      setNewComment('');
+  const navigate = useNavigate();
+  const deletePjt = useProjectStore((state) => state.deleteProject);
+  
+  const deleteProject = async () => {
+    try {
+      // 삭제 전 대화상자
+      const result = confirm("프로젝트를 정말 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.")
+      if (result) {
+        // 확인 누르면 삭제
+        await deletePjt(projectId);
+        alert("프로젝트 삭제가 완료되었습니다.");
+        navigate("/")
+      }
+    } catch (error) {
+      console.error("프로젝트 삭제 실패: ", error);
     }
   };
-
-  if (loading) {
-    return <div>Loading comments...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
 
   return (
     <div className="flex flex-col h-full">
@@ -39,7 +31,7 @@ const SettingsSection = ( { projectId } : SettingsSectionProps) => {
           {/* 수정과 삭제 */}
           <div className='flex gap-10'>
             <a className='cursor-pointer'>수정</a>
-            <a className='cursor-pointer'>삭제</a>
+            <a onClick={deleteProject} className='cursor-pointer'>삭제</a>
           </div>
           {/* 제목과 타이틀 */}
           <div>
