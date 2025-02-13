@@ -13,6 +13,4 @@ public interface VideoEditorService {
     String blendTwoVideo(String forkedUrl, MultipartFile videoFile);
 
     URL getThumbnailUrl(String string);
-
-    MultipartFile crobVideo(MultipartFile videoFile ,double startPoint, double duration);
 }

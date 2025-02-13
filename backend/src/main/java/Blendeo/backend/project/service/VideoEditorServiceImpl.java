@@ -48,12 +48,6 @@ public class VideoEditorServiceImpl implements VideoEditorService {
         }
     }
 
-    @Override
-    public MultipartFile crobVideo(MultipartFile videoFile, double startPoint, double duration) {
-
-        return null;
-    }
-
     public int getLength(String url) {
         File tempFile = null;
         try {
