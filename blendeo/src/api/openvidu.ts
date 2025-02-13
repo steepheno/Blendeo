@@ -20,7 +20,7 @@ export const openViduApi = {
     });
 
     console.log("Session creation response:", response);
-    return customSessionId;
+    return customSessionId; // 생성한 세션 ID를 직접 반환
   },
 
   createConnection: async (sessionId: string) => {
@@ -46,6 +46,6 @@ export const openViduApi = {
     );
 
     console.log("Connection creation response:", response);
-    return response;
+    return response; // response에는 token이 포함되어 있을 것입니다
   },
 };

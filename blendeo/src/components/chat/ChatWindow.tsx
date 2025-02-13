@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ChatMessage } from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
-import { useChatStore } from "@/stores/chatStore";
 import { ChatMessages } from "./ChatMessages";
 
 interface ChatWindowProps {
@@ -28,21 +27,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userId = useAuthStore((state) => state.userId);
-  const fetchRoomParticipants = useChatStore(
-    (state) => state.fetchRoomParticipants
-  );
 
   const handleVideoCall = async () => {
     try {
-      // 화상 통화 시작 전에 참여자 정보 로드
-      const participants = await fetchRoomParticipants(room.id);
-      if (participants.length > 0) {
-        navigate(`/chat/${room.id}/video`);
-      } else {
-        console.error("No participants found in the room");
+      if (!isConnected) {
+        alert("채팅 연결이 끊어져 있습니다. 연결 상태를 확인해주세요.");
+        return;
       }
+
+      // 참가자 확인 없이 바로 화상통화 페이지로 이동
+      navigate(`/chat/${room.id}/video`);
     } catch (error) {
-      console.error("Failed to initialize video call:", error);
+      console.error("화상통화 초기화 실패:", error);
+      alert("화상통화를 시작할 수 없습니다. 다시 시도해주세요.");
     }
   };
 

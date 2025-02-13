@@ -31,10 +31,13 @@ const VideoCallPage: React.FC = () => {
       return;
     }
 
-    // 컴포넌트 마운트 시 세션 초기화
-    initializeSession();
+    // 바로 세션 초기화
+    initializeSession().catch((error) => {
+      console.error("Failed to initialize video call:", error);
+      alert("화상통화 연결에 실패했습니다.");
+      navigate(`/chat/${roomId}`);
+    });
 
-    // 컴포넌트 언마운트 시 세션 정리
     return () => {
       cleanupSession();
     };
