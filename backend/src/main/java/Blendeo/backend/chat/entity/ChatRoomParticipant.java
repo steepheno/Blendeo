@@ -1,5 +1,6 @@
 package Blendeo.backend.chat.entity;
 
+import Blendeo.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,16 +21,17 @@ public class ChatRoomParticipant {
     @Column(nullable = false)
     private Long chatRoomId;
 
-    @Column(nullable = false)
-    private Integer userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private LocalDateTime joinedAt;
 
     @Builder
-    public ChatRoomParticipant(Long chatRoomId, Integer userId) {
+    public ChatRoomParticipant(Long chatRoomId, User user) {
         this.chatRoomId = chatRoomId;
-        this.userId = userId;
+        this.user = user;
         this.joinedAt = LocalDateTime.now();
     }
 }
