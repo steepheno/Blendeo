@@ -76,11 +76,19 @@ public class ChatService {
                         .profileImage(userRepository.findById(chatMessage.getUserId())
                                 .orElseThrow(()-> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()))
                                 .getProfileImage())
+<<<<<<< Updated upstream
+=======
+                        .content(chatMessage.getContent())
+>>>>>>> Stashed changes
                         .build()
                 )
                 .collect(Collectors.toList());
     }
 
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     public List<ChatMessage> getChatHistory(Long roomId) {
         return chatMessageRepository.findByChatRoomIdOrderByCreatedAtDesc(roomId)
                 .stream()
