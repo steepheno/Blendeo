@@ -34,7 +34,7 @@ export const createProject = async (data: CreateProjectRequest) => {
 };
 
 export const getProject = async (projectId: number) => {
-  return axiosInstance.get<Project>(`/project/info/${projectId}`);
+  return axiosInstance.get<Project>(`/project/get/info/${projectId}`);
 };
 
 export const updateProjectState = async (projectId: number, state: boolean) => {
