@@ -35,8 +35,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         return;
       }
 
-      // 참가자 확인 없이 바로 화상통화 페이지로 이동
-      navigate(`/chat/${room.id}/video`);
+      // room.id를 문자열로 변환하여 전달
+      navigate(`/chat/${room.id}/video`, {
+        state: { roomName: room.name },
+      });
     } catch (error) {
       console.error("화상통화 초기화 실패:", error);
       alert("화상통화를 시작할 수 없습니다. 다시 시도해주세요.");

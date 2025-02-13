@@ -4,23 +4,40 @@ import axiosInstance from "@/api/axios";
 const OPENVIDU_API_URL = import.meta.env.VITE_API_URL || "/api/v1";
 
 export const openViduApi = {
-  createSession: async () => {
-    const customSessionId = `ses_${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
-    console.log("Requesting session with ID:", customSessionId);
+  createSession: async (roomId: string) => {
+    // 채팅방 ID를 기반으로 세션 ID 생성
+    const customSessionId = `room_${roomId}`;
 
-    const response = await axiosInstance.post(`${OPENVIDU_API_URL}/sessions`, {
-      customSessionId,
-      mediaMode: "ROUTED",
-      recordingMode: "MANUAL",
-      defaultRecordingProperties: {
-        name: "MyRecording",
-        hasAudio: true,
-        hasVideo: true,
-      },
-    });
+    try {
+      // response를 사용하지 않으므로 제거
+      await axiosInstance.post(`${OPENVIDU_API_URL}/sessions`, {
+        customSessionId,
+        mediaMode: "ROUTED",
+        recordingMode: "MANUAL",
+        defaultRecordingProperties: {
+          name: "MyRecording",
+          hasAudio: true,
+          hasVideo: true,
+        },
+      });
 
-    console.log("Session creation response:", response);
-    return customSessionId; // 생성한 세션 ID를 직접 반환
+      return customSessionId;
+    } catch (error: unknown) {
+      // 타입 명시
+      // error 타입 가드 추가
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "status" in error.response &&
+        error.response.status === 409
+      ) {
+        return customSessionId;
+      }
+      throw error;
+    }
   },
 
   createConnection: async (sessionId: string) => {

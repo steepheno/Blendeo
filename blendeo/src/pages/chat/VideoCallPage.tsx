@@ -1,8 +1,7 @@
 // src/pages/chat/VideoCallPage.tsx
 import React, { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
-import { useChatStore } from "@/stores/chatStore";
 import { useOpenVidu } from "@/hooks/useOpenVidu";
 import Layout from "@/components/layout/Layout";
 import VideoComponent from "@/components/video/VideoComponent";
@@ -10,10 +9,10 @@ import VideoComponent from "@/components/video/VideoComponent";
 const VideoCallPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const userId = useAuthStore((state) => state.userId);
-  const currentRoom = useChatStore((state) => state.currentRoom);
+  const roomName = location.state?.roomName || `Room ${roomId}`;
 
-  // roomId 전달
   const {
     session,
     error,
@@ -24,7 +23,7 @@ const VideoCallPage: React.FC = () => {
     cleanupSession,
     toggleAudio,
     toggleVideo,
-  } = useOpenVidu(roomId!); // roomId가 undefined일 수 있으므로 non-null assertion 사용
+  } = useOpenVidu(roomId!);
 
   useEffect(() => {
     if (!userId || !roomId) {
@@ -91,9 +90,7 @@ const VideoCallPage: React.FC = () => {
       <div className="container mx-auto p-4">
         <div className="flex flex-col">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">
-              Video Call - {currentRoom?.name || `Room ${roomId}`}
-            </h1>
+            <h1 className="text-2xl font-bold">Video Call - {roomName}</h1>
             <div className="space-x-2">
               <button
                 className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200"
