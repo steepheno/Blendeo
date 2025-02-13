@@ -42,13 +42,16 @@ public class ProjectController {
     )
     public ResponseEntity<?> blendVideo(
             @RequestParam(value = "forkedUrl", required = false) String forkedUrl,
-            @RequestParam("videoFile") MultipartFile videoFile
+            @RequestParam("videoFile") MultipartFile videoFile,
+            @RequestParam(value = "startPoint", defaultValue = "0.0", required = false) double startPoint,
+            @RequestParam(value = "duration", defaultValue = "0.0", required = false) double duration
     ) {
+        // startPoint이 0보다 크면 영상 자르기 로직 시도
         String uploadedUrl = null;
 
         // forkedUrl == null 이라면, 첫 영상!
         if (forkedUrl == null || forkedUrl.isEmpty()) {
-            uploadedUrl = videoEditorService.uploadVideo(videoFile);
+            uploadedUrl = videoEditorService.uploadVideo(videoFile, startPoint, duration);
         } else {
             // 두 영상 합치기
             uploadedUrl = videoEditorService.blendTwoVideo(forkedUrl, videoFile);

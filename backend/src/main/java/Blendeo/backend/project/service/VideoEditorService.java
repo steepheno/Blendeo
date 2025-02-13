@@ -8,9 +8,11 @@ public interface VideoEditorService {
 
     int getLength(String url);
 
-    String uploadVideo(MultipartFile videoFile);
+    String uploadVideo(MultipartFile videoFile, double startPoint, double duration);
 
     String blendTwoVideo(String forkedUrl, MultipartFile videoFile);
 
     URL getThumbnailUrl(String string);
+
+    MultipartFile crobVideo(MultipartFile videoFile ,double startPoint, double duration);
 }
