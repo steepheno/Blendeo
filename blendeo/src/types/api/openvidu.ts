@@ -1,9 +1,37 @@
 // src/types/api/openvidu.ts
 export interface OpenViduApiRequest {
-  additionalProp1: Record<string, never>;
-  additionalProp2: Record<string, never>;
-  additionalProp3: Record<string, never>;
+  customSessionId?: string;
+  mediaMode?: "ROUTED" | "RELAYED";
+  recordingMode?: "MANUAL" | "ALWAYS";
+  defaultRecordingProperties?: {
+    name?: string;
+    hasAudio?: boolean;
+    hasVideo?: boolean;
+  };
 }
 
-// CreateConnectionResponse 타입을 string으로 변경 (wss URL이 직접 반환되므로)
-export type CreateConnectionResponse = string;
+export interface OpenViduConnectionRequest {
+  type?: "WEBRTC";
+  data?: string;
+  role?: "PUBLISHER" | "SUBSCRIBER";
+  kurentoOptions?: {
+    videoMaxRecvBandwidth?: number;
+    videoMinRecvBandwidth?: number;
+    videoMaxSendBandwidth?: number;
+    videoMinSendBandwidth?: number;
+    allowedFilters?: string[];
+  };
+}
+
+export interface OpenViduResponse {
+  id: string;
+  token?: string;
+  createdAt?: number;
+}
+
+export interface ConnectionResponse {
+  token?: string;
+  data?: {
+    token?: string;
+  };
+}

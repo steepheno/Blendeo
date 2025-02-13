@@ -1,8 +1,8 @@
-// src/hooks/useOpenVidu.ts
 import { useState, useCallback, useRef } from "react";
 import { OpenVidu, Publisher, Session, Subscriber } from "openvidu-browser";
 import { OpenViduSession } from "../types/components/video/openvidu";
 import { openViduApi } from "../api/openvidu";
+import type { ConnectionResponse } from "../types/api/openvidu";
 
 export const useOpenVidu = () => {
   const [session, setSession] = useState<OpenViduSession | null>(null);
@@ -14,30 +14,43 @@ export const useOpenVidu = () => {
   const OV = useRef<OpenVidu | null>(null);
   const sessionRef = useRef<Session | null>(null);
 
-  // src/hooks/useOpenVidu.ts
   const initializeSession = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // 1. Create a session
-      const sessionResponse = await openViduApi.createSession();
-      console.log("Session response:", sessionResponse);
+      // 1. Create a session and get the session ID
+      console.log("Creating session...");
+      const sessionId = await openViduApi.createSession();
+      console.log("Session created with ID:", sessionId);
 
-      // 2. Create a connection for the session and get full response
-      const connectionResponse =
-        await openViduApi.createConnection(sessionResponse);
+      // 2. Create a connection for the session and get the token
+      console.log("Creating connection...");
+      const connectionResponse = await openViduApi.createConnection(sessionId);
       console.log("Connection response:", connectionResponse);
 
-      // OpenVidu 토큰 형식: "wss://openvidu.blendeo.shop/openvidu/cdr"
-      const token = `wss://openvidu.blendeo.shop/openvidu/cdr`;
+      // connectionResponse에서 token 추출
+      let token: string;
+      if (typeof connectionResponse === "string") {
+        token = connectionResponse;
+      } else {
+        const response = connectionResponse as ConnectionResponse;
+        token = response.token || response.data?.token || "";
+      }
 
-      // 4. Initialize OpenVidu
+      if (!token) {
+        throw new Error("Invalid connection response format or missing token");
+      }
+
+      console.log("Got token:", token);
+
+      // 3. Initialize OpenVidu
+      console.log("Initializing OpenVidu...");
       OV.current = new OpenVidu();
       const session = OV.current.initSession();
       sessionRef.current = session;
 
-      // 5. Set up session events
+      // 4. Set up session events
       session.on("streamCreated", (event) => {
         console.log("Stream created:", event);
         const subscriber = session.subscribe(event.stream, undefined);
@@ -59,17 +72,16 @@ export const useOpenVidu = () => {
         console.log("Connection destroyed:", event);
       });
 
-      // 6. Connect to the session with the token
-      console.log("Connecting with token:", token);
-      await session.connect(token, {
-        clientData: JSON.stringify({
-          userName: "User" + Math.floor(Math.random() * 100),
-          roomId: sessionResponse,
-        }),
-      });
+      // 5. Connect to the session with the token
+      console.log("Connecting to session...");
+      const clientData = {
+        userName: "User" + Math.floor(Math.random() * 100),
+        roomId: sessionId,
+      };
+      await session.connect(token, { clientData });
 
-      // 7. Initialize publisher
-      console.log("Initializing publisher");
+      // 6. Initialize publisher
+      console.log("Initializing publisher...");
       const publisher = await OV.current.initPublisherAsync(undefined, {
         audioSource: undefined,
         videoSource: undefined,
@@ -81,14 +93,15 @@ export const useOpenVidu = () => {
         mirror: true,
       });
 
-      console.log("Publishing stream");
       await session.publish(publisher);
       setPublisher(publisher);
 
       setSession({
-        sessionId: sessionResponse,
-        token: token,
+        sessionId,
+        token,
       });
+
+      console.log("Video call setup completed successfully");
     } catch (err) {
       console.error("Error in initializeSession:", err);
       setError(
