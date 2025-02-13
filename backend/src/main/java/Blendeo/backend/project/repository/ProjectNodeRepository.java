@@ -34,8 +34,8 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
 
     @Query("""
         MATCH (current:ProjectNode {projectId: $currentProjectId})
-        OPTIONAL MATCH (current)-[:FORK]->(parent:ProjectNode)
-        OPTIONAL MATCH (sibling:ProjectNode)-[:FORK]->(parent)
+        MATCH (current)-[:FORK]->(parent:ProjectNode)
+        MATCH (sibling:ProjectNode)-[:FORK]->(parent)
         WHERE sibling.projectId > $currentProjectId
         RETURN sibling
         ORDER BY sibling.projectId
