@@ -2,6 +2,7 @@ package Blendeo.backend.project.repository;
 
 import Blendeo.backend.project.dto.ProjectHierarchyRes;
 import Blendeo.backend.project.dto.ProjectNodeLink;
+import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.entity.ProjectNode;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
         ORDER BY sibling.projectId
         LIMIT 1
     """)
-    Optional<ProjectNode> findNextSibling(Long currentProjectId);
+    Optional<ProjectNode> findNextSibling(@Param("currentProjectId") Long currentProjectId);
 
     // 이전 프로젝트 찾기
     @Query("""
@@ -52,7 +53,7 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
         ORDER BY sibling.projectId DESC
         LIMIT 1
     """)
-    Optional<ProjectNode> findPreviousSibling(Long currentProjectId);
+    Optional<ProjectNode> findPreviousSibling(@Param("currentProjectId") Long currentProjectId);
 
     // 같은 부모를 가진 첫 번째 프로젝트 찾기
     @Query("""
@@ -63,7 +64,7 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
         ORDER BY sibling.projectId
         LIMIT 1
     """)
-    Optional<ProjectNode> findFirstSibling(Long currentProjectId);
+    Optional<ProjectNode> findFirstSibling(@Param("currentProjectId") Long currentProjectId);
 
     // 같은 부모를 가진 마지막 프로젝트 찾기
     @Query("""
@@ -74,7 +75,7 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
         ORDER BY sibling.projectId DESC
         LIMIT 1
     """)
-    Optional<ProjectNode> findLastSibling(Long currentProjectId);
+    Optional<ProjectNode> findLastSibling(@Param("currentProjectId") Long currentProjectId);
 //
     @Query("""
             MATCH path = (n)-[*]-(connected)
@@ -98,6 +99,28 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
            RETURN nodes, links
     """)
     ProjectNodeLink getProjectHierarchy(@Param("projectId") Long projectId);
+
+    @Query("""
+        MATCH path = (child:ProjectNode {projectId: $projectId})-[:FORK*]->(parent:ProjectNode)
+        RETURN DISTINCT parent
+    """)
+    List<ProjectNode> getContributorInfo(@Param("projectId") long projectId);
+
+    @Query("""
+            MATCH (current:ProjectNode {projectId: $projectId})
+            MATCH (current)-[:FORK]->(parent:ProjectNode)
+            RETURN parent
+            LIMIT 1
+            """)
+    ProjectNode getParentInfo(@Param("projectId") long projectId);
+
+    @Query("""
+            MATCH (parent:ProjectNode {projectId: $projectId})
+            MATCH (child:ProjectNode)-[:FORK]->(parent)
+            RETURN child
+            ORDER BY child.projectId
+            """)
+    List<ProjectNode> getChildrenInfo(@Param("projectId") long projectId);
 
 //    @Query("""
 //        MATCH path = (n)-[*]-(connected)
