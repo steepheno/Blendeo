@@ -1,10 +1,15 @@
 package Blendeo.backend.project.service;
 
 import Blendeo.backend.global.util.S3Utils;
+import Blendeo.backend.project.util.VideoCropper;
 import Blendeo.backend.project.util.VideoDurationExtractor;
 import Blendeo.backend.project.util.VideoInfoGetter;
 import Blendeo.backend.project.util.VideoMerger;
 import Blendeo.backend.project.util.VideoThumbnailExtractor;
+import com.amazonaws.util.IOUtils;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +30,7 @@ public class VideoEditorServiceImpl implements VideoEditorService {
     private final VideoMerger videoMerger;
     private final VideoInfoGetter videoInfo;
     private final S3Utils s3Utils;
+    private final VideoCropper videoCropper;
     @Value("${aws.s3.video.dir}")
     private String videoDir;
 
@@ -57,18 +63,30 @@ public class VideoEditorServiceImpl implements VideoEditorService {
     }
 
     @Override
-    public String uploadVideo(MultipartFile videoFile) {
-        File tempFile = null;
+    public String uploadVideo(MultipartFile videoFile, double startPoint, double duration) {
+        File tempInputFile = null;
+        File croppedFile = null;
         try {
-            // temp 파일 생성
-            tempFile = File.createTempFile("video", ".mp4");
+            // MultipartFile을 File로 복사
+            tempInputFile = File.createTempFile("input_", ".mp4");
 
-            // Multipart -> File 형식으로 변환
-            videoFile.transferTo(tempFile);
-
+            try (InputStream in = videoFile.getInputStream();
+                 OutputStream out = new FileOutputStream(tempInputFile))
+            {
+                IOUtils.copy(in, out);
+            }
             String filename = videoDir + "/origin_" + UUID.randomUUID().toString() + ".mp4";
-            // S3에 영상 업로드
-            s3Utils.uploadToS3(tempFile, filename, "video/mp4");
+
+            if (startPoint > 0) {
+                // 영상 자르기
+                croppedFile = videoCropper.crop(tempInputFile, startPoint, duration);
+
+                // S3에 영상 업로드
+                s3Utils.uploadToS3(croppedFile, filename, "video/mp4");
+            }
+            else {
+                s3Utils.uploadToS3(tempInputFile, filename, "video/mp4");
+            }
 
             // S3 링크 반환
             return s3Utils.getUrlByFileName(filename);
@@ -76,8 +94,9 @@ public class VideoEditorServiceImpl implements VideoEditorService {
             log.error("Error processing video upload request", e);
             throw new RuntimeException("비디오 업로드에 실패", e);
         } finally {
-            // 임시 파일 삭제
-            videoMerger.cleanupTempFiles(tempFile);
+            // 임시 파일들 삭제
+            videoMerger.cleanupTempFiles(tempInputFile);
+            videoMerger.cleanupTempFiles(croppedFile);
         }
     }
 
