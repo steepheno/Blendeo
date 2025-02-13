@@ -6,22 +6,23 @@ import type {
   ChatMessage,
   WebSocketStatus,
   SearchUserResponse,
+  RoomParticipant,
 } from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
-import { useUserStore } from "@/stores/userStore";
 import { Client, StompSubscription } from "@stomp/stompjs";
 
 interface ChatState {
   rooms: ChatRoom[];
   currentRoom: ChatRoom | null;
   messagesByRoom: Record<number, ChatMessage[]>;
-  searchResults: SearchUserResponse[]; // 이메일 검색 결과 추가
+  searchResults: SearchUserResponse[];
   isLoading: boolean;
   error: string | null;
   wsStatus: WebSocketStatus;
   stompClient: Client | null;
   isInitialized: boolean;
   currentSubscription: StompSubscription | null;
+  roomParticipants: Record<number, RoomParticipant[]>;
 }
 
 interface ChatActions {
@@ -34,11 +35,12 @@ interface ChatActions {
   fetchRooms: () => Promise<void>;
   setCurrentRoom: (room: ChatRoom | null) => void;
   createRoom: (roomName: string) => Promise<ChatRoom | void>;
+  fetchRoomParticipants: (roomId: number) => Promise<RoomParticipant[]>; // 반환 타입 수정
 
   // 사용자 검색 및 초대 관련
-  searchUserByEmail: (email: string) => Promise<void>; // 이메일 검색 메서드 추가
-  inviteUserByEmail: (roomId: number, email: string) => Promise<void>; // 이메일로 초대 메서드 변경
-  clearSearchResults: () => void; // 검색 결과 초기화
+  searchUserByEmail: (email: string) => Promise<void>;
+  inviteUserByEmail: (roomId: number, email: string) => Promise<void>;
+  clearSearchResults: () => void;
 
   // Message 관련
   fetchMessages: (roomId: number) => Promise<void>;
@@ -62,10 +64,14 @@ const initialState: ChatState = {
   stompClient: null,
   isInitialized: false,
   currentSubscription: null,
+  roomParticipants: {},
 };
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   ...initialState,
+
+  roomParticipants: {},
+
   // ===== 초기화 메서드 추가 =====
   initialize: async () => {
     const { connectWebSocket, fetchRooms, currentRoom, fetchMessages } = get();
@@ -186,11 +192,26 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  setCurrentRoom: async (room: ChatRoom | null) => {
-    const { stompClient } = get();
-    const currentSubscription = get().currentSubscription;
+  fetchRoomParticipants: async (roomId: number) => {
+    try {
+      const participants = await chatAPI.getRoomParticipants(roomId);
+      set((state) => ({
+        roomParticipants: {
+          ...state.roomParticipants,
+          [roomId]: participants,
+        },
+      }));
+      return participants;
+    } catch (error) {
+      console.error("Failed to fetch room participants:", error);
+      return [];
+    }
+  },
 
-    // 이전 구독 해제
+  // setCurrentRoom 메서드 수정
+  setCurrentRoom: async (room: ChatRoom | null) => {
+    const { stompClient, currentSubscription, fetchMessages } = get();
+
     if (currentSubscription) {
       currentSubscription.unsubscribe();
     }
@@ -198,25 +219,25 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set({ currentRoom: room, currentSubscription: null });
 
     if (room) {
-      await get().fetchMessages(room.id);
+      await fetchMessages(room.id);
+    }
 
-      if (stompClient?.connected) {
-        const newSubscription = stompClient.subscribe(
-          `/sub/chat/room/${room.id}`,
-          (message) => {
-            try {
-              const receivedMessage = JSON.parse(message.body);
-              if (receivedMessage.type === "TALK") {
-                get().addMessage(receivedMessage);
-              }
-            } catch (error) {
-              console.error("Message parsing error:", error);
+    if (room && stompClient?.connected) {
+      const newSubscription = stompClient.subscribe(
+        `/sub/chat/room/${room.id}`,
+        (message) => {
+          try {
+            const receivedMessage = JSON.parse(message.body);
+            if (receivedMessage.type === "TALK") {
+              get().addMessage(receivedMessage);
             }
+          } catch (error) {
+            console.error("Message parsing error:", error);
           }
-        );
+        }
+      );
 
-        set({ currentSubscription: newSubscription });
-      }
+      set({ currentSubscription: newSubscription });
     }
   },
 
@@ -294,9 +315,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         return;
       }
 
-      // response 구조 로깅
-      console.log("Messages response:", response);
-
       const messages = Array.isArray(response) ? response : response.messages;
       const sortedMessages = [...messages].sort(
         (a, b) =>
@@ -326,17 +344,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   addMessage: (message: ChatMessage) => {
     set((state) => {
       const currentMessages = state.messagesByRoom[message.chatRoomId] || [];
-      // 메시지에 사용자 정보 포함
-      const user = useUserStore.getState().currentUser;
-      const messageWithUser = {
-        ...message,
-        user: user?.id === message.userId ? user : undefined,
-      };
-
       return {
         messagesByRoom: {
           ...state.messagesByRoom,
-          [message.chatRoomId]: [...currentMessages, messageWithUser],
+          [message.chatRoomId]: [...currentMessages, message],
         },
       };
     });

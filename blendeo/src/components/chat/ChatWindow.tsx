@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ChatMessage } from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
+import { useChatStore } from "@/stores/chatStore";
+import { ChatMessages } from "./ChatMessages";
 
 interface ChatWindowProps {
   room: {
@@ -10,7 +12,7 @@ interface ChatWindowProps {
     name: string;
   };
   onClose: () => void;
-  messages: ChatMessage[];
+  messages: ChatMessage[] & { isOwnMessage?: boolean }; // isOwnMessage 속성 추가
   onSendMessage: (message: string) => void;
   isConnected: boolean;
 }
@@ -26,14 +28,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userId = useAuthStore((state) => state.userId);
+  const fetchRoomParticipants = useChatStore(
+    (state) => state.fetchRoomParticipants
+  );
 
   const handleVideoCall = async () => {
     try {
-      // 화상 통화 페이지로 이동
-      navigate(`/chat/${room.id}/video`);
+      // 화상 통화 시작 전에 참여자 정보 로드
+      const participants = await fetchRoomParticipants(room.id);
+      if (participants.length > 0) {
+        navigate(`/chat/${room.id}/video`);
+      } else {
+        console.error("No participants found in the room");
+      }
     } catch (error) {
       console.error("Failed to initialize video call:", error);
-      // 에러 처리를 위한 알림 등을 추가할 수 있습니다.
     }
   };
 
@@ -53,48 +62,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const renderMessage = (message: ChatMessage) => {
-    const isCurrentUser = message.userId === userId;
-
-    return (
-      <div
-        key={`${message.chatRoomId}-${message.userId}-${message.timestamp}`}
-        className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-4`}
-      >
-        <div
-          className={`max-w-[70%] p-3 rounded-lg ${
-            isCurrentUser
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-gray-800"
-          }`}
-        >
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold mb-1">
-              {isCurrentUser ? "You" : message.user?.nickname || "Unknown User"}
-            </span>
-            <span className="break-words">{message.content}</span>
-            <span
-              className={`text-xs mt-1 ${
-                isCurrentUser ? "text-blue-100" : "text-gray-500"
-              }`}
-            >
-              {formatTime(message.timestamp)}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col h-full">
+      {/* 헤더 부분 */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-600 mr-3">
@@ -160,17 +130,26 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       </div>
 
+      {/* 메시지 목록 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map(renderMessage)}
+        {messages.map((message) => (
+          <ChatMessages
+            key={`${message.chatRoomId}-${message.userId}-${message.timestamp}`}
+            message={message}
+            isCurrentUser={message.userId === userId}
+          />
+        ))}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* 연결 상태 알림 */}
       {!isConnected && (
         <div className="bg-yellow-50 p-2 text-center text-yellow-800 text-sm">
           Connecting... Messages will be sent when connection is restored.
         </div>
       )}
 
+      {/* 메시지 입력 폼 */}
       <form onSubmit={handleSubmit} className="border-t p-4">
         <div className="flex space-x-2">
           <input

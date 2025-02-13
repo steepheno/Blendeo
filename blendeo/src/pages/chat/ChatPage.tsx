@@ -11,6 +11,7 @@ import { useChatRooms } from "@/hooks/chat/useChatRooms";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserStore } from "@/stores/userStore";
+import { useChatMessages } from "@/hooks/chat/useChatMessages";
 import type { ChatRoom } from "@/types/api/chat";
 
 const ChatPage = () => {
@@ -23,20 +24,22 @@ const ChatPage = () => {
   const {
     currentRoom,
     setCurrentRoom,
-    messagesByRoom,
-    inviteUserByEmail, // userId 대신 email로 초대하는 함수로 변경
-    searchUserByEmail, // 이메일 검색 함수 추가
-    searchResults, // 검색 결과 추가
-    clearSearchResults, // 검색 결과 초기화 함수 추가
+    inviteUserByEmail,
+    searchUserByEmail,
+    searchResults,
+    clearSearchResults,
     fetchMessages,
   } = useChatStore();
+
+  // useChatMessages 훅 사용
+  const { messages: currentMessages } = useChatMessages(currentRoom?.id || 0);
   const { sendMessage, isConnected } = useWebSocket();
 
   const currentUser = useUserStore((state) => state.currentUser);
   const userId = useAuthStore((state) => state.userId);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  // 인증 상태 확인 (변경 없음)
+  // 인증 상태 확인
   useEffect(() => {
     const initializeUser = async () => {
       if (isAuthenticated && userId && !currentUser) {
@@ -51,11 +54,20 @@ const ChatPage = () => {
     initializeUser();
   }, [isAuthenticated, userId, currentUser]);
 
+  // 메시지 로딩 로직 개선
   useEffect(() => {
-    if (currentRoom?.id && isConnected && isAuthenticated) {
-      fetchMessages(currentRoom.id);
-    }
-  }, [currentRoom?.id, isConnected, fetchMessages, isAuthenticated]);
+    const loadMessages = async () => {
+      if (currentRoom?.id && isConnected && isAuthenticated) {
+        try {
+          await fetchMessages(currentRoom.id);
+        } catch (error) {
+          console.error("Failed to fetch messages:", error);
+        }
+      }
+    };
+
+    loadMessages();
+  }, [currentRoom?.id, isConnected, isAuthenticated, fetchMessages]);
 
   // 모달이 닫힐 때 검색 결과 초기화
   useEffect(() => {
@@ -63,10 +75,6 @@ const ChatPage = () => {
       clearSearchResults();
     }
   }, [inviteModalOpen, clearSearchResults]);
-
-  const currentMessages = currentRoom
-    ? messagesByRoom[currentRoom.id] || []
-    : [];
 
   const filteredRooms =
     rooms?.filter((room) =>
@@ -78,9 +86,6 @@ const ChatPage = () => {
 
     setCurrentRoom(room);
     setChatWindowOpened(true);
-    if (room.id && isConnected) {
-      await fetchMessages(room.id);
-    }
   };
 
   const handleCloseChat = () => {
@@ -92,27 +97,27 @@ const ChatPage = () => {
     if (!isAuthenticated) return;
 
     try {
-      await createRoom(roomName);
-      await fetchRooms();
-      setCreateModalOpen(false);
+      const newRoom = await createRoom(roomName);
+      if (newRoom) {
+        await fetchRooms();
+        setCreateModalOpen(false);
+      }
     } catch (error) {
       console.error("Failed to create room:", error);
     }
   };
 
-  // 이메일로 사용자 초대하는 함수로 변경
   const handleInviteUser = async (email: string) => {
     if (!isAuthenticated || !currentRoom) return;
 
     try {
       await inviteUserByEmail(currentRoom.id, email);
-      setInviteModalOpen(false); // 성공 시 모달 닫기
+      setInviteModalOpen(false);
     } catch (error) {
       console.error("Failed to invite user:", error);
     }
   };
 
-  // 이메일로 사용자 검색하는 함수 추가
   const handleSearchUser = async (email: string) => {
     if (!isAuthenticated) return;
 
@@ -130,7 +135,6 @@ const ChatPage = () => {
   if (!isAuthenticated) {
     return <div>로그인이 필요합니다.</div>;
   }
-
   return (
     <Layout showNotification>
       <div className={`flex flex-1 ${chatWindowOpened ? "gap-0" : ""}`}>

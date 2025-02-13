@@ -3,6 +3,7 @@ import type {
   ChatRoom,
   CreateRoomRequest,
   GetMessagesResponse,
+  RoomParticipant,
   SearchUserResponse,
 } from "@/types/api/chat";
 
@@ -59,6 +60,21 @@ export const chatAPI = {
       return response;
     } catch (error) {
       console.error("ChatAPI inviteUserByEmail error:", error);
+      throw error;
+    }
+  },
+
+  getRoomParticipants: async (roomId: number) => {
+    try {
+      const response = await axiosInstance.get<RoomParticipant[]>(
+        `/room/participants`,
+        {
+          params: { roomId },
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("Failed to fetch room participants:", error);
       throw error;
     }
   },
