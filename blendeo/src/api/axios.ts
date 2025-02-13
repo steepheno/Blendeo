@@ -17,15 +17,12 @@ const axiosInstance = axios.create({
 const publicPaths = [
   "/mail/check",
   "/mail/verify",
-  "/user/auth/signup",
-  "/user/auth/login",
-  "/project/info",
-  "/project/list",
-  "/project/list", // 이 경로 추가
-  "/project/new",  // 필요한 경우 이것도 추가
+  "/user/auth",
+  "/project/get",
   "/user/follow/get-follow",
   "/user/get-user",
-  "/comment/get-all"
+  "/comment/get-all",
+  "/fork/hierarchy"
 ];
 
 const noRedirectPaths = ["/", "/project/list"];
@@ -33,6 +30,8 @@ const noRedirectPaths = ["/", "/project/list"];
 // Request Interceptor
 axiosInstance.interceptors.request.use((config) => {
   const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
+  console.log("isthis?",isPublicAPI);
+  
 
   if (!isPublicAPI) {
     const cookies = document.cookie.split(";");

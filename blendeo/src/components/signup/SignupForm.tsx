@@ -31,7 +31,7 @@ const SignUpForm = () => {
 
   const validatePassword = (password: string) => {
     const regex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^])[A-Za-z\d@$!%*?&^]{8,}$/;
     return regex.test(password);
   };
 
@@ -81,6 +81,8 @@ const SignUpForm = () => {
 
     try {
       // API 파라미터 이름을 authCode로 변경
+      console.log("here Data:",formData.email, formData.verificationCode);
+      
       await verifyEmailCode(formData.email, formData.verificationCode);
       setVerificationStatus("success");
       setError("");
@@ -125,6 +127,7 @@ const SignUpForm = () => {
         email: formData.email,
         password: formData.password,
         nickname: formData.nickname,
+        instrumentIds : [1,2],
       };
 
       await signup(signupData);

@@ -1,6 +1,6 @@
 import { LucideIcon } from 'lucide-react';
 
-export type TabType = 'comments' | 'contributors' | null;
+export type TabType = 'comments' | 'contributors' | 'showTree' | null;
 
 export interface Comment {
   id: number;

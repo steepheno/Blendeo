@@ -11,6 +11,9 @@ import { useUser, useAuthStore } from "@/stores/authStore";
 import useMyPageStore from "@/stores/myPageStore";
 import { ProjectType } from "@/stores/myPageStore";
 
+import noUserImg from "@/assets/no_user.jpg"
+import noHeaderImg from "@/assets/defaultHeader.png"
+
 const useProfileData = (userId: number) => {
   const {
     profile,
@@ -133,7 +136,7 @@ const MyProfilePage = () => {
         {/* 배경 이미지 */}
         <div className="relative w-full h-48 bg-gray-200 rounded-lg mb-4">
           <img
-            src={profile.header || "/api/placeholder/1200/300"}
+            src={profile.header || noHeaderImg }
             alt="Channel banner"
             className="w-full h-full object-cover rounded-lg"
           />
@@ -156,7 +159,7 @@ const MyProfilePage = () => {
         <div className="flex px-4 mb-8">
           <div className="relative flex items-center mr-6">
             <img
-              src={profile.profileImage || "/api/placeholder/80/80"}
+              src={profile.profileImage || noUserImg }
               alt={`${profile.nickname}'s profile`}
               className="w-20 h-20 rounded-full"
             />

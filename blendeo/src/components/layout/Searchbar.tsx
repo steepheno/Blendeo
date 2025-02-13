@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
+import noUserImg from "@/assets/no_user.jpg"
 
 const Searchbar = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const Searchbar = () => {
     }
   };
 
-  const dummyProfileImage = 'https://blendeo-s3-bucket.s3.ap-northeast-2.amazonaws.com/profile/image_23ef564e-e0c7-4432-bc6b-a3400c07dc30.jpeg'
+  const dummyProfileImage = noUserImg;
   const profileImageUrl = currentUser?.profileImage || dummyProfileImage;
 
   return (

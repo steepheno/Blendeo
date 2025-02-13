@@ -10,6 +10,9 @@ import TabNavigation from '@/components/common/TabNavigation';
 import { ProjectType } from '@/stores/userPageStore';
 import useUserPageStore from '@/stores/userPageStore';
 
+import noUserImg from "@/assets/no_user.jpg"
+import noHeaderImg from "@/assets/defaultHeader.png"
+
 const useProfileData = (userId: number) => {
   const {
     user,
@@ -125,7 +128,7 @@ const UserProfile = () => {
         {/* 배경 이미지 */}
         <div className="w-full h-48 bg-gray-200 rounded-lg mb-4">
           <img
-            src={user.header || "/api/placeholder/1200/300"}
+            src={user.header || noHeaderImg}
             alt="Channel banner"
             className="w-full h-full object-cover rounded-lg"
           />
@@ -136,7 +139,7 @@ const UserProfile = () => {
           {/* 프로필 이미지 */}
           <div className="flex items-center mr-6">
             <img
-              src={user.profileImage || "/api/placeholder/80/80"}
+              src={user.profileImage || noUserImg}
               alt={`${user.nickname}'s profile`}
               className="w-20 h-20 rounded-full"
             />

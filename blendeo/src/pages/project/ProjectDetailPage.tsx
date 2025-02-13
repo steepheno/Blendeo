@@ -17,6 +17,7 @@ import {
   Share2,
   Music,
   Users,
+  GitBranchPlusIcon,
 } from "lucide-react";
 
 import { TabType } from "@/types/components/video/videoDetail";
@@ -78,6 +79,7 @@ const ProjectDetailPage = () => {
   }, [projectId, location.pathname]);
 
   const handleTabClick = (tab: TabType) => {
+    if(tab === 'showTree') navigate(`tree`)
     setActiveTab(activeTab === tab ? null : tab);
   };
   
@@ -149,6 +151,7 @@ const ProjectDetailPage = () => {
               />
               <InteractionButton icon={Bookmark} count="0" />
               <InteractionButton icon={Share2} count="0" />
+              <InteractionButton icon={GitBranchPlusIcon} count="0" onClick={() => handleTabClick("showTree")}/>
             </div>
             </div>
           </div>
