@@ -23,82 +23,78 @@ public class VideoMerger {
     @Value("${ffmpeg.path}")
     private String ffmpegPath;
 
-private List<String> buildFFmpegCommand(String video1Path, String video2Path, String outputFilePath, boolean horizontal, int loopCnt) {
-    List<String> command = new ArrayList<>();
-    command.add(ffmpegPath);
+    private List<String> buildFFmpegCommand(String video1Path, String video2Path, String outputFilePath, boolean horizontal, int loopCnt) {
+        List<String> command = new ArrayList<>();
+        command.add(ffmpegPath);
 
-    // CUDA 하드웨어 가속 최적화
-    command.add("-hwaccel_output_format");
-    command.add("cuda");
+        // CUDA 하드웨어 가속 최적화
+        command.add("-hwaccel_output_format");
+        command.add("cuda");
 
-    // 첫 번째 영상 1+2번 반복
-    command.add("-stream_loop");
-    command.add(String.valueOf(loopCnt - 1));
+        // 첫 번째 영상 1+2번 반복
+        command.add("-stream_loop");
+        command.add(String.valueOf(loopCnt - 1));
 
-    // 입력 비디오 1
-    command.add("-i");
-    command.add(video1Path);
+        // 입력 비디오 1
+        command.add("-i");
+        command.add(video1Path);
 
-    // 두 번째 영상 1+2번 반복
-//        command.add("-stream_loop");
-//        command.add("2");
-
-    // 입력 비디오 2
-    command.add("-i");
-    command.add(video2Path);
+        // 입력 비디오 2
+        command.add("-i");
+        command.add(video2Path);
 
 
-    // 필터 설정
-    command.add("-filter_complex");
+        // 필터 설정
+        command.add("-filter_complex");
 
-    StringBuilder filterComplex = new StringBuilder();
-    int baseWidth = 720;
-    int baseHeight = (int) (baseWidth * Math.sqrt(2));
+        StringBuilder filterComplex = new StringBuilder();
+        int baseWidth = 720;
+        int baseHeight = (int) (baseWidth * Math.sqrt(2));
 
-    if (horizontal) {
-        filterComplex.append("[0:v]scale=").append(baseWidth).append(":").append(baseHeight).append("[v0];");
-        filterComplex.append("[1:v]scale=").append(baseWidth).append(":").append(baseHeight).append("[v1];");
-        filterComplex.append("[v0][v1]hstack=inputs=2[v];[0:a][1:a]amerge=inputs=2[a]");
-    } else {
-        filterComplex.append("[0:v]scale=").append(baseHeight).append(":").append(baseWidth).append("[v0];");
-        filterComplex.append("[1:v]scale=").append(baseHeight).append(":").append(baseWidth).append("[v1];");
-        filterComplex.append("[v0][v1]vstack=inputs=2[v];[0:a][1:a]amerge=inputs=2[a]");
+        if (horizontal) {
+            filterComplex.append("[0:v]scale=").append(baseWidth).append(":").append(baseHeight).append("[v0];");
+            filterComplex.append("[1:v]scale=").append(baseWidth).append(":").append(baseHeight).append("[v1];");
+            filterComplex.append("[v0][v1]hstack=inputs=2[v];[0:a][1:a]amerge=inputs=2[a]");
+        } else {
+            filterComplex.append("[0:v]scale=").append(baseHeight).append(":").append(baseWidth).append("[v0];");
+            filterComplex.append("[1:v]scale=").append(baseHeight).append(":").append(baseWidth).append("[v1];");
+            filterComplex.append("[v0][v1]vstack=inputs=2[v];[0:a][1:a]amerge=inputs=2[a]");
+        }
+
+        command.add(filterComplex.toString());
+
+        // 출력 설정
+        command.add("-map");
+        command.add("[v]");
+        command.add("-map");
+        command.add("[a]");
+
+        // 비디오 인코딩 설정
+        command.add("-c:v");
+        command.add("hevc_nvenc");  // HEVC 사용 (H.264로 바꾸려면 h264_nvenc)
+
+        command.add("-threads");
+        command.add("4");
+
+        command.add("-rc:v");
+        command.add("constqp");
+        command.add("-qp");
+        command.add("27");
+
+        command.add("-c:a");
+        command.add("aac");
+        command.add("-ac");
+        command.add("2");
+
+        command.add("-bsf:v");
+        command.add("hevc_mp4toannexb");
+
+        command.add(outputFilePath);
+
+        System.out.println("FFmpeg Command: " + String.join(" ", command));
+
+        return command;
     }
-
-    command.add(filterComplex.toString());
-
-    // 출력 설정
-    command.add("-map");
-    command.add("[v]");
-    command.add("-map");
-    command.add("[a]");
-
-    // 비디오 인코딩 설정
-    command.add("-c:v");
-    command.add("hevc_nvenc");  // HEVC 사용 (H.264로 바꾸려면 h264_nvenc)
-
-    command.add("-threads");
-    command.add("4");
-
-    command.add("-rc:v");
-    command.add("constqp");
-    command.add("-qp");
-    command.add("27");
-
-    command.add("-c:a");
-    command.add("aac");
-    command.add("-ac");
-    command.add("2");
-
-    command.add("-bsf:v");
-    command.add("hevc_mp4toannexb");
-
-    command.add(outputFilePath);
-
-    System.out.println("FFmpeg Command: " + String.join(" ", command));
-
-    return command;
-}
 
 
     // 동기 메소드로 변경
@@ -177,55 +173,6 @@ private List<String> buildFFmpegCommand(String video1Path, String video2Path, St
             throw new RuntimeException("Failed to merge videos: " + e.getMessage(), e);
         }
     }
-
-//    private List<String> buildFFmpegCommand(String video1Path, String video2Path, String outputFilePath, boolean horizontal) {
-//        List<String> command = new ArrayList<>();
-//        command.add(ffmpegPath);
-//
-//        // 첫 번째 입력에 대한 하드웨어 가속 설정
-//        command.add("-hwaccel");
-//        command.add("cuda");     // NVIDIA GPU 사용시
-//        command.add("-i");
-//        command.add(video1Path);
-//
-//        // 두 번째 입력에 대한 하드웨어 가속 설정
-//        command.add("-hwaccel");
-//        command.add("cuda");     // NVIDIA GPU 사용시
-//        command.add("-i");
-//        command.add(video2Path);
-//
-//        // 인코딩 성능 최적화 설정
-//        command.add("-preset");
-//        command.add("p1");      // NVIDIA용 가장 빠른 프리셋
-//
-//        // 필터 설정
-//        command.add("-filter_complex");
-//        String stackFilter = horizontal ? "hstack" : "vstack";
-//        command.add("[0:v][1:v]scale2ref=oh*mdar:ih[v0][v1];[v0][v1]" + stackFilter + "=inputs=2[v]");
-//
-//        command.add("-map");
-//        command.add("[v]");
-//
-//        // 출력 인코더 설정
-//        command.add("-c:v");
-//        command.add("h264_nvenc");
-//
-//        // 최적화된 인코딩 설정
-//        command.add("-rc:v");
-//        command.add("constqp");
-//        command.add("-qp");
-//        command.add("27");
-//
-//        command.add("-c:a");
-//        command.add("aac");
-//
-//        command.add(outputFilePath);
-//
-//        // 디버깅을 위한 전체 명령어 출력
-//        log.info("FFmpeg command: {}", String.join(" ", command));
-//
-//        return command;
-//    }
 
     public void cleanupTempFiles(File... files) {
         for (File file : files) {
