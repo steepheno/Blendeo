@@ -13,6 +13,7 @@ const VideoCallPage: React.FC = () => {
   const userId = useAuthStore((state) => state.userId);
   const currentRoom = useChatStore((state) => state.currentRoom);
 
+  // roomId 전달
   const {
     session,
     error,
@@ -23,7 +24,7 @@ const VideoCallPage: React.FC = () => {
     cleanupSession,
     toggleAudio,
     toggleVideo,
-  } = useOpenVidu();
+  } = useOpenVidu(roomId!); // roomId가 undefined일 수 있으므로 non-null assertion 사용
 
   useEffect(() => {
     if (!userId || !roomId) {
@@ -31,7 +32,6 @@ const VideoCallPage: React.FC = () => {
       return;
     }
 
-    // 바로 세션 초기화
     initializeSession().catch((error) => {
       console.error("Failed to initialize video call:", error);
       alert("화상통화 연결에 실패했습니다.");

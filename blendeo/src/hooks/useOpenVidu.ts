@@ -4,7 +4,7 @@ import { OpenViduSession } from "../types/components/video/openvidu";
 import { openViduApi } from "../api/openvidu";
 import type { ConnectionResponse } from "../types/api/openvidu";
 
-export const useOpenVidu = () => {
+export const useOpenVidu = (roomId: string) => {
   const [session, setSession] = useState<OpenViduSession | null>(null);
   const [publisher, setPublisher] = useState<Publisher | null>(null);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -21,7 +21,7 @@ export const useOpenVidu = () => {
 
       // 1. Create a session and get the session ID
       console.log("Creating session...");
-      const sessionId = await openViduApi.createSession();
+      const sessionId = await openViduApi.createSession(roomId);
       console.log("Session created with ID:", sessionId);
 
       // 2. Create a connection for the session and get the token
@@ -76,7 +76,7 @@ export const useOpenVidu = () => {
       console.log("Connecting to session...");
       const clientData = {
         userName: "User" + Math.floor(Math.random() * 100),
-        roomId: sessionId,
+        roomId, // roomId 사용
       };
       await session.connect(token, { clientData });
 
@@ -110,7 +110,7 @@ export const useOpenVidu = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [roomId]);
 
   const cleanupSession = useCallback(() => {
     if (sessionRef.current) {
