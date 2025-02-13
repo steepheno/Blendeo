@@ -64,14 +64,14 @@ public class ChatController {
     // 채팅방의 메시지 조회
     @Operation(summary = "채팅방 내역 조회")
     @GetMapping("/api/v1/chat/rooms/{roomId}/messages")
-    public ResponseEntity<List<ChatMessage>> getChatHistory(@PathVariable("roomId") Long roomId) {
+    public ResponseEntity<?> getChatHistory(@PathVariable("roomId") Long roomId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         // 내가 있는 채팅방인지 확인하기
         if (!chatService.isInThatChatRoom(roomId, Integer.parseInt(user.getUsername()))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         };
-        return ResponseEntity.ok(chatService.getChatHistory(roomId));
+        return ResponseEntity.ok(chatService.getChatHistoryDto(chatService.getChatHistory(roomId)));
     }
 
     // 채팅방 초대하기
@@ -107,5 +107,16 @@ public class ChatController {
                         .profileImage(userInfoGetRes.getProfileImage())
                         .build())
                 .collect(Collectors.toList()));
+    }
+
+    // 단일 채팅방 참여 유저 조회
+    @Operation(summary = "단일 채팅방 참여 유저 조회")
+    @GetMapping("/room/participants")
+    public ResponseEntity<?> getRoomParticipantsByRoomId(@RequestParam("roomId") Long roomId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // 내가 그 방에 들어가 있는 유저인지 조회
+
+        return ResponseEntity.ok().body(chatService.getRoomParticipantsByRoomId(roomId));
     }
 }
