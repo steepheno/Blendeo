@@ -145,53 +145,57 @@ const VideoCallPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto p-4">
-        <div className="flex flex-col h-[calc(100vh-32px)]">
-          {" "}
-          {/* 전체 높이 조정 */}
-          {/* 헤더 부분 */}
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">Video Call - {roomName}</h1>
-            <div className="space-x-2">
-              <button
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200"
-                onClick={handleLeaveCall}
-              >
-                Leave Call
-              </button>
+      {/* 전체 컨테이너를 viewport 높이로 설정 */}
+      <div className="h-screen flex flex-col">
+        {/* 실제 콘텐츠 영역 */}
+        <div className="flex-1 p-4 overflow-hidden">
+          <div className="flex flex-col h-full">
+            {/* 헤더 부분 */}
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl font-bold">Video Call - {roomName}</h1>
+              <div className="space-x-2">
+                <button
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200"
+                  onClick={handleLeaveCall}
+                >
+                  Leave Call
+                </button>
+              </div>
+            </div>
+
+            {/* 동적 그리드 레이아웃 - 남은 공간을 모두 차지하도록 설정 */}
+            <div className={`grid ${getGridLayout()} gap-4 flex-1 min-h-0`}>
+              {/* Publisher (자신의 비디오) */}
+              {publisher && (
+                <div
+                  className={`${getVideoSize(true)} bg-gray-900 rounded-lg overflow-hidden`}
+                >
+                  <VideoComponent
+                    streamManager={publisher}
+                    className="w-full h-full"
+                  />
+                </div>
+              )}
+
+              {/* Subscribers (다른 참가자들의 비디오) */}
+              {subscribers.map((subscriber) => (
+                <div
+                  key={subscriber.id}
+                  className={`${getVideoSize(false)} bg-gray-900 rounded-lg overflow-hidden`}
+                >
+                  <VideoComponent
+                    streamManager={subscriber}
+                    className="w-full h-full"
+                  />
+                </div>
+              ))}
             </div>
           </div>
-          {/* 동적 그리드 레이아웃 */}
-          <div
-            className={`grid ${getGridLayout()} gap-4 flex-1`} // flex-1로 변경
-          >
-            {/* Publisher (자신의 비디오) */}
-            {publisher && (
-              <div
-                className={`${getVideoSize(true)} bg-gray-900 rounded-lg overflow-hidden`}
-              >
-                <VideoComponent
-                  streamManager={publisher}
-                  className="w-full h-full"
-                />
-              </div>
-            )}
+        </div>
 
-            {/* Subscribers (다른 참가자들의 비디오) */}
-            {subscribers.map((subscriber) => (
-              <div
-                key={subscriber.id}
-                className={`${getVideoSize(false)} bg-gray-900 rounded-lg overflow-hidden`}
-              >
-                <VideoComponent
-                  streamManager={subscriber}
-                  className="w-full h-full"
-                />
-              </div>
-            ))}
-          </div>
-          {/* Controls */}
-          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2">
+        {/* Controls - 하단 고정 */}
+        <div className="pb-6 pt-2">
+          <div className="flex justify-center">
             <div className="bg-gray-800 rounded-full px-6 py-3 flex gap-4">
               <button
                 className={`p-3 rounded-full hover:bg-gray-700 text-white
