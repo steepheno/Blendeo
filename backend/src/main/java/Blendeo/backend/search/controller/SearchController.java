@@ -46,11 +46,11 @@ public class SearchController {
     @Operation(
             summary = "악기 종류로 프로젝트 검색"
     )
-    @GetMapping("project/instrument")
-    public ResponseEntity<List<ProjectListDto>> searchProjectByInstrumentType(@RequestParam(value="keyword", required=false) String instrument,
+    @GetMapping("/project/instrument")
+    public ResponseEntity<List<ProjectListDto>> searchProjectByInstrumentType(@RequestParam(value="keyword", required=false) String keyword,
                                                                               @RequestParam(defaultValue = "0", value = "page") int page,
                                                                               @RequestParam(defaultValue = "10", value = "size") int size){
-        return ResponseEntity.ok().body(searchService.searchProjectByInstrumentName(instrument, page, size));
+        return ResponseEntity.ok().body(searchService.searchProjectByInstrumentName(keyword, page, size));
     }
 
     @Operation(
