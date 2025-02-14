@@ -2,8 +2,10 @@ import Layout from "@/components/layout/Layout";
 import VideoPlayer from "@/components/detail/VideoPlayer";
 import InteractionButton from "@/components/detail/InteractionButton";
 import CommentsSection from "@/components/detail/CommentsSection";
+import SettingsSection from "@/components/detail/SettingsSection";
 import ContributorsSection from "@/components/detail/ContributorsSection";
 import SidePanel from "@/components/detail/SidePanel";
+import hamburgerIcon from "@/assets/hamburger_icon.png"
 import { getProject } from "@/api/project";
 import { Project } from "@/types/api/project";
 import { useProjectStore } from "@/stores/projectStore";
@@ -89,7 +91,13 @@ const ProjectDetailPage = () => {
         setRedirectState(projectData, type);
         navigate('/project/forkrecord');
     }
-};
+  };
+  
+  const handleSettingClick = (tab: TabType) => {
+    if (tab === "settings") {
+      setActiveTab(activeTab === tab ? null : tab);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -117,50 +125,57 @@ const ProjectDetailPage = () => {
         <div className="flex-1 flex">
           <div className="relative h-full flex items-start pt-10">
             <div className="flex items-end">
-            <div className="flex-1">
-              <VideoPlayer
-                videoUrl={projectData.videoUrl}
-                metadata={{
-                  title: projectData.title,
-                  content: projectData.contents,
-                  author: {
-                    id: projectData.authorId,
-                    name: projectData.authorNickname,
-                    profileImage: projectData.authorProfileImage,
-                  },
-                  viewCnt: projectData.viewCnt
-                }}
-                isPortrait={true}
-              />
-            </div>
+              <div className="flex-1">
+                <VideoPlayer
+                  videoUrl={projectData.videoUrl}
+                  metadata={{
+                    title: projectData.title,
+                    content: projectData.contents,
+                    author: {
+                      id: projectData.authorId,
+                      name: projectData.authorNickname,
+                      profileImage: projectData.authorProfileImage,
+                    },
+                    viewCnt: projectData.viewCnt
+                  }}
+                  isPortrait={true}
+                />
+              </div>
 
-            <div className="ml-4 flex flex-col items-center space-y-4">
-              <InteractionButton icon={Music} count={projectData.viewCnt.toString()} label="Blendit!" onClick={()=>handleForkClick("project-fork")}/>
-              <InteractionButton icon={Heart} count="0" />
-              <InteractionButton
-                icon={MessageSquare}
-                count="0"
-                isActive={activeTab === "comments"}
-                onClick={() => handleTabClick("comments")}
-              />
-              <InteractionButton
-                icon={Users}
-                count={projectData.contributorCnt.toString()}
-                isActive={activeTab === "contributors"}
-                onClick={() => handleTabClick("contributors")}
-              />
-              <InteractionButton icon={Bookmark} count="0" />
-              <InteractionButton icon={Share2} count="0" />
-              <InteractionButton icon={GitBranchPlusIcon} count="0" onClick={() => handleTabClick("showTree")}/>
-            </div>
+              <div className="ml-4 flex flex-col items-center space-y-4">
+                <img
+                  className="w-10 h-10 cursor-pointer"
+                  src={hamburgerIcon}
+                  alt="수정삭제버튼"
+                  onClick={() => handleSettingClick("settings")}
+                />
+                <InteractionButton icon={Music} count={projectData.viewCnt.toString()} label="Blendit!" onClick={()=>handleForkClick("project-fork")}/>
+                <InteractionButton icon={Heart} count="0" />
+                <InteractionButton
+                  icon={MessageSquare}
+                  count="0"
+                  isActive={activeTab === "comments"}
+                  onClick={() => handleTabClick("comments")}
+                />
+                <InteractionButton
+                  icon={Users}
+                  count={projectData.contributorCnt.toString()}
+                  isActive={activeTab === "contributors"}
+                  onClick={() => handleTabClick("contributors")}
+                />
+                <InteractionButton icon={Bookmark} count="0" />
+                <InteractionButton icon={Share2} count="0" />
+                <InteractionButton icon={GitBranchPlusIcon} count="0" onClick={() => handleTabClick("showTree")}/>
+              </div>
             </div>
           </div>
-
           <SidePanel
             activeTab={activeTab}
             content={
               activeTab === "comments" ? (
                 <CommentsSection projectId={projectData.projectId}/>
+              ) : activeTab === "settings" ? (
+                <SettingsSection projectId={projectData.projectId}/>
               ) : (
                 <ContributorsSection />
               )
