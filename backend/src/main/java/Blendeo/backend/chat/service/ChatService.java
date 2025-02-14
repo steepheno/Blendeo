@@ -195,5 +195,7 @@ public class ChatService {
                 .orElseThrow(()-> new EntityNotFoundException(ErrorCode.CHATROOM_NOT_FOUND, ErrorCode.CHATROOM_NOT_FOUND.getMessage()));
 
         chatRoom.update(roomName);
+
+        chatRoomRepository.save(chatRoom);
     }
 }

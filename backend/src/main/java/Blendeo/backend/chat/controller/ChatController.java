@@ -105,6 +105,7 @@ public class ChatController {
         return ResponseEntity.status(HttpStatus.CREATED).body(chatRoomCreateRes);
     }
 
+    @Operation(summary = "채팅방 이름 변경")
     @PatchMapping("/api/v1/chat/room/name/edit")
     public ResponseEntity<?> editRoomName(@RequestParam("roomId") long roomId, @RequestParam("roomName") String roomName) {
         chatService.editRoomName(roomId, roomName);
