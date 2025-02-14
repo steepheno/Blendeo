@@ -17,16 +17,16 @@ public class ChatMessageRes {
     private String nickname;
     private URL profileImage;
     private String content;
-    private LocalDateTime timestamp;
+    private LocalDateTime createdAt;
 
     @Builder
-    public ChatMessageRes(ChatMessage.MessageType type, Long chatRoomId, Integer userId, String nickname, URL profileImage, String content) {
+    public ChatMessageRes(ChatMessage.MessageType type, Long chatRoomId, Integer userId, String nickname, URL profileImage, String content, LocalDateTime createdAt) {
         this.type = type;
         this.chatRoomId = chatRoomId;
         this.userId = userId;
         this.nickname = nickname;
         this.profileImage = profileImage;
         this.content = content;
-        this.timestamp = LocalDateTime.now();
+        this.createdAt = createdAt;
     }
 }
