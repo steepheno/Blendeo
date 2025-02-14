@@ -12,7 +12,7 @@ public interface ProjectService {
 
     ProjectGetRes getProjectInfo(Long projectId);
 
-    void deleteProject(Long projectId);
+    void deleteProject(Long projectId, int userId);
 
     void modifyProjectState(Long projectId, boolean state);
 

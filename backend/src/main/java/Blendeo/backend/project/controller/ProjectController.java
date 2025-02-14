@@ -124,7 +124,10 @@ public class ProjectController {
     )
     @DeleteMapping("/{projectId}")
     public ResponseEntity<?> deleteProject(@PathVariable("projectId") Long projectId){
-        projectService.deleteProject(projectId);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        projectService.deleteProject(projectId, userId);
 
         return ResponseEntity.ok().build();
     }
