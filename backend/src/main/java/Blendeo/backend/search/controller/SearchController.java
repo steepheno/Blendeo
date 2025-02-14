@@ -25,7 +25,7 @@ public class SearchController {
     @Operation(
             summary =  "게시글 검색"
     )
-    @GetMapping("/title")
+    @GetMapping("/project/title")
     public ResponseEntity<List<ProjectListDto>> searchTitle(@RequestParam(value="title", required=false) String title,
                                                             @RequestParam(defaultValue = "0", value = "page") int page,
                                                             @RequestParam(defaultValue = "10", value = "size") int size){
@@ -41,6 +41,16 @@ public class SearchController {
                                                                         @RequestParam(defaultValue = "0", value = "page") int page,
                                                                         @RequestParam(defaultValue = "10", value = "size") int size){
         return ResponseEntity.ok().body(searchService.searchProjectByNickname(nickname, page, size));
+    }
+
+    @Operation(
+            summary = "악기 종류로 프로젝트 검색"
+    )
+    @GetMapping("project/instrument")
+    public ResponseEntity<List<ProjectListDto>> searchProjectByInstrumentType(@RequestParam(value="keyword", required=false) String instrument,
+                                                                              @RequestParam(defaultValue = "0", value = "page") int page,
+                                                                              @RequestParam(defaultValue = "10", value = "size") int size){
+        return ResponseEntity.ok().body(searchService.searchProjectByInstrumentName(instrument, page, size));
     }
 
     @Operation(
@@ -62,4 +72,5 @@ public class SearchController {
                                                                   @RequestParam(defaultValue = "10", value = "size") int size){
         return ResponseEntity.ok().body(searchService.searchUserByEmail(email, page, size));
     }
+
 }
