@@ -1,6 +1,7 @@
 package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
+import Blendeo.backend.exception.UnauthorizedAccessException;
 import Blendeo.backend.global.error.ErrorCode;
 import Blendeo.backend.global.util.S3Utils;
 import Blendeo.backend.instrument.dto.InstrumentGetRes;
@@ -129,9 +130,15 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void deleteProject(Long projectId) {
+    public void deleteProject(Long projectId, int userId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        if(project.getAuthor().getId() != user.getId())
+            throw new UnauthorizedAccessException(ErrorCode.UNAUTHORIZED_ACCESS,ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+
         projectRepository.deleteById(projectId);
         projectNodeRepository.deleteByProjectIdIfNotForked(projectId);
 
