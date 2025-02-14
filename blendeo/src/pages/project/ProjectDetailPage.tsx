@@ -23,24 +23,62 @@ import {
 } from "lucide-react";
 
 import { TabType } from "@/types/components/video/videoDetail";
+import { useUserStore } from "@/stores/userStore";
+import { useAuthStore } from "@/stores/authStore";
 
 type RedirectSource = 'project-edit' | 'project-create' | 'project-detail' | 'project-fork';
+
 
 const ProjectDetailPage = () => {
   // params 전체를 로깅하여 디버깅
   const params = useParams();
   const { projectId } = params;
   const location = useLocation();
-
+  
+  const { currentUser, setCurrentUser, getUser } = useUserStore();
+  
   const [activeTab, setActiveTab] = useState<TabType>(null);
   const [projectData, setProjectData] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  
   const { setRedirectState } = useProjectStore();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 현재 로그인한 유저 정보 가져오기
+    const initializeUser = async () => {
+      try {
+        const userId = useAuthStore.getState().userId;
+        const accessToken = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("accessToken="))
+          ?.split("=")[1];
+        
+        // 초기화 시도
+        console.log("초기화 시도: ", {
+          userId,
+          accessToken,
+          userIdType: typeof userId,
+          hasToken: !!accessToken
+        });
+    
+        if (userId && accessToken) {  // userId와 accessToken이 모두 존재하는지 확인
+          const response = await getUser(Number(userId));
+          console.log(response);
+          
+        } else {
+          console.log("인증 정보 부족:", {
+            hasUserId: !!userId,
+            hasAccessToken: !!accessToken
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load user: ", error);
+      }
+    };
+    initializeUser();
+
     const fetchProjectData = async () => {
       console.log("projectId:", projectId);
       console.log("Current path:", location.pathname);
@@ -66,8 +104,7 @@ const ProjectDetailPage = () => {
         setProjectData(response);
         setError(null);
       } catch (err) {
-        const errorMessage =
-          err instanceof Error
+        const errorMessage = err instanceof Error
             ? err.message
             : "프로젝트 정보를 불러오는데 실패했습니다.";
         setError(errorMessage);
@@ -78,7 +115,7 @@ const ProjectDetailPage = () => {
     };
 
     fetchProjectData();
-  }, [projectId, location.pathname]);
+  }, [projectId, location.pathname, getUser, setCurrentUser]);
 
   const handleTabClick = (tab: TabType) => {
     if(tab === 'showTree') navigate(`tree`)
@@ -143,12 +180,14 @@ const ProjectDetailPage = () => {
               </div>
 
               <div className="ml-4 flex flex-col items-center space-y-4">
-                <img
-                  className="w-10 h-10 cursor-pointer"
-                  src={hamburgerIcon}
-                  alt="수정삭제버튼"
-                  onClick={() => handleSettingClick("settings")}
-                />
+                {currentUser?.id === projectData.authorId && (
+                  <img
+                    className="w-10 h-10 cursor-pointer"
+                    src={hamburgerIcon}
+                    alt="수정삭제버튼"
+                    onClick={() => handleSettingClick("settings")}
+                  />
+                )}
                 <InteractionButton icon={Music} count={projectData.viewCnt.toString()} label="Blendit!" onClick={()=>handleForkClick("project-fork")}/>
                 <InteractionButton icon={Heart} count="0" />
                 <InteractionButton
