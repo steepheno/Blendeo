@@ -66,7 +66,7 @@ public class ChatController {
 
         if (roomNo != 0) { // 채팅방이 존재함.
             ChatRoom chatRoom = chatRoomRepository.findById(roomNo)
-                    .orElseThrow(()->new EntityNotFoundException(ErrorCode.CHATROOM_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+                    .orElseThrow(()->new EntityNotFoundException(ErrorCode.CHATROOM_NOT_FOUND, ErrorCode.CHATROOM_NOT_FOUND.getMessage()));
             ChatRoomCreateRes chatRoomCreateRes = ChatRoomCreateRes.builder()
                     .roomId(chatRoom.getId())
                     .roomName(chatRoom.getName())
@@ -124,15 +124,6 @@ public class ChatController {
         };
         return ResponseEntity.ok(chatService.getChatHistoryDto(chatService.getChatHistory(roomId)));
     }
-
-    // 채팅방 초대하기
-//    @Operation(summary = "채팅방 다른 친구 초대하기")
-//    @PostMapping("/api/v1/chat/rooms/{roomId}/users/{userId}")
-//    public ResponseEntity<String> inviteUser(@PathVariable("roomId") Long roomId, @PathVariable("userId") int userId) {
-//        chatService.inviteUser(roomId, userId);
-//
-//        return new ResponseEntity<>(HttpStatus.OK);
-//    }
 
     // 내가 들어가있는 채팅방 조회하기
     @Operation(summary = "내가 들어가있는 채팅방 조회하기")
