@@ -133,7 +133,7 @@ export const uploadBlendedVideo = async (
 
 export const getNewProjects = async (page: number = 0, size: number = 10) => {
   return axiosInstance.get<ProjectListItem[]>(
-    `/project/new?page=${page}&size=${size}`
+    `/project/get/new?page=${page}&size=${size}`
   );
 };
 
