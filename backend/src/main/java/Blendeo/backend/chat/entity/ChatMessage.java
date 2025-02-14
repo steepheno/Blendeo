@@ -16,8 +16,7 @@ public class ChatMessage implements Serializable {
     private Long chatRoomId;
     private Integer userId;
     private String content;
-    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime timestamp;
+    private LocalDateTime createdAt;
 
     public enum MessageType {
         ENTER, TALK, LEAVE

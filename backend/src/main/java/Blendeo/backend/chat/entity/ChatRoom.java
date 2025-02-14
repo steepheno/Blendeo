@@ -31,4 +31,8 @@ public class ChatRoom {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void update(String roomName) {
+        this.name = roomName;
+    }
 }
