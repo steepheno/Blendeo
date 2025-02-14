@@ -53,10 +53,11 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 
         int contributorCnt = 1;
-
+        int instrumentCnt = projectCreateReq.getInstrumentCnt();
         if (projectCreateReq.getForkProjectId() != null) {
             long forkedId = projectCreateReq.getForkProjectId();
             contributorCnt = getProjectInfo(forkedId).getContributorCnt() + 1;
+            instrumentCnt = getProjectInfo(forkedId).getInstrumentCnt() + projectCreateReq.getInstrumentCnt();
         }
 
         Project project = Project.builder()
@@ -68,6 +69,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .contributorCnt(contributorCnt)
                 .thumbnail(projectCreateReq.getThumbnailUrl())
                 .videoUrl(projectCreateReq.getVideoUrl())
+                .contributorCnt(projectCreateReq.getInstrumentCnt())
+                .instrumentCnt(instrumentCnt)
                 .build();
 
         project = projectRepository.save(project);
@@ -113,6 +116,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .thumbnail(project.getThumbnail())
                 .videoUrl(project.getVideoUrl())
                 .viewCnt(project.getViewCnt())
+                .instrumentCnt(project.getInstrumentCnt())
                 .projectInstruments(projectInstruments.stream()
                         .filter(projectInstrument -> projectInstrument.getInstrument() != null) // Instrument가 널이면!
                         .map(projectInstrument-> InstrumentGetRes.builder()
