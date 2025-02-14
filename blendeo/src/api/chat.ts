@@ -1,8 +1,10 @@
+import { AxiosError } from "axios";
 import axiosInstance from "./axios";
 import type {
   ChatRoom,
   CreateRoomRequest,
   GetMessagesResponse,
+  RoomParticipant,
   SearchUserResponse,
 } from "@/types/api/chat";
 
@@ -59,6 +61,36 @@ export const chatAPI = {
       return response;
     } catch (error) {
       console.error("ChatAPI inviteUserByEmail error:", error);
+      throw error;
+    }
+  },
+
+  getRoomParticipants: async (roomId: number): Promise<RoomParticipant[]> => {
+    try {
+      // 요청 전에 쿠키에서 토큰 확인
+      const cookies = document.cookie.split(";");
+      const accessToken = cookies
+        .find((cookie) => cookie.trim().startsWith("accessToken="))
+        ?.split("=")[1];
+
+      console.log(
+        "Current access token:",
+        accessToken ? "exists" : "not found"
+      );
+
+      const response = await axiosInstance.get<RoomParticipant[]>(
+        `/chat/rooms/${roomId}/participants`
+      );
+      return response;
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error("Failed to fetch room participants:", {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          headers: error.response?.headers,
+        });
+      }
       throw error;
     }
   },
