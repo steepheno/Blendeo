@@ -54,6 +54,16 @@ public class SearchController {
     }
 
     @Operation(
+            summary = "악기 개수로 프로젝트 검색"
+    )
+    @GetMapping("/project/instrument/cnt")
+    public ResponseEntity<List<ProjectListDto>> searchProjectByInstrumentCount(@RequestParam(value="count", required=false) int count,
+                                                                               @RequestParam(defaultValue = "0", value = "page") int page,
+                                                                               @RequestParam(defaultValue = "10", value = "size") int size){
+        return ResponseEntity.ok().body(searchService.searchProjectByInstrumentCount(count, page, size));
+    }
+
+    @Operation(
             summary = "닉네임으로 유저 검색"
     )
     @GetMapping("/user/nickname")

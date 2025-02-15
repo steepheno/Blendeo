@@ -121,6 +121,35 @@ public class SearchService {
 
     }
 
+    public List<ProjectListDto> searchProjectByInstrumentCount(int count, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Project> searchProjectByInstrumentCountPage = searchProjectRepository.findProjectByInstrumentCount(count, pageRequest);
+        List<Project> projects = searchProjectByInstrumentCountPage.getContent();
+
+        return projects.stream()
+                .map(project -> ProjectListDto.builder()
+                        .projectId(project.getId())
+                        .title(project.getTitle())
+                        .thumbnail(project.getThumbnail())
+                        .viewCnt(project.getViewCnt())
+                        .contributionCnt(project.getContributorCnt())
+                        .duration(project.getRunningTime())
+                        .authorId(project.getAuthor().getId())
+                        .authorNickname(project.getAuthor().getNickname())
+                        .authorProfileImage(project.getAuthor().getProfileImage())
+                        .instruments(
+                                projectInstrumentRepository.getAllByProjectId(project.getId()).stream()
+                                        .map(projectInstrument ->
+                                                projectInstrument.getInstrument() != null
+                                                        ? projectInstrument.getInstrument().getName()
+                                                        : projectInstrument.getEtcInstrument().getName()
+                                        ).collect(Collectors.toList())
+                        )
+                        .createdAt(project.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     public List<UserInfoGetRes> searchUserByNickname(String nickname, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> searchUserByNicknamePage = searchUserRepository.findByNicknameContaining(nickname, pageRequest);
@@ -174,5 +203,6 @@ public class SearchService {
                         .build())
                 .collect(Collectors.toList());
     }
+
 
 }
