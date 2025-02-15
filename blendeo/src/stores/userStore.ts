@@ -39,6 +39,7 @@ export const useUserStore = create<UserStore>()(
       getUser: async (id) => {
         const user = await userApi.getUser(id);
         set({ currentUser: user });
+        return user;
       },
 
       followUser: async (userId) => {
