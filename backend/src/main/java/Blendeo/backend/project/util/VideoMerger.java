@@ -31,7 +31,7 @@ public class VideoMerger {
         command.add("-hwaccel_output_format");
         command.add("cuda");
 
-        // 첫 번째 영상 1+2번 반복
+        // 첫 번째 영상 루프 적용
         command.add("-stream_loop");
         command.add(String.valueOf(loopCnt - 1));
 
@@ -43,7 +43,6 @@ public class VideoMerger {
         command.add("-i");
         command.add(video2Path);
 
-
         // 필터 설정
         command.add("-filter_complex");
 
@@ -54,12 +53,19 @@ public class VideoMerger {
         if (horizontal) {
             filterComplex.append("[0:v]scale=").append(baseWidth).append(":").append(baseHeight).append("[v0];");
             filterComplex.append("[1:v]scale=").append(baseWidth).append(":").append(baseHeight).append("[v1];");
-            filterComplex.append("[v0][v1]hstack=inputs=2[v];[0:a][1:a]amerge=inputs=2[a]");
+            filterComplex.append("[v0][v1]hstack=inputs=2[v];");
         } else {
             filterComplex.append("[0:v]scale=").append(baseHeight).append(":").append(baseWidth).append("[v0];");
             filterComplex.append("[1:v]scale=").append(baseHeight).append(":").append(baseWidth).append("[v1];");
-            filterComplex.append("[v0][v1]vstack=inputs=2[v];[0:a][1:a]amerge=inputs=2[a]");
+            filterComplex.append("[v0][v1]vstack=inputs=2[v];");
         }
+
+        // 첫 번째 비디오 오디오 루프 적용 (aloop 사용)
+        filterComplex.append("[0:a]aloop=loop=").append(loopCnt)
+                .append(":size=2e+09").append("[a0];");  // 충분히 큰 size 값으로 설정
+
+        // 오디오 병합 (amerge)
+        filterComplex.append("[a0][1:a]amerge=inputs=2[a]");
 
         command.add(filterComplex.toString());
 
@@ -95,6 +101,7 @@ public class VideoMerger {
 
         return command;
     }
+
 
 
     // 동기 메소드로 변경
