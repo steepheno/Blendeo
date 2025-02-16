@@ -51,9 +51,12 @@ public class Project {
     @Column
     private URL videoUrl;
 
+    @Column
+    private int instrumentCnt;
+
     @Builder
     public Project(Long forkId, User author, String title, String contents,
-                   URL thumbnail, int contributorCnt, URL videoUrl, int runningTime) {
+                   URL thumbnail, int contributorCnt, URL videoUrl, int runningTime, int instrumentCnt) {
         this.forkId = forkId;
         this.author = author;
         this.title = title;
@@ -65,6 +68,7 @@ public class Project {
         this.state = true;
         this.runningTime = runningTime;
         this.viewCnt = 0;
+        this.instrumentCnt = instrumentCnt;
     }
 
     public void updateState(boolean state) {

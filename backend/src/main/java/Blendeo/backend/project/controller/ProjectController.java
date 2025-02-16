@@ -78,6 +78,9 @@ public class ProjectController {
 
         int duration = videoEditorService.getLength(videoUrl.toString());
         URL thumbnailUrl = videoEditorService.getThumbnailUrl(videoUrl.toString());
+        int ectInstrumentCnt = etcInstrumentNames == null ? 0 : etcInstrumentNames.size();
+        int instrumentCnt = instrumentIds == null ? 0 : instrumentIds.size();
+        int instrumentTotalCnt = instrumentCnt + ectInstrumentCnt;
 
         ProjectCreateReq projectCreateReq = ProjectCreateReq.builder()
                 .title(title)
@@ -88,6 +91,7 @@ public class ProjectController {
                 .duration(duration)
                 .thumbnailUrl(thumbnailUrl)
                 .videoUrl(videoUrl)
+                .instrumentCnt(instrumentTotalCnt)
                 .build();
 
         log.info("영상 길이: " + duration);
@@ -124,7 +128,10 @@ public class ProjectController {
     )
     @DeleteMapping("/{projectId}")
     public ResponseEntity<?> deleteProject(@PathVariable("projectId") Long projectId){
-        projectService.deleteProject(projectId);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        projectService.deleteProject(projectId, userId);
 
         return ResponseEntity.ok().build();
     }

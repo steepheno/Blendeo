@@ -1,6 +1,7 @@
 package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
+import Blendeo.backend.exception.UnauthorizedAccessException;
 import Blendeo.backend.global.error.ErrorCode;
 import Blendeo.backend.global.util.S3Utils;
 import Blendeo.backend.instrument.dto.InstrumentGetRes;
@@ -52,10 +53,11 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
 
         int contributorCnt = 1;
-
+        int instrumentCnt = projectCreateReq.getInstrumentCnt();
         if (projectCreateReq.getForkProjectId() != null) {
             long forkedId = projectCreateReq.getForkProjectId();
             contributorCnt = getProjectInfo(forkedId).getContributorCnt() + 1;
+            instrumentCnt = getProjectInfo(forkedId).getInstrumentCnt() + projectCreateReq.getInstrumentCnt();
         }
 
         Project project = Project.builder()
@@ -67,6 +69,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .contributorCnt(contributorCnt)
                 .thumbnail(projectCreateReq.getThumbnailUrl())
                 .videoUrl(projectCreateReq.getVideoUrl())
+                .contributorCnt(projectCreateReq.getInstrumentCnt())
+                .instrumentCnt(instrumentCnt)
                 .build();
 
         project = projectRepository.save(project);
@@ -112,6 +116,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .thumbnail(project.getThumbnail())
                 .videoUrl(project.getVideoUrl())
                 .viewCnt(project.getViewCnt())
+                .instrumentCnt(project.getInstrumentCnt())
                 .projectInstruments(projectInstruments.stream()
                         .filter(projectInstrument -> projectInstrument.getInstrument() != null) // Instrument가 널이면!
                         .map(projectInstrument-> InstrumentGetRes.builder()
@@ -129,9 +134,15 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void deleteProject(Long projectId) {
+    public void deleteProject(Long projectId, int userId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        if(project.getAuthor().getId() != user.getId())
+            throw new UnauthorizedAccessException(ErrorCode.UNAUTHORIZED_ACCESS,ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+
         projectRepository.deleteById(projectId);
         projectNodeRepository.deleteByProjectIdIfNotForked(projectId);
 

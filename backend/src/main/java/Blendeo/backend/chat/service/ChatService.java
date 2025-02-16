@@ -1,6 +1,7 @@
 package Blendeo.backend.chat.service;
 
 import Blendeo.backend.chat.dto.ChatMessageRes;
+import Blendeo.backend.chat.dto.ChatRoomPariticipantRes;
 import Blendeo.backend.chat.dto.RoomUserInfoRes;
 import Blendeo.backend.chat.dto.UserChatInfoRes;
 import Blendeo.backend.chat.entity.ChatMessage;
@@ -32,28 +33,24 @@ public class ChatService {
     private final RedisTemplate<String, Object> chatRedisTemplate;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
-    private final ChatRoomParticipantRepository participantRepository;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
     private final UserRepository userRepository;
 
-    public ChatService(@Qualifier("chatRedisTemplate") RedisTemplate<String, Object> chatRedisTemplate, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, ChatRoomParticipantRepository participantRepository, ChatRoomParticipantRepository chatRoomParticipantRepository, UserRepository userRepository) {
+    public ChatService(@Qualifier("chatRedisTemplate") RedisTemplate<String, Object> chatRedisTemplate, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, ChatRoomParticipantRepository chatRoomParticipantRepository, UserRepository userRepository) {
         this.chatRedisTemplate = chatRedisTemplate;
         this.chatMessageRepository = chatMessageRepository;
         this.chatRoomRepository = chatRoomRepository;
-        this.participantRepository = participantRepository;
         this.chatRoomParticipantRepository = chatRoomParticipantRepository;
         this.userRepository = userRepository;
     }
 
     public void sendMessage(ChatMessage message) {
-        message.setTimestamp(LocalDateTime.now());
 
         // DB에 메시지 저장
         ChatMessages chatMessage = ChatMessages.builder()
                 .chatRoomId(message.getChatRoomId())
                 .userId(message.getUserId())
                 .content(message.getContent())
-                .createdAt(message.getTimestamp())
                 .build();
         log.info("Sending message: {}", chatMessage.getContent());
         ChatMessages savedMessage = chatMessageRepository.save(chatMessage);
@@ -77,6 +74,7 @@ public class ChatService {
                                 .orElseThrow(()-> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()))
                                 .getProfileImage())
                         .content(chatMessage.getContent())
+                        .createdAt(chatMessage.getCreatedAt())
                         .build()
                 )
                 .collect(Collectors.toList());
@@ -157,5 +155,47 @@ public class ChatService {
                         .profileImage(chatRoomParticipant.getUser().getProfileImage())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public long getChatRoomExist(List<Integer> userIds) {
+
+        // 만약에 멤버들이 모두 존재하는 값이 있다면!
+        // 3명이라면 모두가 포함된 것이 존재하는 지 판별.
+
+        // 채팅방의 구성원 리스트를 가져오자.
+        List<ChatRoomPariticipantRes> chatRoomPariticipantRes = null;
+        List<Long> chatRoomIds = chatRoomParticipantRepository.findDistinctChatRoomIds();
+
+        chatRoomPariticipantRes = chatRoomIds.stream()
+                .map(chatRoomId -> {
+                    List<Integer> tmpUserIds = chatRoomParticipantRepository.findUserIdsByChatRoomId(chatRoomId);
+                    return new ChatRoomPariticipantRes(chatRoomId, tmpUserIds);
+                })
+                .toList();
+        // 해당 방의 인원수와 일치하는 지 확인.
+        for (ChatRoomPariticipantRes chatRoomParticipant : chatRoomPariticipantRes) {
+            log.info("start: " + chatRoomParticipant.getChatRoomId());
+
+            boolean isExist = true;
+            for (Integer userId : userIds) {
+                if (!chatRoomParticipant.getUserIds().contains(userId)) {
+                    isExist = false;
+                }
+            }
+            if (isExist && userIds.size() == chatRoomParticipant.getUserIds().size()) {
+                return chatRoomParticipant.getChatRoomId();
+            }
+        }
+
+        return 0;
+    }
+
+    public void editRoomName(long roomId, String roomName) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(()-> new EntityNotFoundException(ErrorCode.CHATROOM_NOT_FOUND, ErrorCode.CHATROOM_NOT_FOUND.getMessage()));
+
+        chatRoom.update(roomName);
+
+        chatRoomRepository.save(chatRoom);
     }
 }

@@ -31,11 +31,13 @@ public class ProjectGetRes {
     private List<InstrumentGetRes> etcInstruments;
     private LocalDateTime createdAt;
     private boolean state;
+    private int instrumentCnt;
 
     @Builder
     public ProjectGetRes(Long id, Long forkId, String title, String contents, int contributorCnt,
                          int authorId, String authorNickname, URL authorProfileImage,
-                         LocalDateTime createdAt, boolean state, URL thumbnail, int runningTime, int viewCnt, URL videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments) {
+                         LocalDateTime createdAt, boolean state, URL thumbnail, int runningTime,
+                         int viewCnt, URL videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments, int instrumentCnt) {
         this.projectId = id;
         this.forkId = forkId;
         this.title = title;
@@ -52,5 +54,6 @@ public class ProjectGetRes {
         this.videoUrl = videoUrl;
         this.projectInstruments = projectInstruments;
         this.etcInstruments = etcInstruments;
+        this.instrumentCnt = instrumentCnt;
     }
 }

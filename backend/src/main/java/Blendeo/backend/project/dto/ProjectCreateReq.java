@@ -19,9 +19,10 @@ public class ProjectCreateReq {
     private int duration;
     private URL thumbnailUrl;
     private URL videoUrl;
+    private int instrumentCnt;
 
     @Builder
-    public ProjectCreateReq(String title, String content, int userId, Long forkProjectId, boolean state, int duration, URL thumbnailUrl, URL videoUrl) {
+    public ProjectCreateReq(String title, String content, int userId, Long forkProjectId, boolean state, int duration, URL thumbnailUrl, URL videoUrl, int instrumentCnt) {
         this.title = title;
         this.content = content;
         this.userId = userId;
@@ -30,5 +31,6 @@ public class ProjectCreateReq {
         this.duration = duration;
         this.thumbnailUrl = thumbnailUrl;
         this.videoUrl = videoUrl;
+        this.instrumentCnt = instrumentCnt;
     }
 }
