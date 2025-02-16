@@ -43,38 +43,42 @@ public class OpenviduController {
     @PostMapping
     public ResponseEntity<String> initializeSession(@RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
-        // 기존에 같은 방의 채팅 세션이 이미 열려있으면 그 세션 아이디 반환!
-        SessionProperties properties = SessionProperties.fromJson(params).build();
 
         try {
             if(params != null && params.containsKey("sessionId")) {
                 String sessionId = params.get("sessionId").toString();
                 System.out.println("Requested sessionId: " + sessionId);
 
+                // 모든 활성 세션 로깅
+                System.out.println("Current active sessions:");
+                openvidu.getActiveSessions().forEach(s ->
+                        System.out.println("Session: " + s.getSessionId()));
+
                 Session existingSession = openvidu.getActiveSession(sessionId);
 
                 if (existingSession != null) {
                     System.out.println("Found existing session: " + existingSession.getSessionId());
                     return new ResponseEntity<>(existingSession.getSessionId(), HttpStatus.OK);
-                } else {
-                    // 여기가 중요합니다! customSessionId를 명시적으로 설정
-                    SessionProperties properties2 = new SessionProperties.Builder()
-                            .customSessionId(sessionId)  // 요청받은 sessionId를 그대로 사용
-                            .build();
-
-                    Session newSession = openvidu.createSession(properties2);
-                    System.out.println("Created new session with custom id: " + newSession.getSessionId());
-                    return new ResponseEntity<>(newSession.getSessionId(), HttpStatus.OK);
                 }
+
+                // 새 세션 생성
+                SessionProperties newProperties = new SessionProperties.Builder()
+                        .customSessionId(sessionId)
+                        .build();
+
+                Session newSession = openvidu.createSession(newProperties);
+                System.out.println("Created new session: " + newSession.getSessionId());
+                return new ResponseEntity<>(newSession.getSessionId(), HttpStatus.OK);
             }
 
-            Session session = openvidu.createSession(properties);
+            // sessionId가 없는 경우의 기본 처리
+            SessionProperties defaultProperties = SessionProperties.fromJson(params).build();
+            Session session = openvidu.createSession(defaultProperties);
             return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
 
         } catch (OpenViduHttpException e) {
-            // 세션이 없거나 에러가 발생한 경우 새 세션 생성
-            Session session = openvidu.createSession(properties);
-            return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
+            System.err.println("OpenVidu error: " + e.getMessage());
+            throw e; // 에러를 상위로 전파하여 적절한 처리 가능하도록
         }
     }
 
