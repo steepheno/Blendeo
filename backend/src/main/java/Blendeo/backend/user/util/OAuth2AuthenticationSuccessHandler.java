@@ -9,6 +9,7 @@ import Blendeo.backend.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -18,6 +19,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final String frontDomain = "localhost";
     private final JwtUtil jwtUtil;
@@ -54,6 +56,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 + "; Secure"); // CSRF 공격 방지를 위해 같은 도메인의 요청에서만 쿠키 전송
         // https: 이거 필요함 -> + "; Secure"
 
-        response.sendRedirect("http://localhost:5173"); // 또는 프론트엔드 URL
+        log.info("accessToken: " + accessToken);
+        log.info("refreshToken: " + refreshToken);
+
+        response.sendRedirect("http://127.0.0.1:5173"); // 또는 프론트엔드 URL
     }
 }
