@@ -48,14 +48,23 @@ public class OpenviduController {
 
         try {
             if(params != null && params.containsKey("sessionId")) {
-                System.out.println("sessionId: " + params.get("sessionId"));
                 String sessionId = params.get("sessionId").toString();
+                System.out.println("Requested sessionId: " + sessionId);
+
                 Session existingSession = openvidu.getActiveSession(sessionId);
 
                 if (existingSession != null) {
-                    System.out.println("existingSessionId: " + existingSession.getSessionId());
-                    // 이미 존재하는 세션이면 해당 세션 아이디 반환
+                    System.out.println("Found existing session: " + existingSession.getSessionId());
                     return new ResponseEntity<>(existingSession.getSessionId(), HttpStatus.OK);
+                } else {
+                    // 여기가 중요합니다! customSessionId를 명시적으로 설정
+                    SessionProperties properties2 = new SessionProperties.Builder()
+                            .customSessionId(sessionId)  // 요청받은 sessionId를 그대로 사용
+                            .build();
+
+                    Session newSession = openvidu.createSession(properties2);
+                    System.out.println("Created new session with custom id: " + newSession.getSessionId());
+                    return new ResponseEntity<>(newSession.getSessionId(), HttpStatus.OK);
                 }
             }
 
