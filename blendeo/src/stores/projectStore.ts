@@ -145,11 +145,6 @@ export const useProjectStore = create<ProjectStore>()(
         return projects;
       },
 
-      getProjectContributors: async (projectId) => {
-        const contributors = await projectApi.getProjectContributors(projectId);
-        set({ contributors });
-      },
-
       redirectState: {
         project: null,
         source: null
