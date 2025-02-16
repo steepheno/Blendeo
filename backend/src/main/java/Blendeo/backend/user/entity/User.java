@@ -33,6 +33,11 @@ public class User {
     private String intro;
     @Column
     private URL profileImage;
+    // OAuth 관련 설정
+    @Column
+    private String provider;
+    @Column
+    private String providerId;
 
     @OneToMany(mappedBy = "followPK.follower", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Follow> followers = new ArrayList<>();
@@ -45,7 +50,7 @@ public class User {
     }
 
     @Builder
-    User(int id, String email, String password, String nickname, URL header, String intro, URL profileImage) {
+    public User(int id, String email, String password, String nickname, URL header, String intro, URL profileImage, String provider, String providerId) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -53,6 +58,8 @@ public class User {
         this.header = header;
         this.intro = intro;
         this.profileImage = profileImage;
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     /**
