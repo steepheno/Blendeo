@@ -53,6 +53,7 @@ public class OpenviduController {
                 Session existingSession = openvidu.getActiveSession(sessionId);
 
                 if (existingSession != null) {
+                    System.out.println("existingSessionId: " + existingSession.getSessionId());
                     // 이미 존재하는 세션이면 해당 세션 아이디 반환
                     return new ResponseEntity<>(existingSession.getSessionId(), HttpStatus.OK);
                 }
