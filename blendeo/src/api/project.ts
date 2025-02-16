@@ -1,6 +1,6 @@
 // src/api/project.ts
 import axiosInstance from "@/api/axios";
-import type { User } from "@/types/api/user";
+import type { userMiniInfo } from "@/types/api/user";
 import {
   Project,
   CreateProjectRequest,
@@ -138,7 +138,7 @@ export const getNewProjects = async (page: number = 0, size: number = 10) => {
 };
 
 export const getProjectContributors = async (projectId: number) => {
-  return axiosInstance.get<User[]>(`/project/contributors/${projectId}`);
+  return axiosInstance.get<userMiniInfo[]>(`/project/get/contributor?projectId=${projectId}`);
 };
 
 export const projectTreeAPI = {

@@ -1,40 +1,56 @@
-import { Contributor } from "@/types/components/video/videoDetail";
+import { useState, useEffect } from "react";
+import { getProjectContributors } from "@/api/project";
+import { UserMiniInfo } from "../common/UserMiniInfo";
+
+import type { userMiniInfo } from "@/types/api/user";
+import { Button } from "../ui/button";
+
+interface ContributorsSectionProps {
+  projectId: number;
+}
 
 // Contributors Section Component
-const ContributorsSection: React.FC = () => {
-  const contributors: Contributor[] = Array.from({ length: 5 }, (_, i) => ({
-    id: i + 1,
-    name: `Contributor ${i + 1}`,
-    role: "Piano",
-    collaborations: 3,
-    avatarUrl: "/api/placeholder/48/48",
-  }));
+const ContributorsSection = ({ projectId }: ContributorsSectionProps) => {
+  const [contributors, setContributors] = useState<userMiniInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContributors = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getProjectContributors(projectId);
+        setContributors(data);
+      } catch (error) {
+        console.error('Failed to fetch contributors:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchContributors();
+  }, [projectId]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="p-4 space-y-4">
-      {contributors.map((contributor) => (
-        <div key={contributor.id} className="flex items-center space-x-3">
-          <div className="w-12 h-12 rounded-full overflow-hidden">
-            <img
-              src={contributor.avatarUrl}
-              alt={contributor.name}
-              className="w-full h-full object-cover"
-            />
+    <div>
+      <div className="p-4 space-y-4 border border-b-1 border-custom-lavender">
+        {contributors.map((contributor) => (
+          <div key={contributor.userId} className="flex items-center space-x-3 ">
+            <UserMiniInfo user={contributor} />
           </div>
-          <div className="flex-1">
-            <h3 className="font-medium">{contributor.name}</h3>
-            <p className="text-sm text-gray-500">
-              {contributor.role} • {contributor.collaborations} collaborations
-            </p>
-          </div>
-          <button
-            type="button"
-            className="px-4 py-1 text-sm border border-purple-600 text-purple-600 rounded-full hover:bg-purple-50 transition-colors"
-          >
-            Follow
-          </button>
+        ))}
+      </div>
+      <div className="p-4 flex justify-center w-full">
+        <div className="flex flex-col items-center gap-2">
+          <Button className="bg-violet-700 rounded-full font-semibold">
+            Blendit!
+          </Button>
+          <p className="text-gray-400 text-sm">이 음악에 섞여보세요!</p>
         </div>
-      ))}
+      </div>
     </div>
   );
 };

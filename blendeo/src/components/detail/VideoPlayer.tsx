@@ -58,7 +58,7 @@ function VideoPlayer({
 
   return (
     <div
-      className="relative w-[676px] h-[676px] bg-black rounded-lg overflow-hidden group cursor-pointer"
+      className="relative h-[760px] aspect-square bg-black rounded-lg overflow-hidden group cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

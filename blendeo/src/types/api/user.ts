@@ -14,6 +14,14 @@ export interface User {
   intro?: string | null;
 }
 
+export interface userMiniInfo {
+    userId: number;
+    nickname: string;
+    profileImage: string;
+    instruments: Instrument[];
+    etcInstruments: Instrument[];
+}
+
 export interface FollowResponse {
   followingIdList: number[];
   followingNicknameList: string[];

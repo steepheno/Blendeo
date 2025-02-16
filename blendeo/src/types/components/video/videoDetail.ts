@@ -1,20 +1,13 @@
 import { LucideIcon } from 'lucide-react';
 
-export type TabType = 'comments' | 'contributors' | 'showTree' | "settings" | null;
+export type TabType = SidePanelTabType | 'showTree' | null;
+export type SidePanelTabType = 'comments' | 'contributors' | "settings" ;
 
 export interface Comment {
   id: number;
   author: string;
   content: string;
   timeAgo: string;
-  avatarUrl: string;
-}
-
-export interface Contributor {
-  id: number;
-  name: string;
-  role: string;
-  collaborations: number;
   avatarUrl: string;
 }
 
@@ -27,7 +20,7 @@ export interface InteractionButtonProps {
 }
 
 export interface SidePanelProps {
-  activeTab: TabType;
+  activeTab: SidePanelTabType | null;
   content: React.ReactNode;
 }
 

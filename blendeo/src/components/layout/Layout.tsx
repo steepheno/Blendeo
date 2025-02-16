@@ -31,7 +31,7 @@ const Layout = ({
   ),
 }: LayoutProps) => {
   return (
-    <div className="flex overflow-hidden flex-col bg-white">
+    <div className="flex overflow-hidden flex-col h-full">
       <Navbar />
 
       <div className="flex flex-wrap flex-1 gap-2.5 mt-2.5 size-full max-md:max-w-full">
@@ -41,7 +41,7 @@ const Layout = ({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 min-w-0">{children}</div>
+        <div className="flex-1 min-w-0 h-full">{children}</div>
 
         {/* Right Sidebar - 화면 크기에 따라 적응형으로 너비 조절 */}
         {showRightSidebar && (

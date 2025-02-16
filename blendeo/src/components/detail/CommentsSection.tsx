@@ -5,13 +5,13 @@ interface CommentsSectionProps {
   projectId: number;
 }
 
-const CommentsSection = ( { projectId } : CommentsSectionProps) => {
+const CommentsSection = ({ projectId }: CommentsSectionProps) => {
   const [newComment, setNewComment] = useState('');
   const { comments, loading, error, fetchComments, addComment } =
     useCommentStore();
 
   useEffect(() => {
-    console.log("herrrrr,",projectId);
+    console.log("herrrrr,", projectId);
     
     fetchComments(projectId);
   }, [fetchComments, projectId]);
@@ -36,26 +36,33 @@ const CommentsSection = ( { projectId } : CommentsSectionProps) => {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-4">
-          {comments.map((comment) => (
-            <div key={comment.id} className="flex space-x-2 p-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                <img
-                  src={comment.userProfile}
-                  alt={comment.userNickname}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium">{comment.userNickname}</span>
-                  <span className="text-xs text-gray-500">
-                    {comment.createdAt}
-                  </span>
-                </div>
-                <p className="text-sm">{comment.comment}</p>
-              </div>
+          {comments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <p className="text-gray-600 mb-2">아직 댓글이 없어요. 😢</p>
+              <p className="text-gray-500 text-sm">첫 번째 댓글을 남겨보세요!</p>
             </div>
-          ))}
+          ) : (
+            comments.map((comment) => (
+              <div key={comment.id} className="flex space-x-2 p-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                  <img
+                    src={comment.userProfile}
+                    alt={comment.userNickname}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">{comment.userNickname}</span>
+                    <span className="text-xs text-gray-500">
+                      {comment.createdAt}
+                    </span>
+                  </div>
+                  <p className="text-sm">{comment.comment}</p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
       <div className="p-4 border-t">
