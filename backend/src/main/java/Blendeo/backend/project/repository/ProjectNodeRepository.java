@@ -78,7 +78,7 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
     Optional<ProjectNode> findLastSibling(@Param("currentProjectId") Long currentProjectId);
 //
     @Query("""
-            MATCH path = (n)-[*]-(connected)
+           MATCH path = (n)-[*]-(connected)
            WHERE n.projectId = $projectId
            WITH COLLECT(DISTINCT n) + COLLECT(DISTINCT connected) as allNodes,
                 COLLECT(relationships(path)) as allRels

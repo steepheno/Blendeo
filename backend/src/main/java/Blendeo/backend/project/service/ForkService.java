@@ -9,14 +9,8 @@ import Blendeo.backend.project.dto.ProjectNodeLink.Node;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.repository.ProjectNodeRepository;
 import Blendeo.backend.project.repository.ProjectRepository;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,5 +47,53 @@ public class ForkService {
                 .nodes(nodes)
                 .links(result.getLinks())
                 .build();
+    }
+
+    public List<ProjectHierarchyRes> getAllNodes() {
+        List<ProjectHierarchyRes> answer = new ArrayList<>();
+
+        // 모든 프로젝트의 node index 조회(오름차순)
+        List<Long> projectIds = projectRepository.getAllIds();
+
+        boolean[] visited = new boolean[(int) (projectIds.get(projectIds.size() - 1) + 1)];
+
+        for (int index=0; index < projectIds.size(); index++) {
+            long current = projectIds.get(index);
+            if (visited[(int) current]) {
+                continue;
+            }
+            visited[(int) current] = true;
+
+            ProjectNodeLink result = projectNodeRepository.getProjectHierarchy(current);
+
+            if (result == null) {
+                continue;
+            }
+
+            List<ProjectHierarchyRes.ProjectNodeInfo> nodes = result.getNodes().stream()
+                    .map(node -> projectRepository.findById(node.getId()))
+                    .flatMap(Optional::stream)
+                    .map(node -> {
+                        ProjectHierarchyRes.ProjectNodeInfo tmp = ProjectHierarchyRes.ProjectNodeInfo.builder()
+                                .projectId(node.getId())
+                                .title(node.getTitle())
+                                .thumbnail(node.getThumbnail())
+                                .authorNickname(node.getAuthor().getNickname())
+                                .viewCnt(node.getViewCnt())
+                                .build();
+
+                        visited[Math.toIntExact(node.getId())] = true;
+                        return tmp;
+                    })
+                    .collect(Collectors.toList());
+
+            answer.add(
+                    ProjectHierarchyRes.builder()
+                        .nodes(nodes)
+                        .links(result.getLinks())
+                        .build()
+            );
+        }
+        return answer;
     }
 }

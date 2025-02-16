@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || request.getRequestURI().startsWith("/ws-stomp")
                 || request.getRequestURI().startsWith("/api/v1/comment/get-all")
                 || request.getRequestURI().startsWith("/api/v1/user/follow/")
-                || request.getRequestURI().startsWith("/api/v1/fork/hierarchy")
+                || request.getRequestURI().startsWith("/api/v1/fork")
                 || request.getRequestURI().startsWith("/api/v1/project/create/video/blend/upload")
                 || request.getRequestURI().startsWith("/api/v1/project/get");
     }

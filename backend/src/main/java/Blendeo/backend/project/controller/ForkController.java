@@ -1,8 +1,11 @@
 package Blendeo.backend.project.controller;
 
 import Blendeo.backend.project.dto.ProjectHierarchyRes;
+import Blendeo.backend.project.dto.ProjectNodeInfoRes;
 import Blendeo.backend.project.service.ForkService;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +20,17 @@ public class ForkController {
 
     private final ForkService forkService;
 
+    @Operation(summary = "해당 프로젝트와 연관된 모든 노드들 조회")
     @GetMapping("/hierarchy/{projectId}")
     public ResponseEntity<ProjectHierarchyRes> getHierarchy(@PathVariable Long projectId) {
         return ResponseEntity.ok(forkService.getHierarchy(projectId));
+    }
+
+    @Operation(summary = "프로젝트 노드의 관계 전체 조회")
+    @GetMapping("/all/nodes")
+    public ResponseEntity<List<ProjectHierarchyRes>> getAllNodes() {
+        List<ProjectHierarchyRes> projectHierarchyResList = forkService.getAllNodes();
+
+        return ResponseEntity.ok().body(projectHierarchyResList);
     }
 }

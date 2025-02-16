@@ -48,4 +48,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("select count(*) from Project p where p.forkId = :id")
     int findCountByForkId(@Param("id") Long id);
+
+    @Query("select id from Project order by id asc")
+    List<Long> getAllIds();
 }
