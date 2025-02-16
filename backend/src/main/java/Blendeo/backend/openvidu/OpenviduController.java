@@ -43,9 +43,29 @@ public class OpenviduController {
     @PostMapping
     public ResponseEntity<String> initializeSession(@RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
+        // 기존에 같은 방의 채팅 세션이 이미 열려있으면 그 세션 아이디 반환!
         SessionProperties properties = SessionProperties.fromJson(params).build();
-        Session session = openvidu.createSession(properties);
-        return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
+
+        try {
+            if(params != null && params.containsKey("sessionId")) {
+                System.out.println("sessionId: " + params.get("sessionId"));
+                String sessionId = params.get("sessionId").toString();
+                Session existingSession = openvidu.getActiveSession(sessionId);
+
+                if (existingSession != null) {
+                    // 이미 존재하는 세션이면 해당 세션 아이디 반환
+                    return new ResponseEntity<>(existingSession.getSessionId(), HttpStatus.OK);
+                }
+            }
+
+            Session session = openvidu.createSession(properties);
+            return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
+
+        } catch (OpenViduHttpException e) {
+            // 세션이 없거나 에러가 발생한 경우 새 세션 생성
+            Session session = openvidu.createSession(properties);
+            return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
+        }
     }
 
     @PostMapping("/{session_id}/connections")
@@ -61,4 +81,7 @@ public class OpenviduController {
 
         return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
     }
+
+    // 기존에 같은 방의 세션이 존재하는지?
+
 }
