@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -21,7 +22,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private final String frontDomain = "localhost";
+    private final String frontDomain = "127.0.0.1";
+    private final String frontendUrl = "http://localhost:5173";
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -39,26 +41,35 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         refreshTokenRepository.save(new Token(user.getId(), accessToken, refreshToken));
         // 쿠키 설정 로직은 기존 로그인과 동일하게 적용
 
-        response.setHeader("Set-Cookie", "AccessToken=" + accessToken
-                + "; Max-Age=" + (15 * 60) // 15분
-                + "; Path=/"
-                + "; Domain=" + frontDomain
-                + "; HttpOnly" // JavaScript에서 쿠키에 접근할 수 없게 하여 XSS 공격 방지
-                + "; SameSite=None"
-                + "; Secure"); // CSRF 공격 방지를 위해 같은 도메인의 요청에서만 쿠키 전송
-        // https: 이거 필요함 -> + "; Secure"
-        response.addHeader("Set-Cookie", "RefreshToken=" + refreshToken
-                + "; Max-Age=" + (60 * 60 * 24 * 7) // 7일
-                + "; Path=/"
-                + "; Domain=" + frontDomain
-                + "; HttpOnly" // JavaScript에서 쿠키에 접근할 수 없게 하여 XSS 공격 방지
-                + "; SameSite=None"
-                + "; Secure"); // CSRF 공격 방지를 위해 같은 도메인의 요청에서만 쿠키 전송
-        // https: 이거 필요함 -> + "; Secure"
+        // CORS 헤더 설정
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
 
-        log.info("accessToken: " + accessToken);
-        log.info("refreshToken: " + refreshToken);
+        // Cookie 설정
+        ResponseCookie accessTokenCookie = ResponseCookie.from("AccessToken", accessToken)
+                .maxAge(15 * 60) // 15분
+                .path("/")
+                .sameSite("None")
+                .secure(true)
+                .httpOnly(true)
+                .domain("localhost")
+                .build();
 
-        response.sendRedirect("http://localhost:5173"); // 또는 프론트엔드 URL
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("RefreshToken", refreshToken)
+                .maxAge(60 * 60 * 24 * 7) // 7일
+                .path("/")
+                .sameSite("None")
+                .secure(true)
+                .httpOnly(true)
+                .domain("localhost")
+                .build();
+
+        response.addHeader("Set-Cookie", accessTokenCookie.toString());
+        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+
+        log.info("Access Token Cookie: {}", accessTokenCookie.toString());
+        log.info("Refresh Token Cookie: {}", refreshTokenCookie.toString());
+
+        response.sendRedirect("http://localhost:5173");
     }
 }
