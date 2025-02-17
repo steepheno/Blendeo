@@ -51,6 +51,7 @@ public class ChatService {
                 .chatRoomId(message.getChatRoomId())
                 .userId(message.getUserId())
                 .content(message.getContent())
+                .createdAt(LocalDateTime.now())
                 .build();
         log.info("Sending message: {}", chatMessage.getContent());
         ChatMessages savedMessage = chatMessageRepository.save(chatMessage);
