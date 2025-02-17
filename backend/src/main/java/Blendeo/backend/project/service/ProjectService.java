@@ -39,4 +39,6 @@ public interface ProjectService {
     List<ProjectInfoRes> getChildrenInfo(long projectId);
 
     ProjectGetRes getRandomProjectInfo();
+
+    ProjectLikeAndScrapRes getProjectStatusInfo(int userId, long projectId);
 }

@@ -18,4 +18,6 @@ public interface LikeRepository extends JpaRepository<Likes, LikeId> {
     List<Long> getProjectRanking();
 
     int countByProjectId(long projectId);
+
+    boolean existsByUserIdAndProjectId(long userId, long projectId);
 }

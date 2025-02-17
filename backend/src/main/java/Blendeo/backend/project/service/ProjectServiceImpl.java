@@ -21,6 +21,8 @@ import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +50,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final InstrumentRepository instrumentRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final ScrapService scrapService;
+    private final LikeService likeService;
 
     @Override
     @Transactional
@@ -169,6 +173,9 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.updateViewCount(projectId);
         rankingService.incrementScore(projectId);
 
+        org.springframework.security.core.userdetails.User user = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
         List<ProjectInstrument> projectInstruments = projectInstrumentRepository.getAllByProjectId(projectId);
 
         return ProjectGetRes.builder()
@@ -203,6 +210,16 @@ public class ProjectServiceImpl implements ProjectService {
                                 .build()).collect(Collectors.toList()))
                 .build();
 
+    }
+
+    @Override
+    public ProjectLikeAndScrapRes getProjectStatusInfo(int userId, long projectId) {
+        boolean isLiked = likeService.isLiked(userId, projectId);
+        boolean isScraped = scrapService.isScraped(userId, projectId);
+        return ProjectLikeAndScrapRes.builder()
+                .isLiked(isLiked)
+                .isScraped(isScraped)
+                .build();
     }
 
     @Override
