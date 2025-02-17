@@ -99,7 +99,26 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
+        // 전체 악기
+        List<ProjectInstrument> allProjectInstruments = new ArrayList<>();
+
+        // 기여자들의 악기 조회하기
+        List<ProjectNode> nodes = projectNodeRepository.getContributorInfo(projectId);
+
+        // projectInstruments에 기여자들의 악기 추가하기.
+        for (ProjectNode projectNode : nodes) {
+            List<ProjectInstrument> projectInstruments = projectInstrumentRepository.getAllByProjectId(projectNode.getProjectId());
+
+            for (ProjectInstrument projectInstrument : projectInstruments) {
+                allProjectInstruments.add(projectInstrument);
+            }
+        }
+        
+        // 현재 나의 악기 조회하기
         List<ProjectInstrument> projectInstruments = projectInstrumentRepository.getAllByProjectId(projectId);
+        for (ProjectInstrument projectInstrument : projectInstruments) {
+            allProjectInstruments.add(projectInstrument);
+        }
 
         return ProjectGetRes.builder()
                 .id(project.getId())
@@ -117,13 +136,13 @@ public class ProjectServiceImpl implements ProjectService {
                 .videoUrl(project.getVideoUrl())
                 .viewCnt(project.getViewCnt())
                 .instrumentCnt(project.getInstrumentCnt())
-                .projectInstruments(projectInstruments.stream()
+                .projectInstruments(allProjectInstruments.stream()
                         .filter(projectInstrument -> projectInstrument.getInstrument() != null) // Instrument가 널이면!
                         .map(projectInstrument-> InstrumentGetRes.builder()
                                 .instrument_id(projectInstrument.getInstrument().getId())
                                 .instrument_name(projectInstrument.getInstrument().getName())
                                 .build()).collect(Collectors.toList()))
-                .etcInstruments(projectInstruments.stream()
+                .etcInstruments(allProjectInstruments.stream()
                         .filter(projectInstrument -> projectInstrument.getEtcInstrument() != null) // EtcInstrument가 null 이 아니면!
                         .map(etcInstrument -> InstrumentGetRes.builder()
                                 .instrument_id(etcInstrument.getEtcInstrument().getId())
