@@ -23,6 +23,7 @@ public class ProjectGetRes {
     private String authorNickname;
     private URL authorProfileImage;
     private int likeCnt;
+    private int commentCnt;
     private URL thumbnail;
     private URL videoUrl;
     private int duration;
@@ -36,7 +37,7 @@ public class ProjectGetRes {
     @Builder
     public ProjectGetRes(Long id, Long forkId, String title, String contents, int contributorCnt,
                          int authorId, String authorNickname, URL authorProfileImage,
-                         LocalDateTime createdAt, boolean state, URL thumbnail, int runningTime,
+                         LocalDateTime createdAt, boolean state, int likeCnt, int commentCnt, URL thumbnail, int runningTime,
                          int viewCnt, URL videoUrl, List<InstrumentGetRes> projectInstruments, List<InstrumentGetRes> etcInstruments, int instrumentCnt) {
         this.projectId = id;
         this.forkId = forkId;
@@ -48,6 +49,8 @@ public class ProjectGetRes {
         this.authorProfileImage = authorProfileImage;
         this.createdAt = createdAt;
         this.state = state;
+        this.likeCnt = likeCnt;
+        this.commentCnt = commentCnt;
         this.thumbnail = thumbnail;
         this.duration = runningTime;
         this.viewCnt = viewCnt;
