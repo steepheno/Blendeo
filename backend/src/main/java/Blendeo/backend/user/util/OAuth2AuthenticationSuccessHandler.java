@@ -49,8 +49,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         ResponseCookie accessTokenCookie = ResponseCookie.from("AccessToken", accessToken)
                 .maxAge(15 * 60) // 15분
                 .path("/")
-                .sameSite("None")
-                .secure(true)
+                .sameSite("Lax")
+//                .secure(true)
                 .httpOnly(true)
                 .domain("localhost")
                 .build();
@@ -58,8 +58,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         ResponseCookie refreshTokenCookie = ResponseCookie.from("RefreshToken", refreshToken)
                 .maxAge(60 * 60 * 24 * 7) // 7일
                 .path("/")
-                .sameSite("None")
-                .secure(true)
+                .sameSite("Lax")
+//                .secure(true)
                 .httpOnly(true)
                 .domain("localhost")
                 .build();
