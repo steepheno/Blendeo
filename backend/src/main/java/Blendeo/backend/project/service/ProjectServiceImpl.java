@@ -346,6 +346,8 @@ public class ProjectServiceImpl implements ProjectService {
                     .orElse(null));
         }
 
+        projects.add(projectRepository.findById(projectId).orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage())));
+
         return projects.stream()
                 .map(project -> ProjectNodeInfoRes.builder()
                         .userId(project.getAuthor().getId())
