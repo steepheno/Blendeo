@@ -22,8 +22,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private final String frontDomain = "localhost";
-    private final String frontendUrl = "http://localhost:5173";
+    private final String frontDomain = "localhost"; // 프론트 배포할 때 변경!
+    private final String frontendUrl = "http://localhost:5173"; // 프론트 배포할 때 변경!
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -52,7 +52,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .sameSite("Lax")
 //                .secure(true)
                 .httpOnly(true)
-                .domain("localhost")
+                .domain(frontDomain)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from("RefreshToken", refreshToken)
@@ -61,7 +61,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .sameSite("Lax")
 //                .secure(true)
                 .httpOnly(true)
-                .domain("localhost")
+                .domain(frontDomain)
                 .build();
 
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
@@ -70,6 +70,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         log.info("Access Token Cookie: {}", accessTokenCookie.toString());
         log.info("Refresh Token Cookie: {}", refreshTokenCookie.toString());
 
-        response.sendRedirect("http://localhost:5173");
+        response.sendRedirect(frontendUrl);
     }
 }

@@ -31,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final String frontDomain = "localhost";
+    private final String frontDomain = "localhost"; // 프론트 배포할 때 변경!
     private final UserService userService;
     private final MailService mailService;
     private final InstrumentService instrumentService;
