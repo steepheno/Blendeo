@@ -61,6 +61,9 @@ public class ChatController {
     public ResponseEntity<?> createRoom(@RequestParam("userIds") List<Integer> userIds) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+        if (!userIds.contains(Integer.parseInt(user.getUsername()))) {
+            userIds.add(Integer.parseInt(user.getUsername()));
+        }
         // 채팅방이 존재하는 지 확인
         long roomNo = chatService.getChatRoomExist(userIds);
 
