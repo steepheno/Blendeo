@@ -46,15 +46,14 @@ public class ScrapService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
-        if (project.getAuthor().getId() == user.getId()) {
-            ScrapId scrapId = new ScrapId(projectId, userId);
-            boolean exists = scrapRepository.existsById(scrapId);
-            if (!exists) {
-                throw new EntityNotFoundException(ErrorCode.SCRAP_NOT_FOUND, ErrorCode.SCRAP_NOT_FOUND.getMessage());
-            }
-
-            scrapRepository.deleteById(scrapId);
+        ScrapId scrapId = new ScrapId(projectId, userId);
+        boolean exists = scrapRepository.existsById(scrapId);
+        if (!exists) {
+            throw new EntityNotFoundException(ErrorCode.SCRAP_NOT_FOUND, ErrorCode.SCRAP_NOT_FOUND.getMessage());
         }
+
+        scrapRepository.deleteById(scrapId);
+
 
     }
 
