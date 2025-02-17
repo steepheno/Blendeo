@@ -206,20 +206,41 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void modifyProjectState(Long projectId, boolean state) {
+    public void modifyProjectState(int userId, Long projectId, boolean state) {
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+        if (userId != project.getAuthor().getId()){
+            throw new UnauthorizedAccessException(ErrorCode.UNAUTHORIZED_ACCESS,ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+        }
 
         project.updateState(state);
     }
 
     @Override
     @Transactional
-    public void modifyProjectContents(Long projectId, String contents) {
+    public void modifyProjectContents(int userId, Long projectId, String contents) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
+        if (userId != project.getAuthor().getId()){
+            throw new UnauthorizedAccessException(ErrorCode.UNAUTHORIZED_ACCESS,ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+        }
+
         project.updateContents(contents);
+    }
+
+    @Override
+    @Transactional
+    public void modifyProjectTitle(int userId, Long projectId, String title) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+        if (userId != project.getAuthor().getId()){
+            throw new UnauthorizedAccessException(ErrorCode.UNAUTHORIZED_ACCESS,ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+        }
+
+        project.updateTitle(title);
     }
 
     @Override

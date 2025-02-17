@@ -150,8 +150,11 @@ public class ProjectController {
             summary = "프로젝트 공개 여부 수정"
     )
     @PatchMapping("/state/{projectId}")
-    public ResponseEntity<?> modifyProjectState(@PathVariable("projectId") Long projectId, boolean state){
-        projectService.modifyProjectState(projectId, state);
+    public ResponseEntity<?> modifyProjectState(@PathVariable("projectId") Long projectId, @RequestParam("state") boolean state){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        projectService.modifyProjectState(userId, projectId, state);
 
         return ResponseEntity.ok().build();
     }
@@ -160,8 +163,24 @@ public class ProjectController {
             summary = "프로젝트 상세 설명 수정"
     )
     @PatchMapping("/contents/{projectId}")
-    public ResponseEntity<?> modifyProjectContents(@PathVariable("projectId") Long projectId, String contents){
-        projectService.modifyProjectContents(projectId, contents);
+    public ResponseEntity<?> modifyProjectContents(@PathVariable("projectId") Long projectId, @RequestParam("contents") String contents){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        projectService.modifyProjectContents(userId, projectId, contents);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "프로젝트 제목 수정"
+    )
+    @PatchMapping("/title/{projectId}")
+    public ResponseEntity<?> modifyProjectTitle(@PathVariable("projectId") Long projectId, @RequestParam("title") String title){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        projectService.modifyProjectTitle(userId, projectId, title);
 
         return ResponseEntity.ok().build();
     }
