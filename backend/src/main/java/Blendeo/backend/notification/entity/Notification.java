@@ -53,7 +53,7 @@ public class Notification extends BaseTimeEntity {
     }
 
     public enum NotificationType {
-        CHAT, COMMENT, LIKE, SCRAP, FOLLOW, SYSTEM
+        CHAT, COMMENT, LIKE, SCRAP, FOLLOW, SYSTEM, FORK
     }
 
     @Builder
@@ -63,5 +63,9 @@ public class Notification extends BaseTimeEntity {
         this.content = content;
         this.isRead = isRead;
         this.notificationType = notificationType;
+    }
+
+    public void readNotification(boolean isRead){
+        this.isRead = isRead;
     }
 }

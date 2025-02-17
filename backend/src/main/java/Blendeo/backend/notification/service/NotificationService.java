@@ -13,6 +13,7 @@ import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -196,4 +197,22 @@ public class NotificationService {
         });
     }
 
+    public void readNotification(int userId, Long notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTIFICATION_NOT_FOUND, ErrorCode.NOTIFICATION_NOT_FOUND.getMessage()));
+
+        if (userId != notification.getReceiver().getId()) {
+            throw new EntityNotFoundException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+        }
+
+        notification.readNotification(true);
+    }
+
+    public void readAllNotification(int userId) {
+        List<Notification> notifications = notificationRepository.findAllByUserId(userId);
+
+        for (Notification notification : notifications) {
+            notification.readNotification(true);
+        }
+    }
 }

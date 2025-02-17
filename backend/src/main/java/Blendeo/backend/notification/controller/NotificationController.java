@@ -6,6 +6,7 @@ import Blendeo.backend.notification.dto.NotificationRedisDTO;
 import Blendeo.backend.notification.entity.Notification;
 import Blendeo.backend.notification.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -68,6 +70,40 @@ public class NotificationController {
         } catch (Exception e) {
             log.error("알림 전송 실패", e);
             return ResponseEntity.internalServerError().body("알림 전송 실패: " + e.getMessage());
+        }
+    }
+
+    @Operation(
+            summary = "알림 읽음 처리(단건)"
+    )
+    @PatchMapping("/read-one")
+    public ResponseEntity<String> readOne(
+            @RequestParam("notificationId") Long notificationId
+    ){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        try {
+            notificationService.readNotification(userId, notificationId);
+            return ResponseEntity.ok("알림 읽음 처리 성공");
+        }catch (Exception e){
+            return ResponseEntity.internalServerError().body("알림 읽음 실패: " + e.getMessage());
+        }
+    }
+
+    @Operation(
+            summary = "알림 전체 읽음 처리(다건)"
+    )
+    @PatchMapping("/read-all")
+    public ResponseEntity<String> readAll(){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+
+        try {
+            notificationService.readAllNotification(userId);
+            return ResponseEntity.ok("모든 알림 읽음 처리 성공");
+        }catch (Exception e){
+            return ResponseEntity.internalServerError().body("모든 알림 읽음 실패: " + e.getMessage());
         }
     }
 }

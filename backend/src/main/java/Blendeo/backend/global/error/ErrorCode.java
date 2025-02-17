@@ -24,6 +24,9 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
     COMMENT_TOO_LONG(HttpStatus.BAD_REQUEST, "댓글이 최대 길이를 초과했습니다."),
 
+    // Notification
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림이 존재하지 않습니다."),
+
     // Scrap
     SCRAP_NOT_FOUND(HttpStatus.NOT_FOUND, "스크랩한 프로젝트가 아닙니다.");
     
