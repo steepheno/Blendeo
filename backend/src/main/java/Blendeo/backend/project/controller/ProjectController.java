@@ -29,7 +29,6 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final VideoEditorService videoEditorService;
-    private final InstrumentService instrumentService;
 
     @Operation(
             summary = "[STEP1] 영상 업로드 (* 한 개 영상 업로드 or 두 개 영상 합치고 업로드 *)",
@@ -257,6 +256,16 @@ public class ProjectController {
         List<ProjectInfoRes> projectInfoRes = projectService.getChildrenInfo(projectId);
 
         return ResponseEntity.ok().body(projectInfoRes);
+    }
+
+    @Operation(summary = "유저의 프로젝트 좋아요, 스크랩 여부 조회")
+    @GetMapping("/status")
+    public ResponseEntity<ProjectLikeAndScrapRes> getProjectStatus(@RequestParam("projectId") long projectId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+        ProjectLikeAndScrapRes projectLikeAndScrapRes = projectService.getProjectStatusInfo(userId, projectId);
+
+        return ResponseEntity.ok().body(projectLikeAndScrapRes);
     }
 
 }

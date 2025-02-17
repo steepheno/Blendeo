@@ -4,6 +4,7 @@ import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
 import Blendeo.backend.notification.service.NotificationService;
 import Blendeo.backend.global.lock.RedisLockManager;
+import Blendeo.backend.project.entity.LikeId;
 import Blendeo.backend.project.entity.Likes;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.repository.LikeRepository;
@@ -125,4 +126,13 @@ public class LikeService {
             redisLockManager.unlock(lockKey);
         }
     }
+
+    public boolean isLiked(int userId, long projectId) {
+
+        if (!likeRepository.existsByUserIdAndProjectId(userId, projectId)) {
+            return false;
+        }
+        return true;
+    }
+
 }
