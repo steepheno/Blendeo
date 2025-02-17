@@ -11,4 +11,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ScrapRepository extends JpaRepository<Scrap, ScrapId> {
     Optional<List<Scrap>> findAllByUser(User user);
+
+    boolean existsByUserIdAndProjectId(int userId, Long projectId);
 }
