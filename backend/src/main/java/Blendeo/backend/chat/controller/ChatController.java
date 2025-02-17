@@ -79,7 +79,7 @@ public class ChatController {
 
         // 채팅방 생성
         // 채팅방 이름 임의로 생성
-        String roomName = "" + userService.getUser(Integer.parseInt(user.getUsername())).getNickname() + ", ";
+        String roomName = "";
 
         for (int index = 0; index < userIds.size() - 1; index++) {
             roomName += userService.getUser(userIds.get(index)).getNickname() +", ";
