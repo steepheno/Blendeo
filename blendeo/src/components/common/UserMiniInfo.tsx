@@ -2,8 +2,8 @@ import { ProfileImageCircle } from "./ProfileImageCircle";
 import { userMiniInfo } from "@/types/api/user";
 
 interface UserMiniInfoProps {
-  user: userMiniInfo;
-  className?: string;  // optional className 추가
+    user: userMiniInfo;
+    className?: string;  // optional className 추가
 }
 
 export function UserMiniInfo({ user, className = '' }: UserMiniInfoProps) {

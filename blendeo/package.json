@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "events": "^3.3.0",
+    "framer-motion": "^12.4.3",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.474.0",
     "openvidu-browser": "^2.31.0",

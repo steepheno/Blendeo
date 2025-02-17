@@ -61,6 +61,14 @@ export const unlikeProject = async (projectId: number) => {
   return axiosInstance.delete<void>(`/project/like/${projectId}`);
 };
 
+export const bookProject = async (projectId: number) => {
+  return axiosInstance.post<void>("/project/scrap/", { projectId });
+};
+
+export const unbookProject = async (projectId: number) => {
+  return axiosInstance.delete<void>(`/project/scrap/${projectId}`);
+};
+
 export const getComments = async (projectId: number) => {
   return axiosInstance.get<Comment[]>(`/project/comment/${projectId}`);
 };
@@ -140,6 +148,10 @@ export const getNewProjects = async (page: number = 0, size: number = 10) => {
 export const getProjectContributors = async (projectId: number) => {
   return axiosInstance.get<userMiniInfo[]>(`/project/get/contributor?projectId=${projectId}`);
 };
+
+// const getSiblingProject = async (currentProjectId: number, direction: 'next' | 'before') => {
+//   return axiosInstance.get<
+// };
 
 export const projectTreeAPI = {
   getProjectTree: async (projectId: number): Promise<ProjectTreeData> => {

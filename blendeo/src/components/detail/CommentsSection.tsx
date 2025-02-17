@@ -11,8 +11,6 @@ const CommentsSection = ({ projectId }: CommentsSectionProps) => {
     useCommentStore();
 
   useEffect(() => {
-    console.log("herrrrr,", projectId);
-    
     fetchComments(projectId);
   }, [fetchComments, projectId]);
 
