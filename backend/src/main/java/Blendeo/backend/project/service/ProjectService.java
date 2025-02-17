@@ -14,11 +14,11 @@ public interface ProjectService {
 
     void deleteProject(Long projectId, int userId);
 
-    void modifyProjectState(Long projectId, boolean state);
+    void modifyProjectState(int userId, Long projectId, boolean state);
 
-    void modifyProjectContents(Long projectId, String contents);
+    void modifyProjectContents(int userId, Long projectId, String contents);
 
-    void modifyProjectTitle(Long projectId, String title);
+    void modifyProjectTitle(int userId, Long projectId, String title);
 
     List<ProjectListDto> getNewProjectList(int page, int size);
 
