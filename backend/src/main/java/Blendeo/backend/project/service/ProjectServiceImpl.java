@@ -15,6 +15,7 @@ import Blendeo.backend.instrument.repository.ProjectInstrumentRepository;
 import Blendeo.backend.project.dto.*;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.entity.ProjectNode;
+import Blendeo.backend.project.repository.LikeRepository;
 import Blendeo.backend.project.repository.ProjectNodeRepository;
 import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
@@ -46,6 +47,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final EtcInstrumentRepository etcInstrumentRepository;
     private final InstrumentRepository instrumentRepository;
     private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
 
     @Override
     @Transactional
@@ -116,6 +118,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .runningTime(project.getRunningTime())
                 .createdAt(project.getCreatedAt())
                 .contents(project.getContents())
+                .likeCnt(likeRepository.countByProjectId(projectId))
                 .commentCnt(commentRepository.countByProjectId(projectId))
                 .thumbnail(project.getThumbnail())
                 .videoUrl(project.getVideoUrl())
@@ -161,6 +164,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .runningTime(project.getRunningTime())
                 .createdAt(project.getCreatedAt())
                 .contents(project.getContents())
+                .likeCnt(likeRepository.countByProjectId(projectId))
                 .commentCnt(commentRepository.countByProjectId(projectId))
                 .thumbnail(project.getThumbnail())
                 .videoUrl(project.getVideoUrl())

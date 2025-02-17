@@ -16,4 +16,6 @@ public interface LikeRepository extends JpaRepository<Likes, LikeId> {
 
     @Query("SELECT l.project.id FROM Likes l GROUP BY l.project.id ORDER BY COUNT(l.user.id) DESC")
     List<Long> getProjectRanking();
+
+    int countByProjectId(long projectId);
 }
