@@ -195,11 +195,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectLikeAndScrapRes getProjectStatusInfo(int userId, long projectId) {
-        boolean isLike = likeService.isLike(userId, projectId);
-        boolean isScrap = scrapService.isScrap(userId, projectId);
+        boolean isLiked = likeService.isLiked(userId, projectId);
+        boolean isScraped = scrapService.isScraped(userId, projectId);
         return ProjectLikeAndScrapRes.builder()
-                .is_like(isLike)
-                .is_scrap(isScrap)
+                .isLiked(isLiked)
+                .isScraped(isScraped)
                 .build();
     }
 

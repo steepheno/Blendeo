@@ -127,7 +127,7 @@ public class LikeService {
         }
     }
 
-    public boolean isLike(int userId, long projectId) {
+    public boolean isLiked(int userId, long projectId) {
 
         if (!likeRepository.existsByUserIdAndProjectId(userId, projectId)) {
             return false;

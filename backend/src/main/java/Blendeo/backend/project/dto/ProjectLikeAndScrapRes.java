@@ -9,12 +9,12 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter
 public class ProjectLikeAndScrapRes {
-    private boolean is_like;
-    private boolean is_scrap;
+    private boolean isLiked;
+    private boolean isScraped;
 
     @Builder
-    public ProjectLikeAndScrapRes(boolean is_like, boolean is_scrap) {
-        this.is_like = is_like;
-        this.is_scrap = is_scrap;
+    public ProjectLikeAndScrapRes(boolean isLiked, boolean isScraped) {
+        this.isLiked = isLiked;
+        this.isScraped = isScraped;
     }
 }

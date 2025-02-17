@@ -95,7 +95,7 @@ public class ScrapService {
                 .collect(Collectors.toList());
     }
 
-    public boolean isScrap(int userId, long projectId){
+    public boolean isScraped(int userId, long projectId){
         if (!scrapRepository.existsByUserIdAndProjectId(userId, projectId)){
             return false;
         }
