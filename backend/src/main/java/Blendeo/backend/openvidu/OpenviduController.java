@@ -45,19 +45,23 @@ public class OpenviduController {
             throws OpenViduJavaClientException, OpenViduHttpException {
 
         try {
+            System.out.println("OpenVidu URL: " + OPENVIDU_URL);
+
             if(params != null && params.containsKey("sessionId")) {
                 String sessionId = params.get("sessionId").toString();
-                System.out.println("Requested sessionId: " + sessionId);
+                System.out.println("요청한 sessionId: " + sessionId);
+
+                openvidu.fetch();
 
                 // 모든 활성 세션 로깅
-                System.out.println("Current active sessions:");
+                System.out.println("현재 활성화된 세션 목록");
                 openvidu.getActiveSessions().forEach(s ->
-                        System.out.println("Session: " + s.getSessionId()));
+                        System.out.println("세션: " + s.getSessionId()));
 
                 Session existingSession = openvidu.getActiveSession(sessionId);
 
                 if (existingSession != null) {
-                    System.out.println("Found existing session: " + existingSession.getSessionId());
+                    System.out.println("기존에 존재하는 세션: " + existingSession.getSessionId());
                     return new ResponseEntity<>(existingSession.getSessionId(), HttpStatus.OK);
                 }
 
@@ -67,7 +71,7 @@ public class OpenviduController {
                         .build();
 
                 Session newSession = openvidu.createSession(newProperties);
-                System.out.println("Created new session: " + newSession.getSessionId());
+                System.out.println("새로운 세션을 생성합니다: " + newSession.getSessionId());
                 return new ResponseEntity<>(newSession.getSessionId(), HttpStatus.OK);
             }
 
@@ -86,14 +90,29 @@ public class OpenviduController {
     public ResponseEntity<String> createConnection(@PathVariable("session_id") String sessionId,
                                                    @RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
-        Session session = openvidu.getActiveSession(sessionId);
-        if (session == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        ConnectionProperties properties = ConnectionProperties.fromJson(params).build();
-        Connection connection = session.createConnection(properties);
+        try {
+            System.out.println("세션을 만듭니다: " + sessionId);
 
-        return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
+            // 세션 목록 업데이트
+            openvidu.fetch();
+
+            Session session = openvidu.getActiveSession(sessionId);
+            if (session == null) {
+                System.err.println("세션이 발견되지 않았습니다: " + sessionId);
+                return new ResponseEntity<>("세션이 발견되지 않았습니다", HttpStatus.NOT_FOUND);
+            }
+
+            ConnectionProperties properties = ConnectionProperties.fromJson(params).build();
+            System.out.println("연결을 생성하였습니다.: " + properties);
+
+            Connection connection = session.createConnection(properties);
+            System.out.println("Connection created successfully with token: " + connection.getToken());
+
+            return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
+        } catch (OpenViduHttpException e) {
+            System.err.println("연결 생성시 에러가 발생하였습니다: " + e.getMessage() + ", Status: " + e.getStatus());
+            throw e;
+        }
     }
 
     // 기존에 같은 방의 세션이 존재하는지?
