@@ -59,6 +59,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         log.info("accessToken: " + accessToken);
         log.info("refreshToken: " + refreshToken);
 
-        response.sendRedirect("http://127.0.0.1:5173"); // 또는 프론트엔드 URL
+        response.sendRedirect("http://localhost:5173"); // 또는 프론트엔드 URL
     }
 }
