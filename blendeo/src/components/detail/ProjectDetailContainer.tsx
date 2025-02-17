@@ -27,6 +27,7 @@ import {
 import { TabType } from "@/types/components/video/videoDetail";
 import { useUserStore } from "@/stores/userStore";
 import { useAuthStore } from "@/stores/authStore";
+import useForkVideoStore from "@/stores/forkVideoStore";
 
 import { likeProject, unlikeProject } from "@/api/project";
 import { bookProject, unbookProject } from "@/api/project";
@@ -87,6 +88,10 @@ const ProjectDetailContainer = () => {
 
   const [heartFilled, setHeartFilled] = useState(false);
   const [bookmarkFilled, setBookmarkFilled] = useState(false);
+
+  const setOriginalProjectData = useForkVideoStore(
+    (state) => state.setOriginalProjectData
+  );
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -195,8 +200,9 @@ const ProjectDetailContainer = () => {
   const handleForkClick = (type: RedirectSource) => {
     if (projectData) {
       alert("Blend 페이지로 이동합니다!");
-      setRedirectState(projectData, type);
-      navigate('/project/forkrecord');
+        setOriginalProjectData(projectData);
+        setRedirectState(projectData, type);
+        navigate('/fork/record');
     }
   };
 

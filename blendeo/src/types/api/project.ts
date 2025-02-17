@@ -25,12 +25,23 @@ export interface Project {
   state: boolean;
 }
 
+export interface SimpleProjectData {
+  projectId: number;
+  videoUrl: string;
+}
+
 export interface CreateProjectRequest {
   title: string;
   content: string;
   forkProjectId?: number;
   state: boolean;
+  instrumentIds?: number[];
+  etcName?: string[];
   videoUrl: string;
+}
+
+export interface CreateProjectResponse {
+  projectId: number;
 }
 
 export interface Comment {

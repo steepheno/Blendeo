@@ -1,36 +1,55 @@
 // src/api/project.ts
 import axiosInstance from "@/api/axios";
+import videoAxiosInstance from "./videoAxios";
 import type { userMiniInfo } from "@/types/api/user";
 import {
   Project,
   CreateProjectRequest,
+  CreateProjectResponse,
   Comment,
   ProjectListItem,
 } from "@/types/api/project";
 
 import type { ProjectTreeData } from "@/types/components/project/project";
 
-interface CreateProjectResponse {
-  projectId: number; // 또는 실제 API 응답 구조에 맞게 수정
-}
-
 // 프로젝트 CRUD
-export const createProject = async (data: CreateProjectRequest) => {
-  const params = new URLSearchParams({
-    title: data.title,
-    content: data.content,
-    state: data.state.toString(),
-    videoUrl: data.videoUrl,
-  });
+export const createProject = async (
+  data: CreateProjectRequest
+): Promise<CreateProjectResponse> => {
+  const formData = new FormData();
+
+  formData.append("title", data.title);
+  formData.append("content", data.content);
+  formData.append("state", data.state.toString());
+  formData.append("videoUrl", data.videoUrl);
 
   if (data.forkProjectId !== undefined) {
-    params.append("forkProjectId", data.forkProjectId.toString());
+    formData.append("forkProjectId", data.forkProjectId.toString());
   }
 
-  // void를 CreateProjectResponse로 변경
-  return axiosInstance.post<CreateProjectResponse>(
-    `/project/create?${params.toString()}`
+  if (data.instrumentIds?.length) {
+    data.instrumentIds.forEach((id) => {
+      formData.append("instrumentIds", id.toString());
+    });
+  }
+
+  if (data.etcName?.length) {
+    data.etcName.forEach((name) => {
+      formData.append("etcName", name);
+    });
+  }
+
+  const response = await axiosInstance.post<CreateProjectResponse>(
+    "/project/create",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
+
+  return response; // response.data로 반환
 };
 
 export const getProject = async (projectId: number) => {
@@ -86,57 +105,119 @@ export const forkProject = async (forkedUrl: string, videoFile: string) => {
   return axiosInstance.post<void>("/project/fork", { forkedUrl, videoFile });
 };
 
+interface VideoUploadOptions {
+  videoFile: File;
+  forkedUrl?: string;
+  startPoint?: number;
+  duration?: number;
+  loopCnt?: number;
+}
+
+interface UploadProgressCallback {
+  (progress: number, uploadedSize: number): void;
+}
+
 export const uploadBlendedVideo = async (
-  forkedUrl: string,
-  videoFile: File
+  options: VideoUploadOptions,
+  onProgress?: UploadProgressCallback
 ): Promise<string> => {
-  // 파일 크기 확인 (바이트 단위)
-  const fileSizeInBytes = videoFile.size;
-  const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
-
-  console.log("File Information:", {
-    name: videoFile.name,
-    type: videoFile.type,
-    sizeInBytes: fileSizeInBytes,
-    sizeInMB: fileSizeInMB.toFixed(2) + " MB",
-  });
-
-  const formData = new FormData();
-  formData.append("forkedUrl", forkedUrl);
-  formData.append("videoFile", videoFile);
-
-  // FormData 전체 크기 추정
-  let totalSize = fileSizeInBytes;
-  totalSize += new Blob([forkedUrl]).size; // forkedUrl 문자열의 크기
-
-  console.log("Total FormData Information:", {
-    estimatedSizeInBytes: totalSize,
-    estimatedSizeInMB: (totalSize / (1024 * 1024)).toFixed(2) + " MB",
-  });
-
-  const response = await axiosInstance.post<string>(
-    "/project/create/video/blend/upload",
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      onUploadProgress: (progressEvent: { loaded: number; total?: number }) => {
-        if (progressEvent.total) {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          console.log(`Upload Progress: ${percentCompleted}%`);
-        } else {
-          console.log(
-            `Uploaded: ${(progressEvent.loaded / (1024 * 1024)).toFixed(2)} MB`
-          );
-        }
-      },
+  try {
+    // Validate required fields
+    if (!options.videoFile) {
+      throw new Error("Video file is required");
     }
-  );
 
-  return response;
+    // File size validation
+    const fileSizeInBytes = options.videoFile.size;
+    const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+
+    // You might want to add max file size validation
+    const MAX_FILE_SIZE_MB = 500; // Example: 500MB limit
+    if (fileSizeInMB > MAX_FILE_SIZE_MB) {
+      throw new Error(
+        `File size exceeds maximum limit of ${MAX_FILE_SIZE_MB}MB`
+      );
+    }
+
+    // Log file information
+    console.log("File Information:", {
+      name: options.videoFile.name,
+      type: options.videoFile.type,
+      sizeInBytes: fileSizeInBytes,
+      sizeInMB: fileSizeInMB.toFixed(2) + " MB",
+    });
+
+    // Create FormData and append all available fields
+    const formData = new FormData();
+    formData.append("videoFile", options.videoFile);
+
+    if (options.forkedUrl) {
+      formData.append("forkedUrl", options.forkedUrl);
+    }
+
+    if (options.startPoint !== undefined) {
+      formData.append("startPoint", options.startPoint.toString());
+    }
+
+    if (options.duration !== undefined) {
+      formData.append("duration", options.duration.toString());
+    }
+
+    if (options.loopCnt !== undefined) {
+      formData.append("duration", options.loopCnt.toString());
+    }
+
+    console.log("formdata:", formData);
+
+    let totalSize = fileSizeInBytes;
+    Object.entries(options).forEach(([key, value]) => {
+      if (key !== "videoFile" && value !== undefined) {
+        totalSize += new Blob([value.toString()]).size;
+      }
+    });
+
+    console.log("Total FormData Information:", {
+      estimatedSizeInBytes: totalSize,
+      estimatedSizeInMB: (totalSize / (1024 * 1024)).toFixed(2) + " MB",
+    });
+
+    // Make the upload request
+    const response = await videoAxiosInstance.post<string>(
+      "/project/create/video/blend/upload",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent: {
+          loaded: number;
+          total?: number;
+        }) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            console.log(`Upload Progress: ${percentCompleted}%`);
+            onProgress?.(percentCompleted, progressEvent.loaded);
+          } else {
+            const uploadedMB = (progressEvent.loaded / (1024 * 1024)).toFixed(
+              2
+            );
+            console.log(`Uploaded: ${uploadedMB} MB`);
+            onProgress?.(
+              0, // Cannot calculate percentage without total
+              progressEvent.loaded
+            );
+          }
+        },
+      }
+    );
+
+    return response;
+  } catch (error) {
+    console.error("Error uploading video:", error);
+    throw error; // Re-throw to handle in the calling code
+  }
 };
 
 export const getNewProjects = async (page: number = 0, size: number = 10) => {
@@ -146,7 +227,9 @@ export const getNewProjects = async (page: number = 0, size: number = 10) => {
 };
 
 export const getProjectContributors = async (projectId: number) => {
-  return axiosInstance.get<userMiniInfo[]>(`/project/get/contributor?projectId=${projectId}`);
+  return axiosInstance.get<userMiniInfo[]>(
+    `/project/get/contributor?projectId=${projectId}`
+  );
 };
 
 // const getSiblingProject = async (currentProjectId: number, direction: 'next' | 'before') => {
@@ -155,7 +238,9 @@ export const getProjectContributors = async (projectId: number) => {
 
 export const projectTreeAPI = {
   getProjectTree: async (projectId: number): Promise<ProjectTreeData> => {
-    const response = await axiosInstance.get<ProjectTreeData>(`/fork/hierarchy/${projectId}`);
+    const response = await axiosInstance.get<ProjectTreeData>(
+      `/fork/hierarchy/${projectId}`
+    );
     return response;
   },
 };

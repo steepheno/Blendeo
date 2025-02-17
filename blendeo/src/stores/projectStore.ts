@@ -135,10 +135,6 @@ export const useProjectStore = create<ProjectStore>()(
         await projectApi.forkProject(forkedUrl, videoFile);
       },
 
-      uploadBlendedVideo: async (forkedUrl, videoFile) => {
-        await projectApi.uploadBlendedVideo(forkedUrl, videoFile);
-      },
-
       getNewProjects: async (page = 0, size = 10) => {
         const projects = await projectApi.getNewProjects(page, size);
         set({ newProjects: projects });

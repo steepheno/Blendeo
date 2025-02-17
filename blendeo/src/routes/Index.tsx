@@ -8,13 +8,18 @@ import MainPage from "@/pages/main/MainPage";
 import ChatPage from "@/pages/chat/ChatPage";
 
 import ProjectDetailPage from "@/pages/project/ProjectDetailPage";
-import ForkRecordPage from "@/pages/project/ForkRecordPage";
 
 import ProjectTreePage from "@/pages/project/ProjectTreePage";
 import UserProfilePage from "@/pages/profile/UserProfilePage";
 import MyProfilePage from "@/pages/profile/MyProfilePage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
 import VideoCallPage from "@/pages/chat/VideoCallPage";
+
+import SeedRecordPage from "@/pages/seed/SeedRecodePage";
+import SeedEditPage from "@/pages/seed/SeedEditPage";
+import ForkRecordPage from "@/pages/fork/ForkRecordPage";
+import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
+import ForkEditor from "@/pages/fork/ForkEditPage";
 
 export const router = createBrowserRouter([
   {
@@ -29,19 +34,27 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    path: "/seed",
+    children: [
+      { path: "record", element: <ProtectedRoute><SeedRecordPage /></ProtectedRoute> },
+      { path: "edit", element: <ProtectedRoute><SeedEditPage /></ProtectedRoute> },
+      { path: "upload", element: <ProtectedRoute><ProjectUploadPage /></ProtectedRoute> },
+    ]
+  },
+  {
+    path: "/fork",
+    children: [
+      { path: "record", element: <ProtectedRoute><ForkRecordPage /></ProtectedRoute> },
+      { path: "edit", element: <ProtectedRoute><ForkEditor /></ProtectedRoute> },
+      { path: "upload", element: <ProtectedRoute><ProjectUploadPage /></ProtectedRoute> },
+    ]
+  },
+  {
     path: "/project",
     children: [
       {
         path: ":projectId",
         element: <ProjectDetailPage />,
-      },
-      {
-        path: "forkrecord",
-        element: (
-          <ProtectedRoute>
-            <ForkRecordPage />
-          </ProtectedRoute>
-        ),
       },
       {
         path: ":projectId/tree",

@@ -3,9 +3,10 @@ import axios from "axios";
 import type { CustomAxiosInstance } from "@/types/api/axios";
 import { useUserStore } from "@/stores/userStore";
 
-const baseURL = import.meta.env.VITE_API_URL || "/api/v1";
+const baseURL = "https://5a9a-211-192-252-214.ngrok-free.app/api/v1";
+// const baseURL = import.meta.env.VIDEO_API_URL || "/api/v1";
 
-const axiosInstance = axios.create({
+const videoAxiosInstance = axios.create({
   baseURL,
   timeout: 300000,
   withCredentials: true,
@@ -22,13 +23,13 @@ const publicPaths = [
   "/user/follow/get-follow",
   "/user/get-user",
   "/comment/get-all",
-  "/fork/hierarchy"
+  "/fork/hierarchy",
 ];
 
 const noRedirectPaths = ["/", "/project/list"];
 
 // Request Interceptor
-axiosInstance.interceptors.request.use((config) => {
+videoAxiosInstance.interceptors.request.use(async (config) => {
   const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
   console.log("isthis?", isPublicAPI);
 
@@ -40,6 +41,7 @@ axiosInstance.interceptors.request.use((config) => {
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+      return config;
     }
     // accessToken이 없는 경우 response interceptor에서 처리하도록 함
   }
@@ -47,7 +49,7 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 // Response Interceptor
-axiosInstance.interceptors.response.use(
+videoAxiosInstance.interceptors.response.use(
   (response) => {
     // 로그인 응답에서 토큰 처리 - 서버가 Set-Cookie를 보내지 않는 경우에만 처리
     if (
@@ -127,7 +129,7 @@ axiosInstance.interceptors.response.use(
 
         // 새로운 요청 시도
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return axiosInstance(originalRequest);
+        return videoAxiosInstance(originalRequest);
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError);
         handleLogout();
@@ -160,4 +162,4 @@ const handleLogout = (currentPath: string = window.location.pathname) => {
   }
 };
 
-export default axiosInstance;
+export default videoAxiosInstance;
