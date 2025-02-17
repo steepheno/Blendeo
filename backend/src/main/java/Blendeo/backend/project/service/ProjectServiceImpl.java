@@ -416,7 +416,7 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectInfoRes getSiblingProject(Long currentProjectId, String direction) {
         log.info(direction);
         if ("next".equalsIgnoreCase(direction)) {
-            log.info(String.valueOf(projectNodeRepository.findNextSibling(20L).get()));
+            log.info(String.valueOf(projectNodeRepository.findNextSibling(currentProjectId).get()));
             return projectNodeRepository.findNextSibling(currentProjectId)
                     .or(() -> projectNodeRepository.findFirstSibling(currentProjectId))
                     .map(this::convertToDto)
