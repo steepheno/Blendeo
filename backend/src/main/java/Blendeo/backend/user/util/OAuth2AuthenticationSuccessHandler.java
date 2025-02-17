@@ -22,7 +22,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private final String frontDomain = "127.0.0.1";
+    private final String frontDomain = "localhost";
     private final String frontendUrl = "http://localhost:5173";
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
