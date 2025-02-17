@@ -223,6 +223,15 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
+    public void modifyProjectTitle(Long projectId, String title) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+
+        project.updateTitle(title);
+    }
+
+    @Override
     public List<ProjectListDto> getNewProjectList(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Project> projectPage = projectRepository.findAllByOrderByCreatedAtDesc(pageRequest);

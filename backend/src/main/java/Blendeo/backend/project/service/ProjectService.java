@@ -18,6 +18,8 @@ public interface ProjectService {
 
     void modifyProjectContents(Long projectId, String contents);
 
+    void modifyProjectTitle(Long projectId, String title);
+
     List<ProjectListDto> getNewProjectList(int page, int size);
 
     List<InstrumentGetRes> saveProjectInstruments(long projectId, List<Integer> instrumentIds);

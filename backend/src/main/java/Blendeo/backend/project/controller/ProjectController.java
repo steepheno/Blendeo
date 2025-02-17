@@ -167,6 +167,16 @@ public class ProjectController {
     }
 
     @Operation(
+            summary = "프로젝트 제목 수정"
+    )
+    @PatchMapping("/title/{projectId}")
+    public ResponseEntity<?> modifyProjectTitle(@PathVariable("projectId") Long projectId, String title){
+        projectService.modifyProjectTitle(projectId, title);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
             summary = "최신 프로젝트 목록 조회"
     )
     @GetMapping("/get/new")
