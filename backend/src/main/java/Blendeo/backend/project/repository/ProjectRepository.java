@@ -4,6 +4,7 @@ import Blendeo.backend.project.dto.ProjectRankRes;
 import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.user.entity.User;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.List;
@@ -51,4 +52,19 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("select id from Project order by id asc")
     List<Long> getAllIds();
+
+    @Query("SELECT p.id FROM Project p")
+    List<Long> findAllIds();
+
+    default Optional<Project> findRandomProject() {
+        List<Long> ids = findAllIds();
+        if (ids.isEmpty()){
+            return Optional.empty();
+        }
+
+        int randomIndex = ThreadLocalRandom.current().nextInt(ids.size());
+        Long randomId = ids.get(randomIndex);
+
+        return findById(randomId);
+    }
 }

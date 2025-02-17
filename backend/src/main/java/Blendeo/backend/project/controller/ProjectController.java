@@ -124,6 +124,16 @@ public class ProjectController {
     }
 
     @Operation(
+            summary = "프로젝트 랜덤 조회"
+    )
+    @GetMapping("/get/info/random")
+    public ResponseEntity<ProjectGetRes> getRandomProject() {
+        ProjectGetRes projectGetRes = projectService.getRandomProjectInfo();
+
+        return ResponseEntity.ok(projectGetRes);
+    }
+
+    @Operation(
             summary = "프로젝트 삭제"
     )
     @DeleteMapping("/{projectId}")

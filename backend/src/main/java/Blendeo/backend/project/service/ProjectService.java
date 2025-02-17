@@ -35,4 +35,6 @@ public interface ProjectService {
     ProjectInfoRes getParentInfo(long projectId);
 
     List<ProjectInfoRes> getChildrenInfo(long projectId);
+
+    ProjectGetRes getRandomProjectInfo();
 }

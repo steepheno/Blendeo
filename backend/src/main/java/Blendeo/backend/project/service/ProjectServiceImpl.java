@@ -1,5 +1,6 @@
 package Blendeo.backend.project.service;
 
+import Blendeo.backend.comment.repository.CommentRepository;
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.exception.UnauthorizedAccessException;
 import Blendeo.backend.global.error.ErrorCode;
@@ -44,6 +45,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectInstrumentRepository projectInstrumentRepository;
     private final EtcInstrumentRepository etcInstrumentRepository;
     private final InstrumentRepository instrumentRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional
@@ -96,6 +98,7 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.updateViewCount(projectId);
         rankingService.incrementScore(projectId);
 
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
 
@@ -113,6 +116,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .runningTime(project.getRunningTime())
                 .createdAt(project.getCreatedAt())
                 .contents(project.getContents())
+                .commentCnt(commentRepository.countByProjectId(projectId))
                 .thumbnail(project.getThumbnail())
                 .videoUrl(project.getVideoUrl())
                 .viewCnt(project.getViewCnt())
@@ -130,6 +134,52 @@ public class ProjectServiceImpl implements ProjectService {
                                 .instrument_name(etcInstrument.getEtcInstrument().getName())
                         .build()).collect(Collectors.toList()))
                 .build();
+    }
+
+
+    @Override
+    public ProjectGetRes getRandomProjectInfo() {
+        Project project = projectRepository.findRandomProject()
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PROJECT_NOT_FOUND, ErrorCode.PROJECT_NOT_FOUND.getMessage()));
+        long projectId = project.getId();
+
+        // 조회수 1 증가
+        projectRepository.updateViewCount(projectId);
+        rankingService.incrementScore(projectId);
+
+        List<ProjectInstrument> projectInstruments = projectInstrumentRepository.getAllByProjectId(projectId);
+
+        return ProjectGetRes.builder()
+                .id(project.getId())
+                .title(project.getTitle())
+                .state(project.isState())
+                .forkId(project.getForkId())
+                .contributorCnt(project.getContributorCnt())
+                .authorId(project.getAuthor().getId())
+                .authorNickname(project.getAuthor().getNickname())
+                .authorProfileImage(project.getAuthor().getProfileImage())
+                .runningTime(project.getRunningTime())
+                .createdAt(project.getCreatedAt())
+                .contents(project.getContents())
+                .commentCnt(commentRepository.countByProjectId(projectId))
+                .thumbnail(project.getThumbnail())
+                .videoUrl(project.getVideoUrl())
+                .viewCnt(project.getViewCnt())
+                .instrumentCnt(project.getInstrumentCnt())
+                .projectInstruments(projectInstruments.stream()
+                        .filter(projectInstrument -> projectInstrument.getInstrument() != null) // Instrument가 널이면!
+                        .map(projectInstrument-> InstrumentGetRes.builder()
+                                .instrument_id(projectInstrument.getInstrument().getId())
+                                .instrument_name(projectInstrument.getInstrument().getName())
+                                .build()).collect(Collectors.toList()))
+                .etcInstruments(projectInstruments.stream()
+                        .filter(projectInstrument -> projectInstrument.getEtcInstrument() != null) // EtcInstrument가 null 이 아니면!
+                        .map(etcInstrument -> InstrumentGetRes.builder()
+                                .instrument_id(etcInstrument.getEtcInstrument().getId())
+                                .instrument_name(etcInstrument.getEtcInstrument().getName())
+                                .build()).collect(Collectors.toList()))
+                .build();
+
     }
 
     @Override
@@ -446,6 +496,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .collect(Collectors.toList());
 
     }
+
 
     private ProjectInfoRes convertToDto(ProjectNode projectNode) {
         Project project = projectRepository.findById(projectNode.getProjectId())
