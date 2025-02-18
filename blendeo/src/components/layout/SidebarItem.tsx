@@ -13,8 +13,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
         navigate("/");
         break;
       
-      case "촬영":
-        navigate("/project/record");
+      case "탐색":
+        navigate("/explore");
         break;
 
       case "채팅":
