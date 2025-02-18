@@ -6,7 +6,7 @@ import Layout from "@/components/layout/ChatLayout";
 import VideoComponent from "@/components/video/VideoComponent";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Video, VideoOff, MessageSquare } from "lucide-react";
-import { useVideoStore } from "@/stores/videoStore";
+import { useVideoCallStore } from "@/stores/videoCallStore";
 
 const VideoChatPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -14,6 +14,7 @@ const VideoChatPage: React.FC = () => {
   const userId = useAuthStore((state) => state.userId);
 
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
 
@@ -30,8 +31,7 @@ const VideoChatPage: React.FC = () => {
     toggleVideo,
   } = useOpenVidu(roomId!);
 
-  const { subscribers } = useVideoStore();
-
+  const { subscribers } = useVideoCallStore();
   console.log("subscribers type:", typeof subscribers);
   console.log("subscribers value:", subscribers);
 
@@ -49,7 +49,8 @@ const VideoChatPage: React.FC = () => {
 
   // 세션 초기화
   useEffect(() => {
-    // 새로고침해도 계속 들어오는 부분
+    cleanupSession();
+
     if (!userId || !roomId) {
       navigate("/chat");
       return;
@@ -57,6 +58,7 @@ const VideoChatPage: React.FC = () => {
 
     const connectSession = async () => {
       try {
+        console.log("connectSession 실행");
         await initializeSession();
       } catch (error) {
         console.error("initializeSession 실패:", error);
@@ -72,14 +74,29 @@ const VideoChatPage: React.FC = () => {
 
     connectSession();
 
-    return () => {
+    // 새로고침이나 페이지를 나갈 때 세션 정리
+    const handleBeforeUnload = () => {
       cleanupSession();
     };
-  }, [userId, roomId, initializeSession, navigate, retryCount, cleanupSession]);
+
+    // 뒤로가기 처리
+    const handlePopState = () => {
+      cleanupSession();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+      cleanupSession();
+    };
+  }, []);
 
   const handleLeaveCall = () => {
     cleanupSession();
-    navigate(`/chat/${roomId}`);
+    navigate(`/chat`);
   };
 
   const handleToggleAudio = () => {

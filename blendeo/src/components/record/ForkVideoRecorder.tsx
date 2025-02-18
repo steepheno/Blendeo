@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Video, Square } from 'lucide-react';
-import useForkVideoStore from '@/stores/forkVideoStore';
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Video, Square } from "lucide-react";
+import useForkVideoStore from "@/stores/forkVideoStore";
 
-type Orientation = 'portrait' | 'landscape';
+type Orientation = "portrait" | "landscape";
 
 interface Dimensions {
   width: number;
@@ -24,14 +24,18 @@ interface ForkVideoRecorderProps {
   repeatCount: number;
 }
 
-const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatCount }) => {
+const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
+  videoUrl,
+  repeatCount,
+}) => {
   const navigate = useNavigate();
   const { setRecordedData } = useForkVideoStore();
   const [isRecording, setIsRecording] = useState(false);
   const [currentLoop, setCurrentLoop] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [originalOrientation, setOriginalOrientation] = useState<Orientation>('portrait');
+  const [originalOrientation, setOriginalOrientation] =
+    useState<Orientation>("portrait");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -44,28 +48,29 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
     const video = videoRef.current;
     if (video) {
       const handleMetadata = () => {
-        const orientation = video.videoWidth > video.videoHeight ? 'landscape' : 'portrait';
+        const orientation =
+          video.videoWidth > video.videoHeight ? "landscape" : "portrait";
         setOriginalOrientation(orientation);
       };
 
-      video.addEventListener('loadedmetadata', handleMetadata);
-      return () => video.removeEventListener('loadedmetadata', handleMetadata);
+      video.addEventListener("loadedmetadata", handleMetadata);
+      return () => video.removeEventListener("loadedmetadata", handleMetadata);
     }
   }, []);
 
   // 비디오 녹화 설정
-  const setupRecording = useCallback ( async () => {
+  const setupRecording = useCallback(async () => {
     try {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
       const constraints: MediaStreamConstraints = {
         video: {
           width: { ideal: DIMENSIONS[originalOrientation].width },
-          height: { ideal: DIMENSIONS[originalOrientation].height }
+          height: { ideal: DIMENSIONS[originalOrientation].height },
         },
-        audio: true
+        audio: true,
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -74,10 +79,10 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
       if (previewRef.current) {
         previewRef.current.srcObject = stream;
       }
-      
+
       chunksRef.current = [];
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2'
+        mimeType: "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
       });
 
       mediaRecorder.ondataavailable = (event: BlobEvent) => {
@@ -87,22 +92,24 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
       };
 
       mediaRecorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { 
-          type: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2' 
+        const blob = new Blob(chunksRef.current, {
+          type: "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
         });
 
-        const file = new File([blob], "recorded-video.mp4", { type: blob.type });
+        const file = new File([blob], "recorded-video.mp4", {
+          type: blob.type,
+        });
         const blobUrl = URL.createObjectURL(file);
 
-        const video = document.createElement('video');
+        const video = document.createElement("video");
         video.src = blobUrl;
         video.load();
 
         const duration = await new Promise<number>((resolve) => {
-          video.addEventListener('loadedmetadata', () => {
+          video.addEventListener("loadedmetadata", () => {
             if (video.duration === Infinity) {
               video.currentTime = Number.MAX_SAFE_INTEGER;
-              video.addEventListener('seeked', () => {
+              video.addEventListener("seeked", () => {
                 resolve(video.duration);
               });
             } else {
@@ -114,32 +121,32 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
         setRecordedData({
           blobUrl,
           orientation: originalOrientation,
-          duration
+          duration,
         });
 
-        navigate('/fork/edit');
+        navigate("/fork/edit");
       };
 
       mediaRecorderRef.current = mediaRecorder;
       setError(null);
     } catch (err) {
-      setError('카메라를 시작할 수 없습니다. 카메라 권한을 확인해주세요.');
-      console.error('카메라 접근 에러:', err);
+      setError("카메라를 시작할 수 없습니다. 카메라 권한을 확인해주세요.");
+      console.error("카메라 접근 에러:", err);
     }
-  },  [originalOrientation, navigate, setRecordedData]);
+  }, [originalOrientation, navigate, setRecordedData]);
 
   // 컴포넌트 마운트 시 설정
   useEffect(() => {
     if (!navigator.mediaDevices || !window.MediaRecorder) {
-      setError('이 브라우저는 비디오 녹화를 지원하지 않습니다.');
+      setError("이 브라우저는 비디오 녹화를 지원하지 않습니다.");
       return;
     }
-  
+
     void setupRecording();
-  
+
     return () => {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, [setupRecording]); // originalOrientation이 변경되면 녹화 설정을 다시 함
@@ -151,7 +158,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
         videoRef.current.currentTime = 0;
         void videoRef.current.play();
       }
-      setCurrentLoop(prev => prev + 1);
+      setCurrentLoop((prev) => prev + 1);
     } else {
       setIsPlaying(false);
       setCurrentLoop(0);
@@ -167,11 +174,11 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
       setIsPlaying(true);
       setIsRecording(true);
       videoRef.current.currentTime = 0;
-      
+
       if (mediaRecorderRef.current) {
         mediaRecorderRef.current.start(1000);
       }
-      
+
       void videoRef.current.play();
     }
   };
@@ -189,15 +196,17 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
     const dimensions = DIMENSIONS[originalOrientation];
     return {
       width: dimensions.width,
-      height: dimensions.height
+      height: dimensions.height,
     };
   };
 
   return (
-    <div className={`flex gap-2 items-start p-4 ${originalOrientation === 'landscape' ? 'flex-col' : 'flex-row'}`}>
+    <div
+      className={`flex gap-2 items-start p-4 ${originalOrientation === "landscape" ? "flex-col" : "flex-row"}`}
+    >
       {/* 원본 비디오 플레이어 */}
       <div className="flex flex-col items-center space-y-4">
-        <div 
+        <div
           className="bg-black rounded-lg overflow-hidden"
           style={getVideoContainerStyle()}
         >
@@ -211,7 +220,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
             <source src={videoUrl} type="video/mp4" />
           </video>
         </div>
-        
+
         <div className="text-sm text-gray-600">
           현재 {currentLoop + 1}번째 재생 중 / 총 {repeatCount}회
         </div>
@@ -225,7 +234,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
           </div>
         )}
 
-        <div 
+        <div
           className="bg-black rounded-lg overflow-hidden"
           style={getVideoContainerStyle()}
         >

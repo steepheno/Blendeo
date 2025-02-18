@@ -1,6 +1,6 @@
 import { type FC, useEffect, useRef, useState } from "react";
 import { Pause, Play, Upload, Volume2 } from "lucide-react";
-import { useVideoStore } from "@/stores/videoStore";
+import useVideoStore from "@/stores/videoStore";
 import { useNavigate } from "react-router-dom";
 
 const HANDLE_WIDTH = 6;

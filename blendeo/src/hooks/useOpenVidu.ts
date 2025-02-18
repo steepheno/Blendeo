@@ -3,7 +3,7 @@ import { useState, useCallback, useRef } from "react";
 import { OpenVidu, Session } from "openvidu-browser";
 import { openViduApi } from "../api/openvidu";
 import type { ConnectionResponse } from "../types/api/openvidu";
-import { useVideoStore } from "@/stores/videoStore";
+import { useVideoCallStore } from "@/stores/videoCallStore";
 
 /**
  * OpenVidu 화상 채팅 기능을 관리하는 커스텀 훅
@@ -22,7 +22,7 @@ export const useOpenVidu = (roomId: string) => {
     setSubscribers,
     removeSubscriber,
     addSubscriber,
-  } = useVideoStore();
+  } = useVideoCallStore();
 
   const [error, setError] = useState<Error | null>(null); // 에러 상태
   const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +53,7 @@ export const useOpenVidu = (roomId: string) => {
 
       const connectionResponse = await openViduApi.createConnection(sessionId);
 
+      console.log("connectionResponse: " + connectionResponse);
       let token: string;
       if (typeof connectionResponse === "string") {
         token = connectionResponse as string;
@@ -68,7 +69,7 @@ export const useOpenVidu = (roomId: string) => {
       OV.current = new OpenVidu();
       const session = OV.current.initSession();
       sessionRef.current = session;
-
+      console.log("sessionRef.current: " + sessionRef.current);
       // streamCreated 이벤트 핸들러 수정
       session.on("streamCreated", (event) => {
         // 이미 구독중인 스트림인지 확인
@@ -136,6 +137,8 @@ export const useOpenVidu = (roomId: string) => {
    */
   // cleanup 함수에서
   const cleanupSession = useCallback(() => {
+    console.log("cleanupSession 실행");
+    console.log("sessionRef.current: " + sessionRef.current);
     if (sessionRef.current) {
       try {
         console.log("연결을 끊습니다.");

@@ -14,6 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import useVideoStore from "@/stores/videoStore";
+// import { CreateProjectRequest } from "@/types/api/project"; // 임시로 instrumentsId가 필수인 type 사용
 import { instruments } from "@/assets/data/instruments"; // 악기 데이터 import
 
 interface CreateProjectRequest {
