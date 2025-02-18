@@ -8,10 +8,12 @@ import hamburgerIcon from "@/assets/hamburger_icon.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { getProject } from "@/api/project";
 import { Project } from "@/types/api/project";
-import { useProjectStore } from "@/stores/projectStore";
 
+import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+
+import { getAllComments } from "@/api/comment";
 import {
   MessageSquare,
   Heart,
@@ -25,7 +27,6 @@ import {
 } from "lucide-react";
 
 import { useUserStore } from "@/stores/userStore";
-import { useAuthStore } from "@/stores/authStore";
 import useForkVideoStore from "@/stores/forkVideoStore";
 
 import { likeProject, unlikeProject } from "@/api/project";
@@ -97,6 +98,7 @@ const ProjectDetailContainer = () => {
   const [[direction], setPage] = useState([0, 0]);
 
   const [heartFilled, setHeartFilled] = useState(false);
+  const [commentCnt, setCommentCnt] = useState<number>(0);
   const [bookmarkFilled, setBookmarkFilled] = useState(false);
 
   const setOriginalProjectData = useForkVideoStore(
@@ -104,23 +106,6 @@ const ProjectDetailContainer = () => {
   );
 
   useEffect(() => {
-    const initializeUser = async () => {
-      try {
-        const userId = useAuthStore.getState().userId;
-        const accessToken = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("accessToken="))
-          ?.split("=")[1];
-
-        if (userId && accessToken) {
-          const response = await getUser(Number(userId));
-          console.log(response);
-        }
-      } catch (error) {
-        console.error("Failed to load user: ", error);
-      }
-    };
-
     const fetchProjectData = async () => {
       if (!projectId) {
         setError("잘못된 프로젝트 ID입니다.");
@@ -154,8 +139,19 @@ const ProjectDetailContainer = () => {
       }
     };
 
-    initializeUser();
+    const fetchCommentCnt = async () => {
+      if (!projectId) return;
+      try {
+        const response = await getAllComments(Number(projectId));
+        setCommentCnt(response.length);
+      } catch (error) {
+        console.error("Failed to fetch comments:", error);
+        setCommentCnt(0);
+      }
+    }
+
     fetchProjectData();
+    fetchCommentCnt();
   }, [projectId, location.pathname, getUser, setCurrentUser]);
 
   const paginate = useCallback((newDirection: number) => {
@@ -299,7 +295,7 @@ const ProjectDetailContainer = () => {
       />
       <InteractionButton
         icon={MessageSquare}
-        count="0"
+        count={commentCnt.toString()}
         isActive={activeTab === "comments"}
         onClick={() => handleTabClick("comments")}
       />

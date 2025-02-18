@@ -30,9 +30,6 @@ const noRedirectPaths = ["/", "/project/list"];
 // Request Interceptor
 axiosInstance.interceptors.request.use((config) => {
   const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
-  console.log("Request URL:", config.url);
-  console.log("Is Public API:", isPublicAPI);
-
   // 이미 Authorization 헤더가 있다면 그대로 사용
   if (config.headers.Authorization) {
     return config;

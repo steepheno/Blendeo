@@ -6,9 +6,13 @@ export interface SignupRequest {
   instrumentIds: number[];
 }
 // 악기 정보를 위한 인터페이스
-interface Instrument {
+export interface Instrument {
   instrument_id: number;
   instrument_name: string;
+}
+
+export interface InstrumentCategory {
+  [key: string]: Instrument[];
 }
 
 export interface SigninRequest {

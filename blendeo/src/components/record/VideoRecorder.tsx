@@ -346,44 +346,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     setIsFlipped((prev) => !prev);
   };
 
-  const cancelCountdown = useCallback((): void => {
-    if (countdownTimerRef.current) {
-      clearInterval(countdownTimerRef.current);
-    }
-    if (recordingTimerRef.current) {
-      clearTimeout(recordingTimerRef.current);
-    }
-    setCountdown(null);
-    setIsCountdownStarted(false);
-  }, []);
-
-  const stopRecording = useCallback((): void => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-    }
-    cancelCountdown();
-  }, [isRecording, cancelCountdown]);
-
-  useEffect(() => {
-    if (isRecording) {
-      recordingTimeIntervalRef.current = setInterval(() => {
-        setTimer((prev) => {
-          if (prev >= MAX_RECORDING_TIME) {
-            stopRecording();
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (recordingTimeIntervalRef.current) {
-        clearInterval(recordingTimeIntervalRef.current);
-      }
-    };
-  }, [isRecording, stopRecording]);
-
   const initializeRecording = useCallback((): void => {
     if (!streamRef.current) {
       handleError("카메라가 준비되지 않았습니다.");
@@ -499,77 +461,30 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     }, selectedDelay * 1000);
   }, [selectedDelay, initializeRecording]);
 
-  // 메트로놈 사운드 생성 함수
-  const createMetronomeSound = () => {
-    const audioContext = new AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = 880; // A5 음
-    gainNode.gain.value = 0;
-
-    oscillator.start();
-
-    return { audioContext, oscillator, gainNode };
-  };
-
-  // 메트로놈 틱 소리 재생
-  const playTick = (gainNode: GainNode) => {
-    const now = gainNode.context.currentTime;
-    gainNode.gain.cancelScheduledValues(now);
-    gainNode.gain.setValueAtTime(1, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-  };
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    if (metronomeEnabled) {
-      const { audioContext, gainNode } = createMetronomeSound();
-      setMetronomeAudio(audioContext);
-
-      const interval = (60 / bpm) * 1000;
-
-      intervalId = setInterval(() => {
-        playTick(gainNode);
-        setCurrentBeat((prev) => (prev % timeSignature) + 1);
-      }, interval);
+  const cancelCountdown = useCallback((): void => {
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
     }
+    if (recordingTimerRef.current) {
+      clearTimeout(recordingTimerRef.current);
+    }
+    setCountdown(null);
+    setIsCountdownStarted(false);
+  }, []);
 
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-      if (metronomeAudio) {
-        metronomeAudio.close();
-        setMetronomeAudio(null);
-      }
-      setCurrentBeat(1);
-    };
-  }, [metronomeEnabled, bpm, timeSignature, metronomeAudio]);
+  const stopRecording = useCallback((): void => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+    }
+    cancelCountdown();
+  }, [isRecording, cancelCountdown]);
 
-  interface VisualMetronomeProps {
-    bpm: number;
-    timeSignature: number;
-    currentBeat: number;
-  }
-
-  const VisualMetronome: React.FC<VisualMetronomeProps> = ({
-    timeSignature,
-    currentBeat,
-  }) => (
-    <div className="flex gap-2 mt-2">
-      {Array.from({ length: timeSignature }).map((_, i) => (
-        <div
-          key={i}
-          className={`w-3 h-3 rounded-full transition-colors duration-100 ${
-            currentBeat - 1 === i ? "bg-violet-500 scale-110" : "bg-gray-200"
-          }`}
-        />
-      ))}
-    </div>
-  );
+  const videoStyle = {
+    transform: `scale(${isFlipped ? -1 : 1}, 1)`,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover" as const,
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">

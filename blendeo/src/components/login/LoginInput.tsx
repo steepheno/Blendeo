@@ -25,7 +25,7 @@ const LoginInput: React.FC<LoginInputProps> = ({
     <div
       className={`flex shrink-0 mt-4 rounded-md border ${
         error ? "border-red-300" : "border-gray-200"
-      } border-solid h-[72px] max-md:max-w-full`}
+      } border-solid h-[60px] max-md:max-w-full`}
     >
       <label htmlFor={id} className="sr-only">
         {placeholder}
@@ -40,7 +40,7 @@ const LoginInput: React.FC<LoginInputProps> = ({
         disabled={disabled}
         required
         className={`w-full h-full px-4 rounded-md bg-transparent
-          focus:outline-none focus:ring-2 
+          focus:outline-none focus:ring-2
           ${
             error
               ? "focus:ring-red-500 border-red-300"

@@ -16,10 +16,13 @@ import MyProfilePage from "@/pages/profile/MyProfilePage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
 import VideoChatPage from "@/pages/chat/VideoChatPage";
 import ExplorePage from "@/pages/explore/ExplorePage";
+import InstrumentSelector from "@/components/signup/InstrumentSelector";
+
 import SeedRecordPage from "@/pages/seed/SeedRecodePage";
 import SeedEditPage from "@/pages/seed/SeedEditPage";
 import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
 import ForkEditor from "@/pages/fork/ForkEditPage";
+import ExploreFullScreenPage from "@/pages/explore/ExploreFullScreenPage";
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +34,14 @@ export const router = createBrowserRouter([
     children: [
       { path: "signin", element: <SignInPage /> },
       { path: "signup", element: <SignUpPage /> },
+      { path: "signup2", element: <InstrumentSelector /> },
+    ],
+  },
+  {
+    path: "/explore",
+    children: [
+      { path: "", element: <ExplorePage /> },
+      { path: "full", element: <ExploreFullScreenPage /> },
     ],
   },
   {
