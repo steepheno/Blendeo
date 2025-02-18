@@ -74,7 +74,6 @@ const DIMENSIONS: DimensionsMap = {
 };
 
 const COUNTDOWN_OPTIONS = [0, 3, 5, 10, 30] as const;
-const MAX_RECORDING_TIME = 300; // 5분(300초) 제한
 
 interface Position {
   x: number;
@@ -169,7 +168,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 }) => {
   const navigate = useNavigate();
   const { setVideoData } = useVideoStore();
-  const [timer, setTimer] = useState(0);
+  const [timer, _setTimer] = useState(0);
 
   const [orientation, setOrientation] = useState<Orientation>("portrait");
   const [isRecording, setIsRecording] = useState(false);
@@ -193,16 +192,15 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
   const chunksRef = useRef<Blob[]>([]);
   const countdownTimerRef = useRef<NodeJS.Timeout>();
   const recordingTimerRef = useRef<NodeJS.Timeout>();
-  const recordingTimeIntervalRef = useRef<NodeJS.Timeout>();
 
   const [metronomeEnabled, setMetronomeEnabled] = useState(false);
   const [bpm, setBpm] = useState(120);
-  const [metronomeAudio, setMetronomeAudio] = useState<AudioContext | null>(
+  const [_metronomeAudio, _setMetronomeAudio] = useState<AudioContext | null>(
     null
   );
 
   const [timeSignature, setTimeSignature] = useState(4);
-  const [currentBeat, setCurrentBeat] = useState(1);
+  const [_currentBeat, _setCurrentBeat] = useState(1);
 
   // 가이드라인 내용
   const guideSteps = [
@@ -479,13 +477,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     cancelCountdown();
   }, [isRecording, cancelCountdown]);
 
-  const videoStyle = {
-    transform: `scale(${isFlipped ? -1 : 1}, 1)`,
-    width: "100%",
-    height: "100%",
-    objectFit: "cover" as const,
-  };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       {/* 가이드라인 다이얼로그 */}
@@ -753,15 +744,15 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
               </span>
             </div>
           </div>
-
-          {/* 메트로놈 시각적 요소 */}
+          {/* 
+          메트로놈 시각적 요소
           {metronomeEnabled && (
             <VisualMetronome
               bpm={bpm}
               timeSignature={timeSignature}
               currentBeat={currentBeat}
             />
-          )}
+          )} */}
         </div>
       </DraggableToolbox>
     </div>

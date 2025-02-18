@@ -17,11 +17,7 @@ const alertVariants = cva(
       variant: "default",
     },
   }
-<<<<<<< HEAD
 );
-=======
-)
->>>>>>> 9f2d9b6f84b9b4941275b9f0c0918f549548d77d
 
 const Alert = React.forwardRef<
   HTMLDivElement,
@@ -33,13 +29,8 @@ const Alert = React.forwardRef<
     className={cn(alertVariants({ variant }), className)}
     {...props}
   />
-<<<<<<< HEAD
 ));
 Alert.displayName = "Alert";
-=======
-))
-Alert.displayName = "Alert"
->>>>>>> 9f2d9b6f84b9b4941275b9f0c0918f549548d77d
 
 const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
@@ -50,13 +41,8 @@ const AlertTitle = React.forwardRef<
     className={cn("mb-1 font-medium leading-none tracking-tight", className)}
     {...props}
   />
-<<<<<<< HEAD
 ));
 AlertTitle.displayName = "AlertTitle";
-=======
-))
-AlertTitle.displayName = "AlertTitle"
->>>>>>> 9f2d9b6f84b9b4941275b9f0c0918f549548d77d
 
 const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
@@ -67,14 +53,7 @@ const AlertDescription = React.forwardRef<
     className={cn("text-sm [&_p]:leading-relaxed", className)}
     {...props}
   />
-<<<<<<< HEAD
 ));
 AlertDescription.displayName = "AlertDescription";
 
 export { Alert, AlertTitle, AlertDescription };
-=======
-))
-AlertDescription.displayName = "AlertDescription"
-
-export { Alert, AlertTitle, AlertDescription }
->>>>>>> 9f2d9b6f84b9b4941275b9f0c0918f549548d77d
