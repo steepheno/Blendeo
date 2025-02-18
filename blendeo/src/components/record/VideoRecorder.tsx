@@ -573,7 +573,17 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     };
   }, [metronomeEnabled, bpm, timeSignature]);
 
-  const VisualMetronome = () => (
+  interface VisualMetronomeProps {
+    bpm: number;
+    timeSignature: number;
+    currentBeat: number;
+  }
+
+  const VisualMetronome: React.FC<VisualMetronomeProps> = ({
+    bpm,
+    timeSignature,
+    currentBeat,
+  }) => (
     <div className="flex gap-2 mt-2">
       {Array.from({ length: timeSignature }).map((_, i) => (
         <div
@@ -855,7 +865,13 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
           </div>
 
           {/* 메트로놈 시각적 요소 */}
-          {metronomeEnabled && <VisualMetronome bpm={bpm} />}
+          {metronomeEnabled && (
+            <VisualMetronome
+              bpm={bpm}
+              timeSignature={timeSignature}
+              currentBeat={currentBeat}
+            />
+          )}
         </div>
       </DraggableToolbox>
     </div>
