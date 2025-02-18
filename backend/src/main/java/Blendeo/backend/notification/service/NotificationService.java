@@ -6,6 +6,7 @@ import Blendeo.backend.global.error.ErrorCode;
 import Blendeo.backend.infrastructure.redis.RedisPublisher;
 import Blendeo.backend.infrastructure.redis.RedisSubscriber;
 import Blendeo.backend.notification.dto.NotificationRedisDTO;
+import Blendeo.backend.notification.dto.NotificationRes;
 import Blendeo.backend.notification.entity.Notification;
 import Blendeo.backend.notification.entity.Notification.NotificationType;
 import Blendeo.backend.notification.repository.NotificationRepository;
@@ -13,10 +14,12 @@ import Blendeo.backend.project.repository.ProjectRepository;
 import Blendeo.backend.user.entity.User;
 import Blendeo.backend.user.repository.UserRepository;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -214,5 +217,23 @@ public class NotificationService {
         for (Notification notification : notifications) {
             notification.readNotification(true);
         }
+    }
+
+    public List<NotificationRes> getWeekNotification(int userId) {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusDays(7);
+        List<Notification> notifications = notificationRepository.findAllByUserIdAWithWeek(startDate, endDate, userId);
+
+
+        return notifications.stream()
+                .map(notification -> NotificationRes.builder()
+                        .notificationId(notification.getId())
+                        .receiverId(notification.getReceiver().getId())
+                        .senderId(notification.getSender().getId())
+                        .isRead(notification.getIsRead())
+                        .content(notification.getContent())
+                        .profileImage(notification.getSender().getProfileImage())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

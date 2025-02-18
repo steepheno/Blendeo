@@ -3,11 +3,13 @@ package Blendeo.backend.notification.controller;
 import Blendeo.backend.infrastructure.redis.RedisPublisher;
 import Blendeo.backend.infrastructure.redis.RedisSubscriber;
 import Blendeo.backend.notification.dto.NotificationRedisDTO;
+import Blendeo.backend.notification.dto.NotificationRes;
 import Blendeo.backend.notification.entity.Notification;
 import Blendeo.backend.notification.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -105,5 +107,16 @@ public class NotificationController {
         }catch (Exception e){
             return ResponseEntity.internalServerError().body("모든 알림 읽음 실패: " + e.getMessage());
         }
+    }
+
+    @Operation(
+            summary = "일주일 간의 알림 조회"
+    )
+    @GetMapping("/get/week")
+    public ResponseEntity<List<NotificationRes>> getWeekNotification(){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = Integer.parseInt(user.getUsername());
+        List<NotificationRes> weekNotifications = notificationService.getWeekNotification(userId);
+        return ResponseEntity.ok(weekNotifications);
     }
 }
