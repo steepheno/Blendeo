@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 
 import VideoEditor from "@/components/record/VideoEditor";
-import useVideoStore from "@/stores/videoStore";
+import { useVideoStore } from "@/stores/videoStore";
 import { type TrimData } from "@/types/components/recording/video";
 import Searchbar from "@/components/layout/Searchbar";
 
@@ -32,8 +32,8 @@ const SeedEditPage = () => {
 
   return (
     <div className="bg-black w-full h-full">
-      <Searchbar/>
-        <VideoEditor />
+      <Searchbar />
+      <VideoEditor />
     </div>
   );
 };

@@ -1,158 +1,72 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import { VideoData, TrimData } from "../types/components/recording/video";
-import { uploadBlendedVideo, createProject } from "@/api/project";
-// import { SimpleProjectData } from "@/types/api/project";
-import {
-  CreateProjectRequest,
-} from "@/types/api/project";
+import { Session, Publisher, Subscriber } from "openvidu-browser";
 
 interface VideoStore {
-  // State
-  videoData: VideoData | null;
+  session: Session | null;
+  publisher: Publisher | null;
+  subscribers: Subscriber[];
+  setSession: (session: Session | null) => void;
+  setPublisher: (publisher: Publisher | null) => void;
+  setSubscribers: (
+    subscribers: Subscriber[] | ((prev: Subscriber[]) => Subscriber[])
+  ) => void;
+  addSubscriber: (subscriber: Subscriber) => void;
+  removeSubscriber: (streamId: string) => void;
+  videoData: {
+    blobUrl: string;
+    duration: number;
+  } | null;
+  trimData: {
+    startTime: number;
+    endTime: number;
+    videoDuration: number;
+  } | null;
+  setTrimData: (data: VideoStore["trimData"]) => void;
   isVideoLoaded: boolean;
   isProcessing: boolean;
-  trimData: TrimData | null;
-  originalBlobUrl: string | null;
-  editedBlobUrl: string | null;
+  setIsProcessing: (processing: boolean) => void;
+  uploadVideo: (params: { videoFile: File }) => Promise<string>;
   uploadProgress: number;
   uploadedBytes: number;
-  createdUrl: string;
-
-  // Actions
-  setVideoData: (data: VideoData) => void;
-  clearVideoData: () => void;
-  setTrimData: (data: TrimData) => void;
-  clearTrimData: () => void;
-  setIsProcessing: (processing: boolean) => void;
-  setOriginalBlobUrl: (url: string) => void;
-  setEditedBlobUrl: (url: string) => void;
-  clearBlobUrls: () => void;
   setCreatedUrl: (url: string) => void;
-
-  // Upload functionality
-  uploadVideo: (options: {
-    videoFile: File;
-    startPoint?: number;
-    duration?: number;
-    // volume?: number;
-    // noiseReduction?: boolean;
-  }) => Promise<string>;
-  uploadProject: (data: CreateProjectRequest) => Promise<number>;
-  setUploadProgress: (progress: number, loaded: number) => void;
 }
 
-const useVideoStore = create<VideoStore>()(
-  devtools(
-    (set, get) => ({
-      // Initial state
-      videoData: null,
-      isVideoLoaded: false,
-      isProcessing: false,
-      trimData: null,
-      originalBlobUrl: null,
-      editedBlobUrl: null,
-      uploadProgress: 0,
-      uploadedBytes: 0,
-      seedProject: null,
-
-      // Video data management
-      setVideoData: (data) =>
-        set(() => ({
-          videoData: data,
-          isVideoLoaded: true,
-          originalBlobUrl: data.blobUrl,
-        })),
-      clearVideoData: () =>
-        set(() => ({
-          videoData: null,
-          isVideoLoaded: false,
-          trimData: null,
-          originalBlobUrl: null,
-          editedBlobUrl: null,
-          uploadProgress: 0,
-          uploadedBytes: 0,
-          seedProject: null,
-        })),
-
-      // Edit state management
-      setTrimData: (data) => set(() => ({ trimData: data })),
-      clearTrimData: () => set(() => ({ trimData: null })),
-
-      // Processing state management
-      setIsProcessing: (processing) =>
-        set(() => ({ isProcessing: processing })),
-
-      // Blob URL management
-      setOriginalBlobUrl: (url) => set(() => ({ originalBlobUrl: url })),
-      setEditedBlobUrl: (url) => set(() => ({ editedBlobUrl: url })),
-      clearBlobUrls: () =>
-        set(() => ({
-          originalBlobUrl: null,
-          editedBlobUrl: null,
-        })),
-
-      // Upload progress management
-      setUploadProgress: (progress, loaded) =>
-        set(() => ({
-          uploadProgress: progress,
-          uploadedBytes: loaded,
-        })),
-
-      // Upload functionality
-      uploadVideo: async (options) => {
-        const { trimData, setIsProcessing, setUploadProgress } = get();
-
-        if (!trimData) {
-          throw new Error("Trim data is required");
-        }
-
-        try {
-          setIsProcessing(true);
-
-          const response = await uploadBlendedVideo(
-            {
-              videoFile: options.videoFile,
-              startPoint: options.startPoint ?? trimData.startTime,
-              duration:
-                options.duration ?? trimData.endTime - trimData.startTime,
-            },
-            (progress, loaded) => {
-              setUploadProgress(progress, loaded);
-            }
-          );
-          return response; // 업로드된 영상 S3 가 저장되어있음.
-        } catch (error) {
-          console.error("Failed to upload video:", error);
-          throw error;
-        } finally {
-          setIsProcessing(false);
-        }
-      },
-
-      // Seed project upload
-      uploadProject: async (data: CreateProjectRequest): Promise<number> => {
-        const { setIsProcessing } = get();
-
-        try {
-          setIsProcessing(true);
-          const response = await createProject(data);
-          set({ createdUrl: data.videoUrl }); // videoUrl을 createdUrl로 저장
-          return response.projectId;
-        } catch (error) {
-          console.error("Failed to create project:", error);
-          throw error;
-        } finally {
-          setIsProcessing(false);
-        }
-      },
-
-      setCreatedUrl: (url) => set(() => ({ createdUrl: url })),
-    }),
-    {
-      name: "video-store",
-    }
-  )
-);
+export const useVideoStore = create<VideoStore>((set) => ({
+  session: null,
+  publisher: null,
+  subscribers: [],
+  isVideoLoaded: false,
+  setSession: (session) => set({ session }),
+  setPublisher: (publisher) => set({ publisher }),
+  setSubscribers: (subscribers) =>
+    set((state) => ({
+      subscribers:
+        typeof subscribers === "function"
+          ? subscribers(state.subscribers)
+          : subscribers,
+    })),
+  addSubscriber: (subscriber) =>
+    set((state) => ({
+      subscribers: [...state.subscribers, subscriber],
+    })),
+  removeSubscriber: (streamId) =>
+    set((state) => ({
+      subscribers: state.subscribers.filter(
+        (subscriber) => subscriber.stream.streamId !== streamId
+      ),
+    })),
+  videoData: null,
+  trimData: null,
+  setTrimData: (data) => set({ trimData: data }),
+  isProcessing: false,
+  setIsProcessing: (processing) => set({ isProcessing: processing }),
+  uploadVideo: async () => {
+    // Implementation of uploadVideo
+    return "";
+  },
+  uploadProgress: 0,
+  uploadedBytes: 0,
+  setCreatedUrl: (url) => set({ videoData: { blobUrl: url, duration: 0 } }),
+}));
 
 export default useVideoStore;

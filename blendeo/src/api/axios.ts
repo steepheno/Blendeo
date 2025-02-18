@@ -22,7 +22,7 @@ const publicPaths = [
   "/user/follow/get-follow",
   "/user/get-user",
   "/comment/get-all",
-  "/fork/hierarchy"
+  "/fork/hierarchy",
 ];
 
 const noRedirectPaths = ["/", "/project/list"];
@@ -30,7 +30,13 @@ const noRedirectPaths = ["/", "/project/list"];
 // Request Interceptor
 axiosInstance.interceptors.request.use((config) => {
   const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
-  console.log("isthis?", isPublicAPI);
+  console.log("Request URL:", config.url);
+  console.log("Is Public API:", isPublicAPI);
+
+  // 이미 Authorization 헤더가 있다면 그대로 사용
+  if (config.headers.Authorization) {
+    return config;
+  }
 
   if (!isPublicAPI) {
     const cookies = document.cookie.split(";");
@@ -40,8 +46,51 @@ axiosInstance.interceptors.request.use((config) => {
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+      return config;
+    } else {
+      // accessToken이 없는 경우 refresh 시도
+      const refreshToken = cookies
+        .find((cookie) => cookie.trim().startsWith("refreshToken="))
+        ?.split("=")[1];
+
+      if (refreshToken) {
+        return axios
+          .post(
+            `${baseURL}/user/auth/refresh`,
+            {},
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${refreshToken}`,
+              },
+            }
+          )
+          .then((response) => {
+            if (!response) {
+              throw new Error("No response from refresh token request");
+            }
+
+            const cookies = document.cookie.split(";");
+            const newAccessToken = cookies
+              .find((cookie) => cookie.trim().startsWith("accessToken="))
+              ?.split("=")[1];
+
+            if (newAccessToken) {
+              config.headers.Authorization = `Bearer ${newAccessToken}`;
+              return config;
+            }
+            throw new Error("New access token not found in cookies");
+          })
+          .catch((error) => {
+            console.error("Token refresh failed:", error);
+            handleLogout();
+            throw error; // Promise.reject 대신 throw 사용
+          });
+      }
+
+      handleLogout();
+      throw new Error("No refresh token available");
     }
-    // accessToken이 없는 경우 response interceptor에서 처리하도록 함
   }
   return config;
 });
@@ -52,7 +101,7 @@ axiosInstance.interceptors.response.use(
     // 로그인 응답에서 토큰 처리 - 서버가 Set-Cookie를 보내지 않는 경우에만 처리
     if (
       response.config.url?.includes("/user/auth/login") &&
-      !response.headers["set-cookie"]
+      !response.headers["set-cookie"] // 서버가 Set-Cookie를 보내지 않는 경우에만
     ) {
       const { accessToken, refreshToken } = response.data;
       if (accessToken && refreshToken) {

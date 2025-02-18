@@ -1,6 +1,6 @@
 import { type FC, useEffect, useRef, useState } from "react";
 import { Pause, Play, Upload, Volume2 } from "lucide-react";
-import useVideoStore from "@/stores/videoStore";
+import { useVideoStore } from "@/stores/videoStore";
 import { useNavigate } from "react-router-dom";
 
 const HANDLE_WIDTH = 6;
@@ -148,8 +148,8 @@ const VideoEditor: FC = () => {
 
     setIsProcessing(true);
     try {
-      const videoFile = await fetch(videoData.blobUrl).then(r => r.blob());
-      const file = new File([videoFile], 'video.webm', { type: 'video/webm' });
+      const videoFile = await fetch(videoData.blobUrl).then((r) => r.blob());
+      const file = new File([videoFile], "video.webm", { type: "video/webm" });
 
       // 비디오 업로드 후 URL 문자열 받기
       const videoUrl = await uploadVideo({
@@ -159,7 +159,7 @@ const VideoEditor: FC = () => {
       // Store에 업로드된 영상 URL 저장
       setCreatedUrl(videoUrl);
       // 프로젝트 생성 폼으로 리다이렉트
-      navigate('/seed/upload');
+      navigate("/seed/upload");
     } catch (error) {
       console.error("Upload error:", error);
     } finally {
@@ -352,7 +352,8 @@ const VideoEditor: FC = () => {
         <div className="flex flex-col gap-2 items-end">
           {uploadProgress > 0 && (
             <div className="text-sm text-gray-300">
-              업로드 진행률: {uploadProgress}% ({(uploadedBytes / (1024 * 1024)).toFixed(2)} MB)
+              업로드 진행률: {uploadProgress}% (
+              {(uploadedBytes / (1024 * 1024)).toFixed(2)} MB)
             </div>
           )}
           <button
@@ -362,7 +363,7 @@ const VideoEditor: FC = () => {
             disabled={isProcessing}
           >
             <Upload size={20} />
-            {isProcessing ? 'Uploading...' : 'Upload'}
+            {isProcessing ? "Uploading..." : "Upload"}
           </button>
         </div>
       </div>

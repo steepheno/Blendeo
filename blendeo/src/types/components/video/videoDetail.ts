@@ -1,13 +1,20 @@
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from "lucide-react";
 
-export type TabType = SidePanelTabType | 'showTree' | null;
-export type SidePanelTabType = 'comments' | 'contributors' | "settings" ;
+export type TabType = "comments" | "contributors" | "showTree" | null;
 
 export interface Comment {
   id: number;
   author: string;
   content: string;
   timeAgo: string;
+  avatarUrl: string;
+}
+
+export interface Contributor {
+  id: number;
+  name: string;
+  role: string;
+  collaborations: number;
   avatarUrl: string;
 }
 
@@ -20,7 +27,7 @@ export interface InteractionButtonProps {
 }
 
 export interface SidePanelProps {
-  activeTab: SidePanelTabType | null;
+  activeTab: TabType;
   content: React.ReactNode;
 }
 
@@ -32,7 +39,7 @@ export interface VideoMetadata {
     name: string;
     profileImage: string;
   };
-  viewCnt : number;
+  viewCnt: number;
 }
 
 export interface VideoPlayerProps {

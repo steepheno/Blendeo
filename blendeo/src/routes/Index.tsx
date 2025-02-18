@@ -8,16 +8,16 @@ import MainPage from "@/pages/main/MainPage";
 import ChatPage from "@/pages/chat/ChatPage";
 
 import ProjectDetailPage from "@/pages/project/ProjectDetailPage";
+import ForkRecordPage from "@/pages/fork/ForkRecordPage";
 
 import ProjectTreePage from "@/pages/project/ProjectTreePage";
 import UserProfilePage from "@/pages/profile/UserProfilePage";
 import MyProfilePage from "@/pages/profile/MyProfilePage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
-import VideoCallPage from "@/pages/chat/VideoCallPage";
-
+import VideoChatPage from "@/pages/chat/VideoChatPage";
+import ExplorePage from "@/pages/explore/ExplorePage";
 import SeedRecordPage from "@/pages/seed/SeedRecodePage";
 import SeedEditPage from "@/pages/seed/SeedEditPage";
-import ForkRecordPage from "@/pages/fork/ForkRecordPage";
 import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
 import ForkEditor from "@/pages/fork/ForkEditPage";
 
@@ -34,20 +34,66 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    path: "/explore",
+    children: [{ path: "", element: <ExplorePage /> }],
+  },
+  {
     path: "/seed",
     children: [
-      { path: "record", element: <ProtectedRoute><SeedRecordPage /></ProtectedRoute> },
-      { path: "edit", element: <ProtectedRoute><SeedEditPage /></ProtectedRoute> },
-      { path: "upload", element: <ProtectedRoute><ProjectUploadPage /></ProtectedRoute> },
-    ]
+      {
+        path: "record",
+        element: (
+          <ProtectedRoute>
+            <SeedRecordPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "edit",
+        element: (
+          <ProtectedRoute>
+            <SeedEditPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "upload",
+        element: (
+          <ProtectedRoute>
+            <ProjectUploadPage />
+          </ProtectedRoute>
+        ),
+      },
+    ],
   },
   {
     path: "/fork",
     children: [
-      { path: "record", element: <ProtectedRoute><ForkRecordPage /></ProtectedRoute> },
-      { path: "edit", element: <ProtectedRoute><ForkEditor /></ProtectedRoute> },
-      { path: "upload", element: <ProtectedRoute><ProjectUploadPage /></ProtectedRoute> },
-    ]
+      {
+        path: "record",
+        element: (
+          <ProtectedRoute>
+            <ForkRecordPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "edit",
+        element: (
+          <ProtectedRoute>
+            <ForkEditor />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "upload",
+        element: (
+          <ProtectedRoute>
+            <ProjectUploadPage />
+          </ProtectedRoute>
+        ),
+      },
+    ],
   },
   {
     path: "/project",
@@ -104,7 +150,7 @@ export const router = createBrowserRouter([
         path: ":roomId/video", // /chat/:roomId/video
         element: (
           <ProtectedRoute>
-            <VideoCallPage />
+            <VideoChatPage />
           </ProtectedRoute>
         ),
       },

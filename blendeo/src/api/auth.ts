@@ -47,17 +47,13 @@ export const refresh = async () => {
 };
 
 export const getUser = async (id: number) => {
-  // localStorage에 id 저장
-  localStorage.setItem("userId", id.toString());
-  console.log("localStorage 저장 후: ", localStorage.getItem("userId"));
-
   // 쿠키에서 accessToken 읽기
   const accessToken = document.cookie
     .split("; ")
     .find((row) => row.startsWith("accessToken="))
     ?.split("=")[1];
 
-  return axiosInstance.get(`/user/get-user/${id}`, {
+  return axiosInstance.get(`/user/${id}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
