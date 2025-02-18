@@ -72,7 +72,16 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/configuration/ui",
                                 "/configuration/security",
-                                "/api/v1/**"
+                                "/api/v1/user/auth/**",
+                                "/api/v1/user/get-user/**",
+                                "/api/v1/rank/**",
+                                "/api/v1/instrument/**",
+                                "/ws-stomp",
+                                "/api/v1/comment/get-all",
+                                "/api/v1/user/follow/**",
+                                "/api/v1/fork/**",
+                                "/api/v1/project/create/video/blend/upload",
+                                "/api/v1/project/get/**"
                         ).permitAll()
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
