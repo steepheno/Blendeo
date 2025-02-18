@@ -90,8 +90,8 @@ public interface ProjectNodeRepository extends Neo4jRepository<ProjectNode, Long
                WHEN size(allRels) > 0
                THEN REDUCE(s = [], rel IN REDUCE(s = [], path IN allRels | s + path) |
                    s + {
-                       source: COALESCE(startNode(rel).projectId, 0),
-                       target: COALESCE(endNode(rel).projectId, 0)
+                       source: COALESCE(endNode(rel).projectId, 0),
+                       target: COALESCE(startNode(rel).projectId, 0)
                    }
                )
                ELSE []
