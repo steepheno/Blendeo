@@ -28,7 +28,6 @@ import {
 
 import { TabType } from "@/types/components/video/videoDetail";
 import { useUserStore } from "@/stores/userStore";
-import { useAuthStore } from "@/stores/authStore";
 import useForkVideoStore from "@/stores/forkVideoStore";
 
 import { likeProject, unlikeProject } from "@/api/project";
@@ -97,23 +96,6 @@ const ProjectDetailContainer = () => {
   );
 
   useEffect(() => {
-    const initializeUser = async () => {
-      try {
-        const userId = useAuthStore.getState().userId;
-        const accessToken = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("accessToken="))
-          ?.split("=")[1];
-
-        if (userId && accessToken) {
-          const response = await getUser(Number(userId));
-          console.log(response);
-        }
-      } catch (error) {
-        console.error("Failed to load user: ", error);
-      }
-    };
-
     const fetchProjectData = async () => {
       if (!projectId) {
         setError("잘못된 프로젝트 ID입니다.");
@@ -157,7 +139,6 @@ const ProjectDetailContainer = () => {
       }
     }
 
-    initializeUser();
     fetchProjectData();
     fetchCommentCnt();
   }, [projectId, location.pathname, getUser, setCurrentUser]);
