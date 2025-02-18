@@ -1,5 +1,4 @@
 import VideoRecorder from "@/components/record/VideoRecorder";
-import Searchbar from "@/components/layout/Searchbar";
 
 const SeedRecordPage = () => {
   return (

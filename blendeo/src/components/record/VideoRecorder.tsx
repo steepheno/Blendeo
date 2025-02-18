@@ -7,8 +7,6 @@ import {
   X,
   Timer,
   AlertCircle,
-  Mic,
-  MicOff,
   Music,
   GripVertical,
   Circle,
@@ -22,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -182,8 +180,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
   const [isCountdownStarted, setIsCountdownStarted] = useState(false);
 
   const [showGuide, setShowGuide] = useState(true);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted] = useState(false);
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>(
     []
   );
@@ -200,7 +197,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
   const [metronomeEnabled, setMetronomeEnabled] = useState(false);
   const [bpm, setBpm] = useState(120);
-  const [isMetronomeOn, setIsMetronomeOn] = useState(false);
   const [metronomeAudio, setMetronomeAudio] = useState<AudioContext | null>(
     null
   );
@@ -458,16 +454,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     navigate,
     getSupportedMimeType,
   ]);
-  // 마이크 토글
-  const toggleMute = useCallback(() => {
-    if (streamRef.current) {
-      const audioTrack = streamRef.current.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = isMuted;
-        setIsMuted(!isMuted);
-      }
-    }
-  }, [isMuted]);
 
   const startRecording = useCallback((): void => {
     setIsCountdownStarted(true);
@@ -512,13 +498,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     }
     cancelCountdown();
   }, [isRecording, cancelCountdown]);
-
-  const videoStyle = {
-    transform: `scale(${isFlipped ? -1 : 1}, 1)`,
-    width: "100%",
-    height: "100%",
-    objectFit: "cover" as const,
-  };
 
   // 메트로놈 사운드 생성 함수
   const createMetronomeSound = () => {
@@ -580,7 +559,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
   }
 
   const VisualMetronome: React.FC<VisualMetronomeProps> = ({
-    bpm,
     timeSignature,
     currentBeat,
   }) => (
