@@ -8,10 +8,12 @@ import hamburgerIcon from "@/assets/hamburger_icon.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { getProject } from "@/api/project";
 import { Project } from "@/types/api/project";
-import { useProjectStore } from "@/stores/projectStore";
 
+import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+
+import { getAllComments } from "@/api/comment";
 import {
   MessageSquare,
   Heart,
@@ -87,6 +89,7 @@ const ProjectDetailContainer = () => {
   const [[direction], setPage] = useState([0, 0]);
 
   const [heartFilled, setHeartFilled] = useState(false);
+  const [commentCnt, setCommentCnt] = useState<number>(0);
   const [bookmarkFilled, setBookmarkFilled] = useState(false);
 
   const setOriginalProjectData = useForkVideoStore(
@@ -143,8 +146,20 @@ const ProjectDetailContainer = () => {
       }
     };
 
+    const fetchCommentCnt = async () => {
+      if (!projectId) return;
+      try {
+        const response = await getAllComments(Number(projectId));
+        setCommentCnt(response.length);
+      } catch (error) {
+        console.error("Failed to fetch comments:", error);
+        setCommentCnt(0);
+      }
+    }
+
     initializeUser();
     fetchProjectData();
+    fetchCommentCnt();
   }, [projectId, location.pathname, getUser, setCurrentUser]);
 
 
@@ -279,7 +294,7 @@ const ProjectDetailContainer = () => {
       />
       <InteractionButton
         icon={MessageSquare}
-        count="0"
+        count={commentCnt.toString()}
         isActive={activeTab === "comments"}
         onClick={() => handleTabClick("comments")}
       />
