@@ -25,3 +25,6 @@ dist-ssr
 
 # API URL
 .env
+
+# 빌드테스트 시 생성되는 파일
+tsconfig.tsbuildinfo
