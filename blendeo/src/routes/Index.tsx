@@ -21,6 +21,8 @@ import SeedEditPage from "@/pages/seed/SeedEditPage";
 import ForkRecordPage from "@/pages/fork/ForkRecordPage";
 import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
 import ForkEditor from "@/pages/fork/ForkEditPage";
+import ExplorePage from "@/pages/explore/ExplorePage";
+import ExploreFullScreenPage from "@/pages/explore/ExploreFullScreenPage";
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +35,13 @@ export const router = createBrowserRouter([
       { path: "signin", element: <SignInPage /> },
       { path: "signup", element: <SignUpPage /> },
       { path: "signup2", element: <InstrumentSelector /> },
+    ],
+  },
+  {
+    path: "/explore",
+    children: [
+      { path: "", element: <ExplorePage /> },
+      { path: "full", element: <ExploreFullScreenPage/> },
     ],
   },
   {
