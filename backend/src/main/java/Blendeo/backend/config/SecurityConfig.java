@@ -77,7 +77,7 @@ public class SecurityConfig {
                                 "/api/v1/rank/**",
                                 "/api/v1/instrument/**",
                                 "/ws-stomp",
-                                "/api/v1/comment/get-all",
+                                "/api/v1/comment/get-all/**",
                                 "/api/v1/user/follow/**",
                                 "/api/v1/fork/**",
                                 "/api/v1/project/create/video/blend/upload",
