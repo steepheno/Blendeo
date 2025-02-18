@@ -1,6 +1,7 @@
 package Blendeo.backend.user.util;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,28 +53,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         System.out.println("doFilterInternal");
-        String authorization = request.getHeader("Authorization");
+        String accessToken = null;
+        Cookie[] cookies = request.getCookies();
 
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String accessToken = authorization.substring(7);
-            if (accessToken != null) {
-
-                if (!jwtUtil.validateToken(accessToken)) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
-                    return; // 토큰이 유효하지 않다면 요청 중단
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("AccessToken".equals(cookie.getName())) {
+                    accessToken = cookie.getValue();
+                    break;
                 }
-
-                int id = jwtUtil.getIdFromToken(accessToken);
-
-                // 인증 객체 생성
-                User principal = new User(String.valueOf(id), "", new ArrayList<>());
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(principal, null, new ArrayList<>());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // SecurityContext에 인증 객체 설정
-                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        }
+
+        if (accessToken != null) {
+            if (!jwtUtil.validateToken(accessToken)) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+                return; // 토큰이 유효하지 않다면 요청 중단
+            }
+
+            int id = jwtUtil.getIdFromToken(accessToken);
+
+            // 인증 객체 생성
+            User principal = new User(String.valueOf(id), "", new ArrayList<>());
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(principal, null, new ArrayList<>());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+            // SecurityContext에 인증 객체 설정
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization header is missing");
             return; // 토큰이 유효하지 않다면 요청 중단
