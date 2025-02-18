@@ -12,6 +12,7 @@ const SignupInput = React.forwardRef<HTMLInputElement, SignupInputProps>(
       value,
       onChange,
       disabled,
+      error,
       ...props
     },
     ref
@@ -26,6 +27,9 @@ const SignupInput = React.forwardRef<HTMLInputElement, SignupInputProps>(
         placeholder={placeholder}
         className={`
           w-full
+          px-4
+          h-[60px]
+          rounded-md
           transition-colors
           focus:outline-none
           focus:ring-2
