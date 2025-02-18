@@ -1,12 +1,12 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useNavigate, NavigateFunction } from 'react-router-dom';
-import { getAllNodes, getNodeInfo, getParentNodeInfo } from '@/api/explore';
+import { getAllNodes, getNodeInfo } from '@/api/explore';
 import type ForceGraph3D from 'react-force-graph-3d';
 import { format } from 'date-fns';
 import { Minimize2, Eye, Users, X, Clock, Heart } from 'lucide-react';
 
-interface GraphData {
+export interface GraphData {
   nodes: Node[];
   links: Link[];
 }
@@ -60,28 +60,8 @@ interface Project {
 }
 
 const initialData: GraphData = {
-  nodes: [
-    {
-      projectId: 5,
-      title: '장충동 왕족발 보쌈1',
-      thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbdPAdHVSpSa9Z2jTwlryHZQOdVy4u3jlYXg&s',
-      authorNickname: 'test1',
-      viewCnt: 278,
-    },
-    {
-      projectId: 6,
-      title: '장충동 왕족발 보쌈2',
-      thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbdPAdHVSpSa9Z2jTwlryHZQOdVy4u3jlYXg&s',
-      authorNickname: 'test1',
-      viewCnt: 223,
-    },
-  ],
-  links: [
-    {
-      source: 6,
-      target: 5,
-    },
-  ],
+  nodes: [],
+  links: [],
 };
 
 const ExploreFullScreenPage = (): JSX.Element => {
@@ -102,8 +82,7 @@ const ExploreFullScreenPage = (): JSX.Element => {
   useEffect(() => {
     const fetchData = async (): Promise<void> => {
       try {
-        const response = await getAllNodes();
-        const data = response.data;
+        const data: DataItem[] = await getAllNodes();
 
         const nodeMap = new Map();
         const allNodes = data.flatMap((item: DataItem) => {
@@ -190,13 +169,13 @@ const ExploreFullScreenPage = (): JSX.Element => {
 
       try {
         const response = await getNodeInfo(node.projectId);
-        setSelectedNode(response.data as Project);
+        setSelectedNode(response as Project);
 
         if (typeof node.x === 'undefined' || typeof node.y === 'undefined' || typeof node.z === 'undefined') {
           console.warn('Node position coordinates are undefined');
           return;
         }
-        
+
         const distance = 40;
         const xOffset = -10;
 
@@ -213,20 +192,6 @@ const ExploreFullScreenPage = (): JSX.Element => {
     },
     [fgRef]
   );
-
-  useEffect(() => {
-    if (selectedNode) {
-      const fetchParentNode = async (): Promise<void> => {
-        try {
-          await getParentNodeInfo(selectedNode.projectId);
-        } catch (error) {
-          console.error('Error fetching parent node:', error);
-        }
-      };
-
-      void fetchParentNode();
-    }
-  }, [selectedNode]);
 
   useEffect(() => {
     if (fgRef.current) {
@@ -252,17 +217,18 @@ const ExploreFullScreenPage = (): JSX.Element => {
   }, []);
 
   return (
-    <div className="relative w-full h-[calc(100vh-82px)] bg-black/95" ref={containerRef}>
-      <button
-        onClick={handleClick}
-        className="absolute top-6 right-6 z-50 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white/90 hover:text-white transition-all duration-300 backdrop-blur-sm"
-        aria-label="전체화면"
-      >
-        <Minimize2 className="w-5 h-5" />
-      </button>
+    <div className="relative w-full h-full bg-black/95" ref={containerRef}>
+    <button
+      onClick={handleClick}
+      className="absolute top-6 right-6 z-50 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white/90 hover:text-white transition-all duration-300 backdrop-blur-sm"
+      aria-label="전체화면"
+    >
+      <Minimize2 className="w-5 h-5" />
+    </button>
+    
 
       {selectedNode && (
-        <div className="absolute left-12 top-12 z-10 max-w-lg rounded-3xl bg-black/90 shadow-2xl backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-500 ease-in-out">
+        <div className="absolute left-6 top-6 z-10 max-w-lg rounded-3xl bg-black/90 shadow-2xl backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-500 ease-in-out">
           <button
             onClick={() => setSelectedNode(null)}
             className="absolute right-4 top-4 z-20 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white/70 hover:text-white transition-all"
