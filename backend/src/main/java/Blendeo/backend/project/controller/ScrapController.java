@@ -29,8 +29,8 @@ public class ScrapController {
             summary = "프로젝트 스크랩",
             description = "특정 프로젝트를 '구독'한다."
     )
-    @PostMapping("/")
-    public ResponseEntity<?> scrapProject(@RequestBody Long projectId){
+    @PostMapping("/{projectId}")
+    public ResponseEntity<?> scrapProject(@PathVariable("projectId") Long projectId){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
 
@@ -57,7 +57,7 @@ public class ScrapController {
             summary = "스크랩 목록 불러오기",
             description = "스크랩한 프로젝트 목록을 불러온다."
     )
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<ProjectListDto>> getScrapProject(){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
