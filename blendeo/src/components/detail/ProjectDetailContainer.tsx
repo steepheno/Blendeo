@@ -5,15 +5,17 @@ import SettingsSection from "@/components/detail/SettingsSection";
 import ContributorsSection from "@/components/detail/ContributorsSection";
 import SidePanel from "@/components/detail/SidePanel";
 import hamburgerIcon from "@/assets/hamburger_icon.png";
+
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { getProject } from "@/api/project";
+
+import { getProject, checkLikeBookmark } from "@/api/project";
+import { getAllComments } from "@/api/comment";
 import { Project } from "@/types/api/project";
 
 import { useProjectStore } from "@/stores/projectStore";
-import { useState, useEffect, useCallback } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
 
-import { getAllComments } from "@/api/comment";
 import {
   MessageSquare,
   Heart,
@@ -30,8 +32,7 @@ import { TabType } from "@/types/components/video/videoDetail";
 import { useUserStore } from "@/stores/userStore";
 import useForkVideoStore from "@/stores/forkVideoStore";
 
-import { likeProject, unlikeProject } from "@/api/project";
-import { bookProject, unbookProject } from "@/api/project";
+import { likeProject, unlikeProject, bookProject, unbookProject } from "@/api/project";
 
 // 애니메이션 variants 정의
 const variants = {
@@ -143,6 +144,22 @@ const ProjectDetailContainer = () => {
     fetchCommentCnt();
   }, [projectId, location.pathname, getUser, setCurrentUser]);
 
+  // 좋아요 상태 확인
+  useEffect(() => {
+    const checkUserInteractions = async () => {
+      if (!projectData) return;
+  
+      try {
+        const response = await checkLikeBookmark(Number(projectId));
+        console.log("Respose data: ", response);
+        setHeartFilled(response.liked);
+        setBookmarkFilled(response.scraped);       
+      } catch (error) {
+        console.error("Failed to check like/bookmark status:", error);
+      }
+    };
+    checkUserInteractions();
+  }, [projectData, projectId]);
 
   const paginate = useCallback((newDirection: number) => {
     setPage(prev => [prev[0] + newDirection, newDirection]);
@@ -206,20 +223,23 @@ const ProjectDetailContainer = () => {
     setActiveTab(activeTab === tab ? null : tab);
   };
 
+  // 좋아요
   const handleLikeClick = async () => {
     if (!projectData) return;
     try {
       if (heartFilled) {
-        unlikeProject(projectData?.projectId);
+        await unlikeProject(projectData?.projectId);
       } else {
-        likeProject(projectData?.projectId);
+        await likeProject(projectData?.projectId);
       }
       setHeartFilled(!heartFilled);
     } catch (error) {
-      alert(error)
+      console.error("좋아요 토글 실패: ", error);
+      alert("좋아요 처리 중 에러 발생")
     }
-  }
+  };
 
+  // 북마크
   const handleBookmarkClick = async () => {
     if (!projectData) return;
     try {
