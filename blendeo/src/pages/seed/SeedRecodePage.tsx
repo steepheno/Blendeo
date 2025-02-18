@@ -3,8 +3,13 @@ import Searchbar from "@/components/layout/Searchbar";
 
 const SeedRecordPage = () => {
   return (
-    <div className="bg-black w-full h-full">
-      <Searchbar />
+    <div
+      className="w-full h-full"
+      style={{
+        backgroundColor: "#171222",
+      }}
+    >
+      {/* <Searchbar /> */}
       <VideoRecorder />
     </div>
   );

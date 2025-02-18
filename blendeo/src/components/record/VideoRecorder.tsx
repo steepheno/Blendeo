@@ -1,4 +1,3 @@
-// VideoRecorder.tsx
 import { useEffect, useRef, useState, useCallback, type FC } from "react";
 import {
   RotateCw,
@@ -7,10 +6,52 @@ import {
   FlipHorizontal,
   X,
   Timer,
+  AlertCircle,
+  Mic,
+  MicOff,
+  Music,
+  GripVertical,
+  Circle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { VideoData } from "@/types/components/recording/video";
 import useVideoStore from "@/stores/videoStore";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Slider } from "@/components/ui/slider";
 
 type Orientation = "portrait" | "landscape";
 
@@ -30,18 +71,107 @@ type DimensionsMap = {
 };
 
 const DIMENSIONS: DimensionsMap = {
-  portrait: { width: 480, height: 676 },
-  landscape: { width: 676, height: 480 },
+  portrait: { width: 480 * 0.95, height: 676 * 0.95 },
+  landscape: { width: 676 * 1.3, height: 480 * 1.3 },
 };
 
 const COUNTDOWN_OPTIONS = [0, 3, 5, 10, 30] as const;
+const MAX_RECORDING_TIME = 300; // 5분(300초) 제한
 
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface DraggableToolboxProps {
+  children: React.ReactNode;
+  initialPosition?: Position;
+}
+const DraggableToolbox: React.FC<DraggableToolboxProps> = ({
+  children,
+  initialPosition = { x: 20, y: 20 },
+}) => {
+  const [position, setPosition] = useState<Position>(initialPosition);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{ x: number; y: number } | null>(null);
+  const toolboxRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    dragRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && dragRef.current) {
+        const newX = e.clientX - dragRef.current.x;
+        const newY = e.clientY - dragRef.current.y;
+
+        // 화면 경계 체크
+        const box = toolboxRef.current?.getBoundingClientRect();
+        if (box) {
+          const maxX = window.innerWidth - box.width;
+          const maxY = window.innerHeight - box.height;
+
+          setPosition({
+            x: Math.min(Math.max(0, newX), maxX),
+            y: Math.min(Math.max(0, newY), maxY),
+          });
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      dragRef.current = null;
+    };
+
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
+
+  return (
+    <Card
+      ref={toolboxRef}
+      className={`fixed shadow-lg rounded-lg overflow-hidden ${
+        isDragging ? "cursor-grabbing" : ""
+      }`}
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        zIndex: 50,
+      }}
+    >
+      {/* 드래그 핸들 */}
+      <div
+        className="h-6 bg-violet-500 cursor-grab flex items-center justify-center"
+        onMouseDown={handleMouseDown}
+      >
+        <GripVertical className="w-4 h-4 text-white" />
+      </div>
+
+      {/* 컨텐츠 */}
+      <div className="bg-white p-4">{children}</div>
+    </Card>
+  );
+};
 const VideoRecorder: FC<VideoRecorderProps> = ({
   onError,
   onRecordingComplete,
 }) => {
   const navigate = useNavigate();
   const { setVideoData } = useVideoStore();
+  const [timer, setTimer] = useState(0);
 
   const [orientation, setOrientation] = useState<Orientation>("portrait");
   const [isRecording, setIsRecording] = useState(false);
@@ -51,23 +181,91 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isCountdownStarted, setIsCountdownStarted] = useState(false);
 
+  const [showGuide, setShowGuide] = useState(true);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>(
+    []
+  );
+  const [selectedCamera, setSelectedCamera] = useState<string>("");
+  const [showExitDialog, setShowExitDialog] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const countdownTimerRef = useRef<NodeJS.Timeout>();
   const recordingTimerRef = useRef<NodeJS.Timeout>();
+  const recordingTimeIntervalRef = useRef<NodeJS.Timeout>();
+
+  const [metronomeEnabled, setMetronomeEnabled] = useState(false);
+  const [bpm, setBpm] = useState(120);
+  const [isMetronomeOn, setIsMetronomeOn] = useState(false);
+  const [metronomeAudio, setMetronomeAudio] = useState<AudioContext | null>(
+    null
+  );
+
+  const [timeSignature, setTimeSignature] = useState(4);
+  const [currentBeat, setCurrentBeat] = useState(1);
+
+  // 가이드라인 내용
+  const guideSteps = [
+    {
+      title: "카메라 설정",
+      description: "원하는 카메라를 선택하고 방향을 조정하세요.",
+    },
+    {
+      title: "타이머 설정",
+      description:
+        "필요한 경우 타이머를 설정하여 준비 시간을 가질 수 있습니다.",
+    },
+    {
+      title: "녹화 시작",
+      description: "녹화 버튼을 눌러 최대 5분까지 녹화할 수 있습니다.",
+    },
+  ];
+
+  // 페이지 이탈 방지
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isRecording) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isRecording]);
 
   const getSupportedMimeType = useCallback((): string => {
     const types = [
       // "video/webm;codecs=vp8,opus",
       // "video/webm",
-      "video/mp4;codecs=avc1.42E01E,mp4a.40.2"
+      "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
       // "video/webm;codecs=vp9",
     ];
 
     return types.find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
   }, []);
+
+  // 사용 가능한 카메라 목록 가져오기
+  const getAvailableCameras = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter((device) => device.kind === "videoinput");
+      setAvailableCameras(cameras);
+      if (cameras.length > 0 && !selectedCamera) {
+        setSelectedCamera(cameras[0].deviceId);
+      }
+    } catch (err) {
+      console.error("카메라 목록 가져오기 실패:", err);
+    }
+  }, [selectedCamera]);
+
+  useEffect(() => {
+    void getAvailableCameras();
+  }, [getAvailableCameras]);
 
   const handleError = useCallback(
     (errorMessage: string): void => {
@@ -77,6 +275,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     [onError]
   );
 
+  // 기존 함수들은 유지하면서 일부 수정
   const setupCamera = useCallback(async (): Promise<void> => {
     try {
       if (streamRef.current) {
@@ -85,6 +284,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
       const constraints: MediaStreamConstraints = {
         video: {
+          deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
           width: { ideal: DIMENSIONS[orientation].width },
           height: { ideal: DIMENSIONS[orientation].height },
         },
@@ -92,6 +292,12 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
       };
 
       const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      // 음소거 상태 적용
+      const audioTrack = newStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !isMuted;
+      }
 
       streamRef.current = newStream;
       if (videoRef.current) {
@@ -104,7 +310,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
       handleError(errorMessage);
       console.error("카메라 접근 에러:", err);
     }
-  }, [orientation, handleError]);
+  }, [orientation, selectedCamera, isMuted, handleError]);
 
   useEffect(() => {
     // 브라우저 지원 여부 확인
@@ -144,6 +350,26 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     setIsFlipped((prev) => !prev);
   };
 
+  useEffect(() => {
+    if (isRecording) {
+      recordingTimeIntervalRef.current = setInterval(() => {
+        setTimer((prev) => {
+          if (prev >= MAX_RECORDING_TIME) {
+            stopRecording();
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (recordingTimeIntervalRef.current) {
+        clearInterval(recordingTimeIntervalRef.current);
+      }
+    };
+  }, [isRecording]);
+
   const initializeRecording = useCallback((): void => {
     if (!streamRef.current) {
       handleError("카메라가 준비되지 않았습니다.");
@@ -178,19 +404,19 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
         const duration = await new Promise<number>((resolve) => {
           video.addEventListener("loadedmetadata", () => {
-              // 메타데이터가 로드된 후 duration 확인
-              if (video.duration === Infinity) {
-                  // seekable이 설정될 때까지 기다림
-                  video.currentTime = Number.MAX_SAFE_INTEGER;
-                  video.addEventListener('seeked', () => {
-                      // 실제 duration을 얻을 수 있음
-                      resolve(video.duration);
-                  });
-              } else {
-                  resolve(video.duration);
-              }
+            // 메타데이터가 로드된 후 duration 확인
+            if (video.duration === Infinity) {
+              // seekable이 설정될 때까지 기다림
+              video.currentTime = Number.MAX_SAFE_INTEGER;
+              video.addEventListener("seeked", () => {
+                // 실제 duration을 얻을 수 있음
+                resolve(video.duration);
+              });
+            } else {
+              resolve(video.duration);
+            }
           });
-      });
+        });
 
         // 화면 방향과 크기 정보도 가져오기
         const orientation =
@@ -208,7 +434,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
         const videoData = await createVideoData(blob);
 
-        setVideoData(videoData); 
+        setVideoData(videoData);
         if (onRecordingComplete) {
           onRecordingComplete(blob);
         }
@@ -225,7 +451,23 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
       handleError("녹화를 시작할 수 없습니다.");
       console.error("녹화 시작 에러:", err);
     }
-  }, [handleError, onRecordingComplete, setVideoData, navigate, getSupportedMimeType]);
+  }, [
+    handleError,
+    onRecordingComplete,
+    setVideoData,
+    navigate,
+    getSupportedMimeType,
+  ]);
+  // 마이크 토글
+  const toggleMute = useCallback(() => {
+    if (streamRef.current) {
+      const audioTrack = streamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = isMuted;
+        setIsMuted(!isMuted);
+      }
+    }
+  }, [isMuted]);
 
   const startRecording = useCallback((): void => {
     setIsCountdownStarted(true);
@@ -278,109 +520,344 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     objectFit: "cover" as const,
   };
 
+  // 메트로놈 사운드 생성 함수
+  const createMetronomeSound = () => {
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = 880; // A5 음
+    gainNode.gain.value = 0;
+
+    oscillator.start();
+
+    return { audioContext, oscillator, gainNode };
+  };
+
+  // 메트로놈 틱 소리 재생
+  const playTick = (gainNode: GainNode) => {
+    const now = gainNode.context.currentTime;
+    gainNode.gain.cancelScheduledValues(now);
+    gainNode.gain.setValueAtTime(1, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+  };
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (metronomeEnabled) {
+      const { audioContext, gainNode } = createMetronomeSound();
+      setMetronomeAudio(audioContext);
+
+      // BPM에 따른 간격 계산
+      const interval = (60 / bpm) * 1000;
+
+      intervalId = setInterval(() => {
+        playTick(gainNode);
+        // currentBeat 업데이트
+        setCurrentBeat((prev) => (prev % timeSignature) + 1);
+      }, interval);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (metronomeAudio) {
+        metronomeAudio.close();
+        setMetronomeAudio(null);
+      }
+      // 메트로놈 중지 시 박자 초기화
+      setCurrentBeat(1);
+    };
+  }, [metronomeEnabled, bpm, timeSignature]);
+
+  const VisualMetronome = () => (
+    <div className="flex gap-2 mt-2">
+      {Array.from({ length: timeSignature }).map((_, i) => (
+        <div
+          key={i}
+          className={`w-3 h-3 rounded-full transition-colors duration-100 ${
+            currentBeat - 1 === i ? "bg-violet-500 scale-110" : "bg-gray-200"
+          }`}
+        />
+      ))}
+    </div>
+  );
+
   return (
-    <div className="flex flex-col items-center gap-4 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+      {/* 가이드라인 다이얼로그 */}
+      <Dialog open={showGuide} onOpenChange={setShowGuide}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>녹화 가이드라인</DialogTitle>
+            <DialogDescription>
+              <div className="space-y-4 mt-4">
+                {guideSteps.map((step, index) => (
+                  <div key={index} className="flex gap-2">
+                    <div className="w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{step.title}</h3>
+                      <p className="text-sm text-gray-500">
+                        {step.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setShowGuide(false)}>시작하기</Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* 페이지 이탈 경고 다이얼로그 */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>녹화를 중단하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              녹화 중인 영상은 저장되지 않습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                stopRecording();
+                navigate(-1);
+              }}
+            >
+              나가기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 에러 알림 */}
       {error && (
-        <div className="w-full max-w-md p-4 mb-4 text-red-700 bg-red-100 rounded-lg">
-          {error}
+        <div className="w-full max-w-md mb-4">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         </div>
       )}
 
-      <div className="flex gap-4">
-        <div className="flex flex-col items-center gap-3 pt-2">
-          <Timer className="w-10 h-10 text-gray-100" />
-          {COUNTDOWN_OPTIONS.map((option) => (
-            <button
-              key={option}
-              onClick={() => setSelectedDelay(option)}
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                selectedDelay === option
-                  ? "bg-violet-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              } transition-colors ${isRecording && "opacity-50 cursor-not-allowed"}`}
-              disabled={isRecording}
+      {/* 메인 카드 */}
+      <div
+        className="flex gap-4"
+        style={{
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        {/* 비디오 프리뷰 */}
+        <div
+          className="relative bg-gray-900 rounded-xl overflow-hidden shadow-inner"
+          style={{
+            width: DIMENSIONS[orientation].width,
+            height: DIMENSIONS[orientation].height,
+          }}
+        >
+          {/* 타이머 컨트롤 */}
+          {!isRecording && (
+            <div
+              className="flex flex-row items-center gap-3 pt-2 absolute top-0 right-2"
+              style={{
+                zIndex: "100000",
+              }}
             >
-              {option}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative bg-black-900 rounded-lg w-676 h-676">
-          <div
-            className="relative bg-gray-900 rounded-lg overflow-hidden"
-            style={{
-              width: DIMENSIONS[orientation].width,
-              height: DIMENSIONS[orientation].height,
-            }}
-          >
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              style={videoStyle}
-            />
-            {countdown !== null && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70">
-                <button
-                  onClick={cancelCountdown}
-                  className="absolute top-4 right-4 p-2 text-white hover:text-gray-300 transition-colors"
-                  aria-label="카운트다운 취소"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-                <span className="text-8xl font-bold text-white">
-                  {countdown}
-                </span>
+              <Timer className="w-6 h-6 text-gray-400" />
+              <div className="gap-3 flex">
+                {COUNTDOWN_OPTIONS.map((option) => (
+                  <TooltipProvider key={option}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={
+                            selectedDelay === option ? "default" : "outline"
+                          }
+                          size="sm"
+                          className={`w-8 h-8 rounded-full ${
+                            selectedDelay === option
+                              ? "bg-violet-500 hover:bg-violet-600"
+                              : "hover:bg-gray-100"
+                          } ${isRecording && "opacity-50 cursor-not-allowed"}`}
+                          onClick={() => setSelectedDelay(option)}
+                          disabled={isRecording}
+                        >
+                          {option}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{option}초 타이머</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{
+              transform: `scale(${isFlipped ? -1 : 1}, 1)`,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+          {countdown !== null && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 text-white hover:bg-white/20"
+                onClick={cancelCountdown}
+              >
+                <X className="w-6 h-6" />
+              </Button>
+              <span className="text-8xl font-bold text-white animate-pulse">
+                {countdown}
+              </span>
+            </div>
+          )}
+
+          {/* 녹화 시간 표시 */}
+          {isRecording && (
+            <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-sm">
+              <Circle className="h-3 w-3 fill-red-500 text-red-500" />
+              <span className="text-sm font-medium text-white">
+                {Math.floor(timer / 60)}:
+                {(timer % 60).toString().padStart(2, "0")}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <button
-          type="button"
+      {/* 컨트롤 버튼들 */}
+      <div className="flex justify-center gap-4 mt-6">
+        <Button
+          variant="outline"
           onClick={handleRotate}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isRecording || isCountdownStarted}
+          className="gap-2"
         >
-          <RotateCw className="w-5 h-5" />
+          <RotateCw className="w-4 h-4" />
           회전
-        </button>
+        </Button>
 
-        <button
-          type="button"
-          onClick={handleFlip}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-        >
-          <FlipHorizontal className="w-5 h-5" />
+        <Button variant="outline" onClick={handleFlip} className="gap-2">
+          <FlipHorizontal className="w-4 h-4" />
           좌우반전
-        </button>
+        </Button>
 
-        <button
-          type="button"
+        <Button
+          variant={isRecording ? "destructive" : "default"}
           onClick={isRecording ? stopRecording : startRecording}
-          className={`flex items-center gap-2 px-4 py-2 ${
-            isRecording
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-green-500 hover:bg-green-600"
-          } text-white rounded-lg transition-colors`}
           disabled={isCountdownStarted && !isRecording}
+          className="gap-2 min-w-[120px]"
         >
           {isRecording ? (
             <>
-              <Square className="w-5 h-5" />
+              <Square className="w-4 h-4" />
               녹화 중지
             </>
           ) : (
             <>
-              <Video className="w-5 h-5" />
+              <Video className="w-4 h-4" />
               녹화 시작
             </>
           )}
-        </button>
+        </Button>
       </div>
+      <DraggableToolbox>
+        {/* 카메라 선택 및 컨트롤 */}
+        <div className="p-2 bg-white w-[300px] space-y-4">
+          {/* 카메라 선택 */}
+          <div>
+            <p className="text-sm font-medium mb-1">카메라 선택</p>
+            <Select
+              value={selectedCamera}
+              onValueChange={(value) => {
+                setSelectedCamera(value);
+                void setupCamera();
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="카메라 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCameras.map((camera) => (
+                  <SelectItem key={camera.deviceId} value={camera.deviceId}>
+                    {camera.label || `Camera ${camera.deviceId.slice(0, 4)}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 메트로놈 설정 */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">메트로놈 설정</p>
+            <div className="flex items-center gap-3">
+              <Button
+                variant={metronomeEnabled ? "default" : "outline"}
+                onClick={() => setMetronomeEnabled(!metronomeEnabled)}
+                className="flex items-center gap-2"
+              >
+                <Music className="w-4 h-4" />
+                {metronomeEnabled ? "켜짐" : "꺼짐"}
+              </Button>
+              <Select
+                value={timeSignature.toString()}
+                onValueChange={(value) => setTimeSignature(Number(value))}
+              >
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue placeholder="박자" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">2/4</SelectItem>
+                  <SelectItem value="3">3/4</SelectItem>
+                  <SelectItem value="4">4/4</SelectItem>
+                  <SelectItem value="6">6/8</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* BPM 조절 */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">BPM</p>
+            <div className="flex items-center gap-3">
+              <Slider
+                value={[bpm]}
+                onValueChange={(value) => setBpm(value[0])}
+                min={60}
+                max={200}
+                step={1}
+                className="w-full"
+              />
+              <span className="text-sm font-semibold w-[50px] text-center">
+                {bpm} BPM
+              </span>
+            </div>
+          </div>
+
+          {/* 메트로놈 시각적 요소 */}
+          {metronomeEnabled && <VisualMetronome bpm={bpm} />}
+        </div>
+      </DraggableToolbox>
     </div>
   );
 };
