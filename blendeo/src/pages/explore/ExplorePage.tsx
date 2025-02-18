@@ -1,13 +1,13 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useNavigate, NavigateFunction } from 'react-router-dom';
-import { getAllNodes, getNodeInfo, getParentNodeInfo } from '@/api/explore';
+import { getAllNodes, getNodeInfo } from '@/api/explore';
 import type ForceGraph3D from 'react-force-graph-3d';
 import { format } from 'date-fns';
 import { Maximize2, Eye, Users, X, Clock, Heart } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 
-interface GraphData {
+export interface GraphData {
   nodes: Node[];
   links: Link[];
 }
@@ -61,28 +61,8 @@ interface Project {
 }
 
 const initialData: GraphData = {
-  nodes: [
-    {
-      projectId: 5,
-      title: '장충동 왕족발 보쌈1',
-      thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbdPAdHVSpSa9Z2jTwlryHZQOdVy4u3jlYXg&s',
-      authorNickname: 'test1',
-      viewCnt: 278,
-    },
-    {
-      projectId: 6,
-      title: '장충동 왕족발 보쌈2',
-      thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbdPAdHVSpSa9Z2jTwlryHZQOdVy4u3jlYXg&s',
-      authorNickname: 'test1',
-      viewCnt: 223,
-    },
-  ],
-  links: [
-    {
-      source: 6,
-      target: 5,
-    },
-  ],
+  nodes: [],
+  links: [],
 };
 
 const ExplorePage = (): JSX.Element => {
@@ -103,8 +83,7 @@ const ExplorePage = (): JSX.Element => {
   useEffect(() => {
     const fetchData = async (): Promise<void> => {
       try {
-        const response = await getAllNodes();
-        const data = response.data;
+        const data: DataItem[] = await getAllNodes();
 
         const nodeMap = new Map();
         const allNodes = data.flatMap((item: DataItem) => {
@@ -191,7 +170,7 @@ const ExplorePage = (): JSX.Element => {
 
       try {
         const response = await getNodeInfo(node.projectId);
-        setSelectedNode(response.data as Project);
+        setSelectedNode(response as Project);
 
         if (typeof node.x === 'undefined' || typeof node.y === 'undefined' || typeof node.z === 'undefined') {
           console.warn('Node position coordinates are undefined');
@@ -214,20 +193,6 @@ const ExplorePage = (): JSX.Element => {
     },
     [fgRef]
   );
-
-  useEffect(() => {
-    if (selectedNode) {
-      const fetchParentNode = async (): Promise<void> => {
-        try {
-          await getParentNodeInfo(selectedNode.projectId);
-        } catch (error) {
-          console.error('Error fetching parent node:', error);
-        }
-      };
-
-      void fetchParentNode();
-    }
-  }, [selectedNode]);
 
   useEffect(() => {
     if (fgRef.current) {
