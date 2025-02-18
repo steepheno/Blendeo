@@ -1,7 +1,6 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useNavigate, NavigateFunction } from 'react-router-dom';
-import { List } from 'postcss/lib/list';
 import { getAllNodes, getNodeInfo, getParentNodeInfo } from '@/api/explore';
 import type ForceGraph3D from 'react-force-graph-3d';
 import { format } from 'date-fns';
@@ -21,11 +20,6 @@ interface Link {
 interface DataItem {
   nodes: Node[];
   links: Link[];
-}
-
-interface Edge {
-  source: number;
-  target: number;
 }
 
 interface Node {
@@ -91,38 +85,6 @@ const initialData: GraphData = {
   ],
 };
 
-const initialProjectData: Project = {
-  projectId: 5,
-  forkId: 1,
-  title: '장충동 왕족발 보쌈1',
-  contents: '1번',
-  contributorCnt: 1,
-  authorId: 3,
-  authorNickname: 'test1',
-  authorProfileImage: 'https://blendeo-s3-bucket.s3.ap-northeast-2.amazonaws.com/profile/image_b305864d-aa7d-4b07-99c1-1ca5448b8590.jpeg',
-  likeCnt: 0,
-  thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbdPAdHVSpSa9Z2jTwlryHZQOdVy4u3jlYXg&s',
-  videoUrl: 'https://blendeo-s3-bucket.s3.ap-northeast-2.amazonaws.com/videos/merged_5c529ab2-94f8-49b8-ba54-0d1c4b7e7ea1.mp4',
-  duration: 51,
-  viewCnt: 279,
-  projectInstruments: [
-    {
-      "instrument_id": 12,
-      "instrument_name": "카혼"
-    }
-  ],
-  etcInstruments: [
-    {
-      "instrument_id": 1,
-      "instrument_name": "기타"
-    }
-  ],
-  createdAt: '2025-02-06T01:28:13',
-  state: true,
-  instrumentCnt: 0,
-  commentCnt:1
-};
-
 const ExplorePage = (): JSX.Element => {
   const navigate: NavigateFunction = useNavigate();
   const [Graph3D, setGraph3D] = useState<typeof ForceGraph3D | null>(null);
@@ -131,7 +93,6 @@ const ExplorePage = (): JSX.Element => {
 
   const [selectedNode, setSelectedNode] = useState<Project | null>(null);
   const [graphData, setGraphData] = useState<GraphData>(initialData);
-  const [projectData, setProjectData] = useState<Project>(initialProjectData);
 
   useEffect(() => {
     void import('react-force-graph-3d').then((module) => {
@@ -165,10 +126,6 @@ const ExplorePage = (): JSX.Element => {
     };
 
     void fetchData();
-  }, []);
-
-  useEffect(() => {
-    setProjectData(initialProjectData);
   }, []);
 
   const createNodeThreeObject = useCallback((node: any) => {
@@ -271,37 +228,6 @@ const ExplorePage = (): JSX.Element => {
       void fetchParentNode();
     }
   }, [selectedNode]);
-
-  const createStarBackground = useCallback(() => {
-    const group = new THREE.Group();
-    const starsGeometry = new THREE.BufferGeometry();
-    const starPositions: number[] = [];
-
-    for (let i = 0; i < 5000; i++) {
-      const x = Math.random() * 600 - 300;
-      const y = Math.random() * 600 - 300;
-      const z = Math.random() * 600 - 300;
-      starPositions.push(x, y, z);
-    }
-
-    starsGeometry.setAttribute(
-      'position',
-      new THREE.Float32BufferAttribute(starPositions, 3)
-    );
-
-    const starsMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 2,
-      sizeAttenuation: true,
-      transparent: true,
-      opacity: 0.5,
-    });
-
-    const stars = new THREE.Points(starsGeometry, starsMaterial);
-    group.add(stars);
-
-    return group;
-  }, []);
 
   useEffect(() => {
     if (fgRef.current) {
