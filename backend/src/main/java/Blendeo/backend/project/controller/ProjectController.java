@@ -259,7 +259,7 @@ public class ProjectController {
     }
 
     @Operation(summary = "유저의 프로젝트 좋아요, 스크랩 여부 조회")
-    @GetMapping("/status")
+    @GetMapping("/status/{projectId}")
     public ResponseEntity<ProjectLikeAndScrapRes> getProjectStatus(@RequestParam("projectId") long projectId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         int userId = Integer.parseInt(user.getUsername());
