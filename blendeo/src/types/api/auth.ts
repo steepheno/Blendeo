@@ -11,6 +11,10 @@ interface Instrument {
   instrument_name: string;
 }
 
+export interface InstrumentCategory {
+  [key: string]: Instrument[];
+}
+
 export interface SigninRequest {
   email: string;
   password: string;

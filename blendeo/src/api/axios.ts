@@ -22,7 +22,7 @@ const publicPaths = [
   "/user/follow/get-follow",
   "/user/get-user",
   "/comment/get-all",
-  "/fork/hierarchy"
+  "/fork/hierarchy",
 ];
 
 const noRedirectPaths = ["/", "/project/list"];
@@ -30,7 +30,6 @@ const noRedirectPaths = ["/", "/project/list"];
 // Request Interceptor
 axiosInstance.interceptors.request.use((config) => {
   const isPublicAPI = publicPaths.some((path) => config.url?.includes(path));
-  console.log("isthis?", isPublicAPI);
 
   if (!isPublicAPI) {
     const cookies = document.cookie.split(";");

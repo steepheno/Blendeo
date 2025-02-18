@@ -14,6 +14,7 @@ import UserProfilePage from "@/pages/profile/UserProfilePage";
 import MyProfilePage from "@/pages/profile/MyProfilePage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
 import VideoCallPage from "@/pages/chat/VideoCallPage";
+import InstrumentSelector from "@/components/signup/InstrumentSelector";
 
 import SeedRecordPage from "@/pages/seed/SeedRecodePage";
 import SeedEditPage from "@/pages/seed/SeedEditPage";
@@ -31,23 +32,66 @@ export const router = createBrowserRouter([
     children: [
       { path: "signin", element: <SignInPage /> },
       { path: "signup", element: <SignUpPage /> },
+      { path: "signup2", element: <InstrumentSelector /> },
     ],
   },
   {
     path: "/seed",
     children: [
-      { path: "record", element: <ProtectedRoute><SeedRecordPage /></ProtectedRoute> },
-      { path: "edit", element: <ProtectedRoute><SeedEditPage /></ProtectedRoute> },
-      { path: "upload", element: <ProtectedRoute><ProjectUploadPage /></ProtectedRoute> },
-    ]
+      {
+        path: "record",
+        element: (
+          <ProtectedRoute>
+            <SeedRecordPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "edit",
+        element: (
+          <ProtectedRoute>
+            <SeedEditPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "upload",
+        element: (
+          <ProtectedRoute>
+            <ProjectUploadPage />
+          </ProtectedRoute>
+        ),
+      },
+    ],
   },
   {
     path: "/fork",
     children: [
-      { path: "record", element: <ProtectedRoute><ForkRecordPage /></ProtectedRoute> },
-      { path: "edit", element: <ProtectedRoute><ForkEditor /></ProtectedRoute> },
-      { path: "upload", element: <ProtectedRoute><ProjectUploadPage /></ProtectedRoute> },
-    ]
+      {
+        path: "record",
+        element: (
+          <ProtectedRoute>
+            <ForkRecordPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "edit",
+        element: (
+          <ProtectedRoute>
+            <ForkEditor />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "upload",
+        element: (
+          <ProtectedRoute>
+            <ProjectUploadPage />
+          </ProtectedRoute>
+        ),
+      },
+    ],
   },
   {
     path: "/project",
