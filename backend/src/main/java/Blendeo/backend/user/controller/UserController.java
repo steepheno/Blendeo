@@ -208,6 +208,19 @@ public class UserController {
         return ResponseEntity.ok().body(userInfoGetRes);
     }
 
+    @Operation(summary = "회원정보 단일건 조회")
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyUserInfo() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        int userId = Integer.parseInt(user.getUsername());
+
+        UserInfoGetRes userInfoGetRes = userService.getUser(userId);
+        List<InstrumentGetRes> userInstrumentRes = instrumentService.getMyFavoriteInstruments(userId);
+        userInfoGetRes.setInstruments(userInstrumentRes);
+        return ResponseEntity.ok().body(userInfoGetRes);
+    }
+
     @Operation(summary = "팔로우 여부 조회")
     @GetMapping("/checkFollowing/{otherId}")
     public ResponseEntity<Boolean> checkFollowing(@PathVariable("otherId") int otherId) {
