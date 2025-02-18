@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@JsonDeserialize
 public class NotificationRes {
     private long notificationId;
     private int receiverId;
