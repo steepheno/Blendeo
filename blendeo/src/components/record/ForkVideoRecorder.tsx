@@ -92,10 +92,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
     destinationNodeRef.current =
       audioContextRef.current.createMediaStreamDestination();
 
-    videoGain.connect(destinationNodeRef.current); // 녹화에 포함
-
     // 비디오와 마이크 둘 다 녹화 대상에 연결
-    videoSource.connect(destinationNodeRef.current);
     micSource.connect(micGain);
     micGain.connect(destinationNodeRef.current);
   }, []);
