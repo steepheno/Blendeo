@@ -62,6 +62,8 @@ interface VideoRecorderProps {
   onError?: (error: string) => void;
   onRecordingComplete?: (blob: Blob) => void;
   onComplete?: () => void;
+  onStreamReady?: (stream: MediaStream) => void;
+  onUnmount?: () => void;
 }
 
 type DimensionsMap = {
@@ -165,6 +167,7 @@ const DraggableToolbox: React.FC<DraggableToolboxProps> = ({
 const VideoRecorder: FC<VideoRecorderProps> = ({
   onError,
   onRecordingComplete,
+  onStreamReady,
 }) => {
   const navigate = useNavigate();
   const { setVideoData } = useVideoStore();
@@ -269,43 +272,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     [onError]
   );
 
-  // 기존 함수들은 유지하면서 일부 수정
-  const setupCamera = useCallback(async (): Promise<void> => {
-    try {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-
-      const constraints: MediaStreamConstraints = {
-        video: {
-          deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
-          width: { ideal: DIMENSIONS[orientation].width },
-          height: { ideal: DIMENSIONS[orientation].height },
-        },
-        audio: true,
-      };
-
-      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      // 음소거 상태 적용
-      const audioTrack = newStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !isMuted;
-      }
-
-      streamRef.current = newStream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
-      }
-      setError(null);
-    } catch (err) {
-      const errorMessage =
-        "카메라를 시작할 수 없습니다. 카메라 권한을 확인해주세요.";
-      handleError(errorMessage);
-      console.error("카메라 접근 에러:", err);
-    }
-  }, [orientation, selectedCamera, isMuted, handleError]);
-
   useEffect(() => {
     // 브라우저 지원 여부 확인
     if (!navigator.mediaDevices || !window.MediaRecorder) {
@@ -332,7 +298,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
         clearTimeout(recordingTimerRef.current);
       }
     };
-  }, [setupCamera, handleError, getSupportedMimeType]);
+  }, [handleError, getSupportedMimeType]);
 
   const handleRotate = (): void => {
     setOrientation((prev: Orientation) =>
@@ -477,6 +443,142 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     cancelCountdown();
   }, [isRecording, cancelCountdown]);
 
+  // cleanup 함수를 분리하여 관리
+  // cleanup 함수 강화
+  const cleanup = useCallback(() => {
+    if (streamRef.current) {
+      const tracks = streamRef.current.getTracks();
+      tracks.forEach((track) => {
+        track.stop();
+        track.enabled = false;
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (error) {
+        console.error("MediaRecorder stop error:", error);
+      }
+      mediaRecorderRef.current = null;
+    }
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = undefined;
+    }
+    if (recordingTimerRef.current) {
+      clearTimeout(recordingTimerRef.current);
+      recordingTimerRef.current = undefined;
+    }
+    chunksRef.current = [];
+  }, []);
+
+  // 뒤로가기 및 페이지 이동 감지 추가
+  useEffect(() => {
+    const handlePopState = () => {
+      cleanup();
+    };
+
+    // 페이지 새로고침/나가기 감지
+    const handleBeforeUnload = () => {
+      cleanup();
+    };
+
+    // 뒤로가기 이벤트 리스너
+    window.addEventListener("popstate", handlePopState);
+    // 페이지 나가기 이벤트 리스너
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      cleanup();
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [cleanup]);
+
+  // history API를 통한 뒤로가기 감지
+  useEffect(() => {
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    // pushState 오버라이드
+    history.pushState = function (...args) {
+      cleanup();
+      return originalPushState.apply(this, args);
+    };
+
+    // replaceState 오버라이드
+    history.replaceState = function (...args) {
+      cleanup();
+      return originalReplaceState.apply(this, args);
+    };
+
+    return () => {
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
+    };
+  }, [cleanup]);
+
+  // setupCamera 함수 수정
+  const setupCamera = useCallback(async (): Promise<void> => {
+    try {
+      // 기존 스트림 정리
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
+          track.stop();
+          track.enabled = false;
+        });
+        streamRef.current = null;
+      }
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+
+      const constraints: MediaStreamConstraints = {
+        video: {
+          deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
+          width: { ideal: DIMENSIONS[orientation].width },
+          height: { ideal: DIMENSIONS[orientation].height },
+        },
+        audio: true,
+      };
+
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      // 음소거 상태 적용
+      const audioTrack = newStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !isMuted;
+      }
+
+      streamRef.current = newStream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+      }
+      setError(null);
+
+      if (onStreamReady) onStreamReady(newStream);
+    } catch (err) {
+      const errorMessage =
+        "카메라를 시작할 수 없습니다. 카메라 권한을 확인해주세요.";
+      handleError(errorMessage);
+      console.error("카메라 접근 에러:", err);
+    }
+  }, [orientation, selectedCamera, isMuted, handleError, onStreamReady]);
+
+  // handleExit 함수 수정
+  const handleExit = useCallback(() => {
+    cleanup();
+    navigate(-1);
+  }, [navigate, cleanup]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       {/* 가이드라인 다이얼로그 */}
@@ -520,7 +622,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
             <AlertDialogAction
               onClick={() => {
                 stopRecording();
-                navigate(-1);
+                handleExit();
               }}
             >
               나가기

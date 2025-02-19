@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MoreHorizontal, Search } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useChatStore from "@/stores/chatStore";
 import { useChatRooms } from "@/hooks/chat/useChatRooms";
@@ -85,15 +84,6 @@ const ContactSidebar = ({ setChatWindowOpened }: ContactSidebarProps) => {
                 New Chat
               </Button>
             </header>
-            <div className="p-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="pl-9"
-                  placeholder="Search people or message..."
-                />
-              </div>
-            </div>
             <ScrollArea className="h-[calc(100%-8rem)]">
               <div className="space-y-2 p-4">
                 {rooms.map((room) => (
