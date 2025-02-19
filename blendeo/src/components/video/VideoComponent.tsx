@@ -7,23 +7,13 @@ import { StreamManager } from "openvidu-browser";
 interface VideoComponentProps {
   streamManager: StreamManager; // OpenVidu 스트림 관리자
   className?: string; // 추가 CSS 클래스 (선택적)
-  isMyVideo?: boolean; // 새로운 prop 추가
-}
-
-// 클라이언트 데이터 인터페이스
-// 사용자 정보를 위한 유연한 데이터 구조 정의
-interface ClientData {
-  userName?: string; // 사용자 이름
-  roomId?: string; // 채팅방 ID
-  // 추가 속성들을 동적으로 처리할 수 있는 유연한 속성
-  additionalData?: Record<string, string | number | boolean | null>;
 }
 
 // 비디오 컴포넌트: OpenVidu 스트림을 렌더링하고 사용자 정보 표시
 export const VideoComponent: React.FC<VideoComponentProps> = ({
   streamManager,
   className = "",
-  isMyVideo = false, // 기본값 false로 설정
+  // isMyVideo = false, // 기본값 false로 설정
 }) => {
   // 비디오 요소에 대한 참조
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -40,50 +30,6 @@ export const VideoComponent: React.FC<VideoComponentProps> = ({
       }
     }
   }, [streamManager]);
-
-  // 사용자 닉네임 추출 함수 수정
-  const _getNicknameTag = () => {
-    // 본인 비디오인 경우 "나"를 반환
-    if (isMyVideo) {
-      return "나";
-    }
-
-    try {
-      // 연결 데이터 추출
-      const connectionData = streamManager.stream.connection.data;
-      if (!connectionData) return "Unknown";
-
-      // 연결 데이터 파싱
-      const jsonPart = connectionData.split("%/%")[0];
-      const parsedData = JSON.parse(jsonPart) as {
-        clientData: string | ClientData;
-      };
-      if (!parsedData.clientData) return "Unknown";
-
-      // clientData가 문자열인지 객체인지에 따라 다르게 처리
-      let clientData: ClientData;
-      if (typeof parsedData.clientData === "string") {
-        try {
-          // 문자열로 된 JSON 파싱 시도
-          console.log(parsedData.clientData);
-          clientData = JSON.parse(parsedData.clientData);
-        } catch {
-          // JSON 파싱 실패 시 문자열 그대로 사용
-          return parsedData.clientData || "Unknown";
-        }
-      } else {
-        // 이미 객체인 경우 그대로 사용
-        clientData = parsedData.clientData;
-      }
-
-      // 사용자 이름 반환 (없으면 "Unknown")
-      return clientData.userName || "Unknown";
-    } catch (error) {
-      // 데이터 파싱 중 오류 처리
-      console.error("Error parsing connection data:", error);
-      return "Unknown";
-    }
-  };
 
   return (
     // 비디오 컨테이너

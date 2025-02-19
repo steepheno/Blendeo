@@ -221,7 +221,6 @@ const VideoChatPage: React.FC = () => {
                 <VideoComponent
                   streamManager={publisher}
                   className="w-full h-full object-cover"
-                  isMyVideo={true}
                 />
                 <div className="absolute bottom-4 left-4">
                   <span className="text-white font-medium">나</span>
@@ -237,7 +236,6 @@ const VideoChatPage: React.FC = () => {
                 <VideoComponent
                   streamManager={subscriber}
                   className="w-full h-full object-cover"
-                  isMyVideo={false}
                 />
                 <div className="absolute bottom-4 left-4">
                   <span className="text-white font-medium">
