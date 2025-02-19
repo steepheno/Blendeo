@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import useCommentStore from '@/stores/commentStore';
+import { useAuthStore } from '@/stores/authStore';
+import { deleteComment } from '@/api/comment';
 
 interface CommentsSectionProps {
   projectId: number;
@@ -9,6 +11,9 @@ const CommentsSection = ({ projectId }: CommentsSectionProps) => {
   const [newComment, setNewComment] = useState('');
   const { comments, loading, error, fetchComments, addComment } =
     useCommentStore();
+  
+  const userId = useAuthStore((state) => state.userId);
+  console.log(userId)
 
   useEffect(() => {
     fetchComments(projectId);
@@ -21,6 +26,15 @@ const CommentsSection = ({ projectId }: CommentsSectionProps) => {
       setNewComment('');
     }
   };
+
+  const delComment = async (commentId: number) => {
+    try {
+      await deleteComment(commentId);
+      await fetchComments(projectId);
+    } catch (error) {
+      console.error("댓글 삭제 실패: ", error);
+    }
+  }
 
   if (loading) {
     return <div>Loading comments...</div>;
@@ -53,8 +67,24 @@ const CommentsSection = ({ projectId }: CommentsSectionProps) => {
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">{comment.userNickname}</span>
                     <span className="text-xs text-gray-500">
-                      {comment.createdAt}
+                      {(() => {
+                        const date = new Date(comment.createdAt);
+                        date.setHours(date.getHours() + 9);
+                        return date.toLocaleString('ko-KR', {
+                          timeZone: 'Asia/Seoul',
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        });
+                      })()}
                     </span>
+                    {userId === comment.userId && (
+                    <>
+                      <span onClick={() => delComment(comment.id)} className='text-xs text-gray-500 cursor-pointer'>삭제</span>
+                    </>
+                    )}
                   </div>
                   <p className="text-sm">{comment.comment}</p>
                 </div>
