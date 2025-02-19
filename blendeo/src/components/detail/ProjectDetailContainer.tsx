@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { getProject, checkLikeBookmark } from "@/api/project";
+import { getProject, checkLikeBookmark, getParent } from "@/api/project";
 import { getAllComments } from "@/api/comment";
 import { Project } from "@/types/api/project";
 
@@ -26,6 +26,7 @@ import {
   ArrowLeftCircle,
   ArrowRightCircle,
   GitFork,
+  ArrowUpLeft,
 } from "lucide-react";
 
 import { TabType } from "@/types/components/video/videoDetail";
@@ -91,6 +92,7 @@ const ProjectDetailContainer = () => {
   const [heartFilled, setHeartFilled] = useState(false);
   const [commentCnt, setCommentCnt] = useState<number>(0);
   const [bookmarkFilled, setBookmarkFilled] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const setOriginalProjectData = useForkVideoStore(
     (state) => state.setOriginalProjectData
@@ -271,6 +273,55 @@ const ProjectDetailContainer = () => {
     </div>
   );
 
+  // 부모 페이지 리다이렉트
+  const goToParent = async (currentProjectId: string | undefined) => {
+    try {
+      const response = await getParent(Number(currentProjectId));
+      console.log(response);
+      const parentPjtId = response.projectId;
+      navigate(`/project/${parentPjtId}`);
+    } catch (error) {
+      console.error('부모 프로젝트 조회 실패:', error);
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+
+      // 복사 성공 시 스타일
+      const shareButton = document.querySelector('[data-share-button]');
+      if (shareButton) {
+        shareButton.classList.add('bg-purple-100');
+        const icon = shareButton.querySelector('svg');
+        
+        if (icon) {
+          icon.classList.remove('text-gray-600');
+          icon.classList.add('text-purple-600');
+        }
+      }
+
+      // 2초 후 원상복구
+      setTimeout(() => {
+        setCopied(false);
+        const shareButton = document.querySelector('[data-share-button');
+
+        if (shareButton) {
+          shareButton.classList.remove('bg-purple-100');
+          const icon = shareButton.querySelector('svg');
+          if (icon) {
+            icon.classList.remove('text-purple-600');
+            icon.classList.add('text-gray-600');
+          }
+        }
+      }, 2000);
+
+    } catch (error) {
+      console.error("URL 복사 중 오류가 발생했습니다. : ", error);
+    }
+  };
+
   const renderInteractionButtons = () => (
     <div className="ml-4 flex flex-col items-center justify-end h-full space-y-2">
       {currentUser?.id === projectData?.authorId && (
@@ -312,7 +363,11 @@ const ProjectDetailContainer = () => {
         iconColor={bookmarkFilled ? "#6D28D9" : "#4B5563"}
         onClick={() => handleBookmarkClick()}
       />
-      <InteractionButton icon={Share2} onClick={() => { }} />
+      <InteractionButton
+        icon={ArrowUpLeft}
+        onClick={() => goToParent(projectId)}
+       />
+      <InteractionButton onClick={copyLink} icon={Share2} count={copied ? "복사됨!" : "0"} isActive={copied} />
       <InteractionButton
         icon={GitFork}
         onClick={() => handleTabClick("showTree")}

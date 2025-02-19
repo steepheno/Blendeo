@@ -11,7 +11,6 @@ import {
 } from "@/types/api/project";
 
 import type { ProjectTreeData } from "@/types/components/project/project";
-import { useParams } from "react-router-dom";
 
 interface LikeBookmarkStatus {
   scraped: boolean;
@@ -117,6 +116,11 @@ export const createComment = async (projectId: number, comment: string) => {
 
 export const deleteComment = async (commentId: number) => {
   return axiosInstance.delete<void>(`/project/comment/${commentId}`);
+};
+
+// 부모 프로젝트 조회
+export const getParent = async (projectId: number) => {
+  return axiosInstance.get<{projectId: number}>(`/project/get/parent?projectId=${projectId}`);
 };
 
 /* 프로젝트 포크 & 업로드 */
