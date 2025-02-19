@@ -8,6 +8,21 @@ interface UpdateProfileRequest {
   header?: File | null;
 }
 
+export default interface FollowingProjectResponse {
+  projectId: number;
+  title: string;
+  thumbnail: string;
+  viewCnt: number;
+  contributionCnt: number;
+  duration: number;
+  authorId: number;
+  authorName: string;
+  authorNickname: string;
+  authorProfileImage: string;
+  instruments: Array<string>;
+  createdAt: string;
+}
+
 export const updateProfile = async (
   data: UpdateProfileRequest
 ): Promise<User> => {
@@ -109,5 +124,19 @@ export const checkFollowing = async (
     // 그 외의 에러는 false 리턴
     if (error) return false;
     return false;
+  }
+};
+
+export const getFollowingProjects = async (): Promise<
+  Array<FollowingProjectResponse>
+> => {
+  try {
+    console.log("API 호출 시작");
+    const response = await axiosInstance.get(`/project/follow?page=0&size=2`);
+    console.log("API 응답:", response);
+    return response;
+  } catch (error) {
+    console.error("API 에러:", error);
+    return [];
   }
 };

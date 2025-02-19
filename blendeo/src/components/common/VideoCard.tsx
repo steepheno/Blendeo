@@ -1,15 +1,15 @@
-import { GitFork, Users, Clock } from 'lucide-react';
-import { ProjectListItem } from '@/types/api/project';
+import { GitFork, Users, Clock } from "lucide-react";
+import { ProjectListItem } from "@/types/api/project";
 
 interface VideoCardProps {
   project: ProjectListItem;
   onClick?: (projectId: number) => void;
 }
 
-const formatDuration = (seconds: number): string => {
+export const formatDuration = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
 const formatViewCount = (count: number): string => {
@@ -25,7 +25,7 @@ const formatViewCount = (count: number): string => {
 const getTimeDiff = (createdAt: string): string => {
   const diff = new Date().getTime() - new Date(createdAt).getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  
+
   if (days >= 30) {
     const months = Math.floor(days / 30);
     return `${months}개월 전`;
@@ -37,19 +37,19 @@ const getTimeDiff = (createdAt: string): string => {
   if (days > 0) {
     return `${days}일 전`;
   }
-  return '오늘';
+  return "오늘";
 };
 
 const VideoCard = ({ project, onClick }: VideoCardProps) => {
   return (
-    <div 
-      className="w-full max-w-sm bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+    <div
+      className="w-full max-w-sm  bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => onClick?.(project.projectId)}
     >
-      <div className="relative aspect-video bg-gray-100">
+      <div className="relative aspect-[3/2] bg-gray-100">
         {project.thumbnail ? (
-          <img 
-            src={project.thumbnail} 
+          <img
+            src={project.thumbnail}
             alt={project.title}
             className="w-full h-full object-cover"
           />
@@ -58,19 +58,54 @@ const VideoCard = ({ project, onClick }: VideoCardProps) => {
             <span className="text-gray-400">No Thumbnail</span>
           </div>
         )}
-        
-        <div className="absolute bottom-2 right-2 flex items-center gap-2 bg-black/80 rounded px-2 py-1">
-          <div className="flex items-center gap-1">
-            <GitFork className="w-4 h-4 text-white" />
-            <span className="text-white text-xs">{project.forkCnt}</span>
+
+        <div
+          className="absolute bottom-1 right-1 flex items-center gap-2 bg-black/80 rounded px-0.5 py-0.5"
+          style={{
+            opacity: "0.7",
+          }}
+        >
+          <div className="flex items-center gap-0.5">
+            <span
+              className="text-white"
+              style={{
+                fontSize: "0.65rem",
+              }}
+            >
+              {project.forkCnt}
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <Users className="w-4 h-4 text-white" />
-            <span className="text-white text-xs">{project.contributionCnt}</span>
+          <div
+            className="flex items-center"
+            style={{
+              gap: "0.2rem",
+            }}
+          >
+            <Users className="w-3 h-3 text-white" />
+            <span
+              className="text-white"
+              style={{
+                fontSize: "0.65rem",
+              }}
+            >
+              {project.contributionCnt}
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4 text-white" />
-            <span className="text-white text-xs">{formatDuration(project.duration)}</span>
+          <div
+            className="flex items-center"
+            style={{
+              gap: "0.2rem",
+            }}
+          >
+            <Clock className="w-3 h-3 text-white" />
+            <span
+              className="text-white"
+              style={{
+                fontSize: "0.65rem",
+              }}
+            >
+              {formatDuration(project.duration)}
+            </span>
           </div>
         </div>
       </div>
@@ -79,8 +114,8 @@ const VideoCard = ({ project, onClick }: VideoCardProps) => {
         <div className="flex gap-3">
           <div className="flex-shrink-0">
             {project.authorProfileImage ? (
-              <img 
-                src={project.authorProfileImage} 
+              <img
+                src={project.authorProfileImage}
                 alt={project.authorNickname}
                 className="w-8 h-8 rounded-full object-cover"
               />
@@ -88,25 +123,27 @@ const VideoCard = ({ project, onClick }: VideoCardProps) => {
               <div className="w-8 h-8 rounded-full bg-gray-200" />
             )}
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-gray-900 truncate">
               {project.title}
             </h3>
+            <p className="text-xs text-gray-500">{project.authorNickname}</p>
             <p className="text-xs text-gray-500">
-              {project.authorNickname}
-            </p>
-            <p className="text-xs text-gray-500">
-              조회수 {formatViewCount(project.viewCnt)} • {getTimeDiff(project.createdAt)}
+              조회수 {formatViewCount(project.viewCnt)} •{" "}
+              {getTimeDiff(project.createdAt)}
             </p>
           </div>
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-1">
+        <div className="mt-1 flex flex-wrap gap-1">
           {project.instruments.map((instrument, index) => (
-            <span 
+            <span
               key={index}
-              className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full"
+              className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
+              style={{
+                fontSize: "0.65rem",
+              }}
             >
               #{instrument}
             </span>

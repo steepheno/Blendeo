@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import SidebarItem from "./SidebarItem";
 import SubscriptionItem from "./SubscriptionItem";
+import { useEffect, useState } from "react";
+import FollowingProjectResponse, { getFollowingProjects } from "@/api/user";
 
 const sidebarItems = [
   {
@@ -28,30 +30,50 @@ const sidebarItems = [
   },
 ];
 
-const subscriptionItems = [
-  {
-    imageUrl:
-      "https://cdn.builder.io/api/v1/image/assets/TEMP/ccbdeea84866b8c6dd74176cc8e180464719262612a895eaa2e4017e5beb77bf",
-    title: "Euphoria | Labrinth | Piano Cover",
-    timeAgo: "1 month ago",
-    views: "1.4M",
-  },
-  {
-    imageUrl:
-      "https://cdn.builder.io/api/v1/image/assets/TEMP/547063262c0cf9d7de0c9351202c78568e8a68d3c3d90bb56795be8577e23efb",
-    title: "Viva La Vida | Coldplay | Violin Cover",
-    timeAgo: "2 months ago",
-    views: "3.2M",
-  },
-];
+// const subscriptionItems = [
+//   {
+//     imageUrl:
+//       "https://cdn.builder.io/api/v1/image/assets/TEMP/ccbdeea84866b8c6dd74176cc8e180464719262612a895eaa2e4017e5beb77bf",
+//     title: "Euphoria | Labrinth | Piano Cover",
+//     timeAgo: "1 month ago",
+//     views: "1.4M",
+//   },
+//   {
+//     imageUrl:
+//       "https://cdn.builder.io/api/v1/image/assets/TEMP/547063262c0cf9d7de0c9351202c78568e8a68d3c3d90bb56795be8577e23efb",
+//     title: "Viva La Vida | Coldplay | Violin Cover",
+//     timeAgo: "2 months ago",
+//     views: "3.2M",
+//   },
+// ];
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const [subscriptionItems, setSubscriptionItems] = useState<
+    FollowingProjectResponse[]
+  >([]);
 
   const goToRecord = () => {
     navigate("/seed/record");
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log("데이터 가져오기 시작");
+      const response = await getFollowingProjects();
+      console.log("받은 응답:", response);
+      if (response) {
+        setSubscriptionItems(response);
+        console.log("상태 업데이트됨");
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    console.log(subscriptionItems);
+  }, [subscriptionItems]);
   return (
     <>
       {/* 실제 Sidebar */}
@@ -83,8 +105,13 @@ const Sidebar = () => {
                 구독중
               </h2>
               <div className="space-y-4">
+                {console.log("subscriptionItems:", subscriptionItems)}{" "}
+                {/* 디버깅용 */}
                 {subscriptionItems.map((item, index) => (
-                  <SubscriptionItem key={index} {...item} />
+                  <SubscriptionItem
+                    key={`subscription-${item.projectId}`} // index 대신 고유 ID 사용
+                    {...item}
+                  />
                 ))}
               </div>
             </div>
