@@ -11,7 +11,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
     private final Key key; // 대칭 키 생성
-    private static final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 15; // 15분
+    private static final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 60 * 24; // 1일
     private static final long REFRESH_TOKEN_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7일
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
