@@ -142,6 +142,7 @@ const ProjectDetailContainer = () => {
       }
     };
 
+    // 댓글
     const fetchCommentCnt = async () => {
       if (!projectId) return;
       try {
@@ -479,6 +480,7 @@ const ProjectDetailContainer = () => {
                     activeTab && activeTab !== "showTree" ? activeTab : null
                   }
                   content={renderSidePanelContent()}
+                  onClose={() => setActiveTab(null)}
                 />
               </motion.div>
             </AnimatePresence>
