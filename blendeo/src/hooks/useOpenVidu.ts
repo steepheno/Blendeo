@@ -53,7 +53,7 @@ export const useOpenVidu = (roomId: string) => {
 
       const connectionResponse = await openViduApi.createConnection(sessionId);
 
-      console.log("connectionResponse: " + connectionResponse);
+      console.log("connectionResponse:", connectionResponse);
       let token: string;
       if (typeof connectionResponse === "string") {
         token = connectionResponse as string;
@@ -92,12 +92,15 @@ export const useOpenVidu = (roomId: string) => {
         removeSubscriber(event.stream.streamId); // setSubscribers 대신 removeSubscriber 사용
       });
 
-      await session.connect(token, {
-        clientData: {
-          userName: `User${Math.floor(Math.random() * 100)}`,
-          roomId,
-        },
-      });
+      const userName = `User${Math.floor(Math.random() * 100)}`;
+      const connectionData = {
+        clientData: userName, // 단순 문자열로 변경
+      };
+
+      const connectionString = JSON.stringify(connectionData);
+      console.log("Connection string:", connectionString);
+
+      await session.connect(token, connectionString);
 
       // Publisher 초기화 추가
       const publisher = await OV.current.initPublisherAsync(undefined, {
