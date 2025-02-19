@@ -5,15 +5,17 @@ import SettingsSection from "@/components/detail/SettingsSection";
 import ContributorsSection from "@/components/detail/ContributorsSection";
 import SidePanel from "@/components/detail/SidePanel";
 import hamburgerIcon from "@/assets/hamburger_icon.png";
+
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { getProject } from "@/api/project";
+
+import { getProject, checkLikeBookmark, getParent } from "@/api/project";
+import { getAllComments } from "@/api/comment";
 import { Project } from "@/types/api/project";
 
 import { useProjectStore } from "@/stores/projectStore";
-import { useState, useEffect, useCallback } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
 
-import { getAllComments } from "@/api/comment";
 import {
   MessageSquare,
   Heart,
@@ -24,13 +26,13 @@ import {
   ArrowLeftCircle,
   ArrowRightCircle,
   GitFork,
+  ArrowUpLeft,
 } from "lucide-react";
 
 import { useUserStore } from "@/stores/userStore";
 import useForkVideoStore from "@/stores/forkVideoStore";
 
-import { likeProject, unlikeProject } from "@/api/project";
-import { bookProject, unbookProject } from "@/api/project";
+import { likeProject, unlikeProject, bookProject, unbookProject } from "@/api/project";
 
 // 애니메이션 variants 정의
 const variants = {
@@ -100,6 +102,7 @@ const ProjectDetailContainer = () => {
   const [heartFilled, setHeartFilled] = useState(false);
   const [commentCnt, setCommentCnt] = useState<number>(0);
   const [bookmarkFilled, setBookmarkFilled] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const setOriginalProjectData = useForkVideoStore(
     (state) => state.setOriginalProjectData
@@ -153,6 +156,24 @@ const ProjectDetailContainer = () => {
     fetchProjectData();
     fetchCommentCnt();
   }, [projectId, location.pathname, getUser, setCurrentUser]);
+
+  // 좋아요 상태 확인
+  useEffect(() => {
+    const checkUserInteractions = async () => {
+      if (!projectId) return;
+  
+      try {
+        console.log("API 호출 시작")
+        const response = await checkLikeBookmark(Number(projectId));
+        console.log("응답 데이터: ", response);
+        setHeartFilled(response.liked);
+        setBookmarkFilled(response.scraped);       
+      } catch (error) {
+        console.error("Failed to check like/bookmark status:", error);
+      }
+    };
+    checkUserInteractions();
+  }, [projectId]);
 
   const paginate = useCallback((newDirection: number) => {
     setPage((prev) => [prev[0] + newDirection, newDirection]);
@@ -226,20 +247,23 @@ const ProjectDetailContainer = () => {
     setActiveTab(activeTab === tab ? null : tab);
   };
 
+  // 좋아요
   const handleLikeClick = async () => {
     if (!projectData) return;
     try {
       if (heartFilled) {
-        unlikeProject(projectData?.projectId);
+        await unlikeProject(projectData?.projectId);
       } else {
-        likeProject(projectData?.projectId);
+        await likeProject(projectData?.projectId);
       }
       setHeartFilled(!heartFilled);
     } catch (error) {
-      alert(error);
+      console.error("좋아요 토글 실패: ", error);
+      alert("좋아요 처리 중 에러 발생")
     }
   };
 
+  // 북마크
   const handleBookmarkClick = async () => {
     if (!projectData) return;
     try {
@@ -269,6 +293,55 @@ const ProjectDetailContainer = () => {
       <div className="text-sm">All params: {JSON.stringify(params)}</div>
     </div>
   );
+
+  // 부모 페이지 리다이렉트
+  const goToParent = async (currentProjectId: string | undefined) => {
+    try {
+      const response = await getParent(Number(currentProjectId));
+      console.log(response);
+      const parentPjtId = response.projectId;
+      navigate(`/project/${parentPjtId}`);
+    } catch (error) {
+      console.error('부모 프로젝트 조회 실패:', error);
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+
+      // 복사 성공 시 스타일
+      const shareButton = document.querySelector('[data-share-button]');
+      if (shareButton) {
+        shareButton.classList.add('bg-purple-100');
+        const icon = shareButton.querySelector('svg');
+        
+        if (icon) {
+          icon.classList.remove('text-gray-600');
+          icon.classList.add('text-purple-600');
+        }
+      }
+
+      // 2초 후 원상복구
+      setTimeout(() => {
+        setCopied(false);
+        const shareButton = document.querySelector('[data-share-button');
+
+        if (shareButton) {
+          shareButton.classList.remove('bg-purple-100');
+          const icon = shareButton.querySelector('svg');
+          if (icon) {
+            icon.classList.remove('text-purple-600');
+            icon.classList.add('text-gray-600');
+          }
+        }
+      }, 2000);
+
+    } catch (error) {
+      console.error("URL 복사 중 오류가 발생했습니다. : ", error);
+    }
+  };
 
   const renderInteractionButtons = () => (
     <div className="ml-4 flex flex-col items-center justify-end h-full space-y-2">
@@ -311,7 +384,11 @@ const ProjectDetailContainer = () => {
         iconColor={bookmarkFilled ? "#6D28D9" : "#4B5563"}
         onClick={() => handleBookmarkClick()}
       />
-      <InteractionButton icon={Share2} onClick={() => {}} />
+      <InteractionButton
+        icon={ArrowUpLeft}
+        onClick={() => goToParent(projectId)}
+       />
+      <InteractionButton onClick={copyLink} icon={Share2} count={copied ? "복사됨!" : "0"} isActive={copied} />
       <InteractionButton
         icon={GitFork}
         onClick={() => handleTabClick("showTree")}
@@ -361,7 +438,7 @@ const ProjectDetailContainer = () => {
                 exit="exit"
                 transition={{
                   x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 },
+                  opacity: { duration: 0.2 }, 
                 }}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}

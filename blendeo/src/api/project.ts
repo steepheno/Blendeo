@@ -12,7 +12,12 @@ import {
 
 import type { ProjectTreeData } from "@/types/components/project/project";
 
-// 프로젝트 CRUD
+interface LikeBookmarkStatus {
+  scraped: boolean;
+  liked: boolean;
+}
+
+/* 프로젝트 CRUD */
 export const createProject = async (
   data: CreateProjectRequest
 ): Promise<CreateProjectResponse> => {
@@ -71,7 +76,14 @@ export const deleteProject = async (projectId: number) => {
   return axiosInstance.delete<void>(`/project/${projectId}`);
 };
 
-// 프로젝트 소셜
+/* 프로젝트 소셜 */
+
+// 좋아요 & 북마크 여부 조회
+export const checkLikeBookmark = async (projectId: number) => {
+  return axiosInstance.get<LikeBookmarkStatus>(`/project/status/${projectId}`);
+};
+
+// 좋아요
 export const likeProject = async (projectId: number) => {
   return axiosInstance.post<void>(`/project/like/${projectId}`);
 };
@@ -80,14 +92,20 @@ export const unlikeProject = async (projectId: number) => {
   return axiosInstance.delete<void>(`/project/like/${projectId}`);
 };
 
+// 북마크
+export const getBookProject = async () => {
+  return axiosInstance.get<void>('/project/scrap');
+};
+
 export const bookProject = async (projectId: number) => {
-  return axiosInstance.post<void>("/project/scrap/", { projectId });
+  return axiosInstance.post<void>(`/project/scrap/${projectId}`);
 };
 
 export const unbookProject = async (projectId: number) => {
   return axiosInstance.delete<void>(`/project/scrap/${projectId}`);
 };
 
+// 댓글
 export const getComments = async (projectId: number) => {
   return axiosInstance.get<Comment[]>(`/project/comment/${projectId}`);
 };
@@ -100,7 +118,12 @@ export const deleteComment = async (commentId: number) => {
   return axiosInstance.delete<void>(`/project/comment/${commentId}`);
 };
 
-// 프로젝트 포크/업로드
+// 부모 프로젝트 조회
+export const getParent = async (projectId: number) => {
+  return axiosInstance.get<{projectId: number}>(`/project/get/parent?projectId=${projectId}`);
+};
+
+/* 프로젝트 포크 & 업로드 */
 export const forkProject = async (forkedUrl: string, videoFile: string) => {
   return axiosInstance.post<void>("/project/fork", { forkedUrl, videoFile });
 };
