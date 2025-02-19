@@ -62,7 +62,10 @@ const ProjectCreationForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto p-4">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-3xl mx-auto p-4 mt-14"
+    >
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-violet-600">

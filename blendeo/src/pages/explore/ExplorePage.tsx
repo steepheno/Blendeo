@@ -249,7 +249,7 @@ const ExplorePage = (): JSX.Element => {
                 src={selectedNode.videoUrl}
                 controls
                 autoPlay
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 poster={selectedNode.thumbnail}
               >
                 Your browser does not support the video tag.
