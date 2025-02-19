@@ -19,16 +19,18 @@ import { Input } from "@/components/ui/input";
 import { useWebSocket } from "@/hooks/chat/useWebSocket";
 import useChatStore from "@/stores/chatStore";
 import { cn } from "@/lib/utils";
+import { useChatRooms } from "@/hooks/chat/useChatRooms";
 
 const VideoChatPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const userId = useAuthStore((state) => state.userId);
 
+  const [showChat, setShowChat] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [inputMessage, setInputMessage] = useState("");
 
   const MAX_RETRIES = 3;
 
@@ -60,7 +62,6 @@ const VideoChatPage: React.FC = () => {
     : [];
 
   // 채팅 관련 상태 추가
-  const [inputMessage, setInputMessage] = useState("");
   const { sendMessage } = useWebSocket();
   const { currentRoom, messagesByRoom } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -71,11 +72,12 @@ const VideoChatPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (session) {
-      // 세션이 연결되면 스크롤 실행
-      scrollToBottom();
+    if (session && showChat) {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
     }
-  }, [session, messagesByRoom]);
+  }, [session, messagesByRoom, showChat]);
 
   // 메시지 전송 핸들러 추가
   const handleSendMessage = () => {
@@ -154,15 +156,28 @@ const VideoChatPage: React.FC = () => {
     toggleVideo();
   };
 
-  const [showChat, setShowChat] = useState(false);
+  const { fetchRooms } = useChatRooms();
+  const { setCurrentRoom } = useChatStore();
 
+  // 채팅방 초기화 로직 추가
   useEffect(() => {
-    if (session && showChat) {
-      setTimeout(() => {
-        scrollToBottom();
-      }, 100);
-    }
-  }, [session, messagesByRoom, showChat]);
+    const initializeChat = async () => {
+      if (roomId) {
+        try {
+          await fetchRooms();
+          const rooms = useChatStore.getState().rooms;
+          const targetRoom = rooms.find((room) => room.id === parseInt(roomId));
+          if (targetRoom) {
+            await setCurrentRoom(targetRoom);
+          }
+        } catch (error) {
+          console.error("채팅방 초기화 중 오류 발생:", error);
+        }
+      }
+    };
+
+    void initializeChat();
+  }, [roomId, fetchRooms, setCurrentRoom]);
 
   if (isLoading || !session) {
     return (
@@ -188,7 +203,7 @@ const VideoChatPage: React.FC = () => {
   return (
     <Layout showRightSidebar>
       <main className="flex-1 flex justify-between">
-        {/* 비디오 및 채팅 컨테이너 */}
+        {/* 비디오 영역 */}
         <div className={cn("flex-1 p-4", showChat ? "pr-80" : "")}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">화상 통화</h2>
@@ -254,12 +269,17 @@ const VideoChatPage: React.FC = () => {
                         className={cn(
                           "flex items-start gap-2",
                           message.userId === userId
-                            ? "flex-row-reverse"
+                            ? "flex-row-reverse justify-start"
                             : "flex-row"
                         )}
                       >
                         <div className="flex flex-col gap-1 max-w-[70%]">
-                          <span className="text-sm font-medium">
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              message.userId === userId ? "text-right" : ""
+                            )}
+                          >
                             {message.userId === userId
                               ? "나"
                               : message.nickname}

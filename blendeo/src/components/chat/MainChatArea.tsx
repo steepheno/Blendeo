@@ -148,17 +148,23 @@ const MainChatArea = ({ setChatWindowOpened }: MainChatAreaProps) => {
                       }
                       alt={
                         message.userId === user?.id
-                          ? user.nickname || "나"
-                          : message.nickname || "사용자"
+                          ? "나"
+                          : message.nickname || "Unknown"
                       }
                     />
                     <AvatarFallback>
                       {message.userId === user?.id
-                        ? user.nickname?.[0] || "나"
-                        : message.nickname?.[0] || "사용자"}
+                        ? "나"[0]
+                        : (message.nickname || "Unknown")[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col gap-1 max-w-[70%]">
+                  <div
+                    className={cn(
+                      "flex flex-col gap-1",
+                      message.userId === user?.id ? "items-end" : "items-start",
+                      "max-w-[70%]"
+                    )}
+                  >
                     <span
                       className={cn(
                         "text-sm font-medium",
@@ -166,8 +172,8 @@ const MainChatArea = ({ setChatWindowOpened }: MainChatAreaProps) => {
                       )}
                     >
                       {message.userId === user?.id
-                        ? user.nickname || "나"
-                        : message.nickname || "사용자"}
+                        ? "나"
+                        : message.nickname || "Unknown"}
                     </span>
                     <div
                       className={cn(
