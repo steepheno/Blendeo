@@ -2,7 +2,7 @@ package Blendeo.backend.config;
 
 import Blendeo.backend.user.service.CustomOAuth2UserService;
 import Blendeo.backend.user.util.JwtAuthenticationFilter;
-import Blendeo.backend.user.util.OAuth2AuthenticationSuccessHandler;
+//import Blendeo.backend.user.util.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -45,7 +45,7 @@ public class SecurityConfig {
                 "http://blendeo.shop",           // HTTP 버전 추가
                 "https://api.blendeo.shop",      // API 도메인 추가
                 "http://api.blendeo.shop",        // API 도메인 HTTP 버전 추가
-                "https://ad12-211-192-252-214.ngrok-free.app"  // GPU 서버
+                "https://19b0-211-192-252-214.ngrok-free.app"  // GPU 서버
                 ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
@@ -58,7 +58,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService
-    , OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) throws Exception {
+//    , OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler
+    ) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 추가
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화
@@ -88,12 +89,13 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // JWT 필터 추가
                 .httpBasic(AbstractHttpConfigurer::disable) // HTTP Basic 인증 비활성화
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                );
+//                .oauth2Login(oauth2 -> oauth2
+//                        .userInfoEndpoint(userInfo -> userInfo
+//                                .userService(customOAuth2UserService)
+//                        )
+//                        .successHandler(oAuth2AuthenticationSuccessHandler)
+//                )
+        ;
         return http.build();
     }
 }
