@@ -1,4 +1,4 @@
-import { GitFork, Users, Clock } from "lucide-react";
+import { Users, Clock } from "lucide-react";
 import { ProjectListItem } from "@/types/api/project";
 
 interface VideoCardProps {
@@ -62,7 +62,7 @@ const VideoCard = ({ project, onClick }: VideoCardProps) => {
         <div
           className="absolute bottom-1 right-1 flex items-center gap-2 bg-black/80 rounded px-0.5 py-0.5"
           style={{
-            opacity: "0.7",
+            opacity: "0.3",
           }}
         >
           <div className="flex items-center gap-0.5">

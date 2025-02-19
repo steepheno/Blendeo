@@ -105,9 +105,8 @@ const Sidebar = () => {
                 구독중
               </h2>
               <div className="space-y-4">
-                {console.log("subscriptionItems:", subscriptionItems)}{" "}
                 {/* 디버깅용 */}
-                {subscriptionItems.map((item, index) => (
+                {subscriptionItems.map((item) => (
                   <SubscriptionItem
                     key={`subscription-${item.projectId}`} // index 대신 고유 ID 사용
                     {...item}
