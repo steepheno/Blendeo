@@ -164,11 +164,9 @@ const ProjectDetailContainer = () => {
       if (!projectId) return;
   
       try {
-        console.log("API 호출 시작")
         const response = await checkLikeBookmark(Number(projectId));
-        console.log("응답 데이터: ", response);
         setHeartFilled(response.liked);
-        setBookmarkFilled(response.scraped);       
+        setBookmarkFilled(response.scraped);
       } catch (error) {
         console.error("Failed to check like/bookmark status:", error);
       }

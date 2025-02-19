@@ -80,7 +80,13 @@ export const deleteProject = async (projectId: number) => {
 
 // 좋아요 & 북마크 여부 조회
 export const checkLikeBookmark = async (projectId: number) => {
-  return axiosInstance.get<LikeBookmarkStatus>(`/project/status/${projectId}`);
+  try {
+    const response = await axiosInstance.get<LikeBookmarkStatus>(`/project/status/${projectId}`);
+    return response; // axiosInstance가 이미 response.data를 반환하도록 설정되어 있음
+  } catch (error) {
+    console.error("Error checking like/bookmark status:", error);
+    throw error;
+  }
 };
 
 // 좋아요
