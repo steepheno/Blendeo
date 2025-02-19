@@ -2,8 +2,12 @@ import { type FC, useEffect, useRef, useState } from "react";
 import { Pause, Play, Upload, Volume2 } from "lucide-react";
 import useVideoStore from "@/stores/videoStore";
 import { useNavigate } from "react-router-dom";
+import { Button } from "../ui/button";
+import { Progress } from "@radix-ui/react-progress";
+import { Slider } from "@radix-ui/react-slider";
+import { Card } from "../ui/card";
 
-const HANDLE_WIDTH = 6;
+// const HANDLE_WIDTH = 6;
 
 const VideoEditor: FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -77,6 +81,15 @@ const VideoEditor: FC = () => {
 
     videoRef.current.currentTime = startTime;
   }, [trimData, videoData, setTrimData]);
+
+  const formatTime = (time: number): string => {
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
+    const seconds = Math.floor(time % 60);
+    const milliseconds = Math.floor((time % 1) * 100);
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(2, "0")}`;
+  };
 
   const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!timelineRef.current || !videoData?.duration || !trimData) return;
@@ -167,18 +180,10 @@ const VideoEditor: FC = () => {
     }
   };
 
-  // const handleNoiseReductionChange = (
-  //   e: React.ChangeEvent<HTMLInputElement>
-  // ) => {
-  //   const isChecked = e.target.checked;
-  //   setNoiseReduction(isChecked);
-  //   console.log(isChecked ? "잡음제거됨" : "잡음제거 취소됨");
+  // const getTimelinePosition = (time: number): number => {
+  //   if (!videoData?.duration) return 0;
+  //   return (time / videoData.duration) * timelineWidth;
   // };
-
-  const getTimelinePosition = (time: number): number => {
-    if (!videoData?.duration) return 0;
-    return (time / videoData.duration) * timelineWidth;
-  };
 
   const handleDrag = (
     type: "startTime" | "endTime",
@@ -215,156 +220,140 @@ const VideoEditor: FC = () => {
     document.addEventListener("mouseup", stopDrag);
   };
 
+  const handleVolumeChange = (values: number[]) => {
+    setVolume(values[0]);
+  };
+
   if (!videoData) return null;
 
   return (
-    <div className="mx-auto w-full max-w-6xl p-4">
-      <div className="relative mb-4 aspect-video bg-gray-900">
-        <video
-          ref={videoRef}
-          src={videoData.blobUrl}
-          className="h-full w-full"
-          onTimeUpdate={handleTimeUpdate}
-        />
-      </div>
+    <div
+      className="mx-auto w-full max-w-6xl p-4 space-y-3.5"
+      style={{
+        backgroundColor: "#171222",
+      }}
+    >
+      <Card
+        className="overflow-hidden"
+        style={{
+          backgroundColor: "#000",
+          border: "none",
+        }}
+      >
+        <div className="relative aspect-video">
+          <video
+            ref={videoRef}
+            src={videoData.blobUrl}
+            className="h-full w-full"
+            onTimeUpdate={handleTimeUpdate}
+          />
+        </div>
+      </Card>
 
-      <div className="mt-2 text-xs text-gray-300 flex flex-row justify-between pb-1">
-        <div className="text-gray-300">
+      <div className="flex flex-col space-y-4">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <p>Shift 를 누르고 드래그하여 미세하게 조절할 수 있어요!</p>
-        </div>
-        {trimData && (
-          <div className="flex justify-end gap-4">
-            <span>시작 : {trimData.startTime.toFixed(3)}s</span>
-            <span>끝 : {trimData.endTime.toFixed(3)}s</span>
-            <span>
-              영상 길이 : {(trimData.endTime - trimData.startTime).toFixed(3)}s
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div ref={containerRef} className="flex flex-row gap-2 items-center">
-        <div className="flex items-center">
-          <button
-            type="button"
-            onClick={handlePlayPause}
-            className="rounded-full bg-violet-600 p-2 text-white hover:bg-violet-800"
-            disabled={isProcessing}
-          >
-            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-          </button>
-        </div>
-
-        <div
-          ref={timelineRef}
-          className="relative h-16 cursor-pointer rounded bg-gray-200"
-          style={{ width: timelineWidth + 8 }}
-          onClick={handleTimelineClick}
-        >
           {trimData && (
-            <div
-              className="absolute top-0 h-full bg-violet-300"
-              style={{
-                left: getTimelinePosition(trimData.startTime),
-                width: getTimelinePosition(
-                  trimData.endTime - trimData.startTime
-                ),
-              }}
-            />
-          )}
-
-          {trimData && (
-            <>
-              <div
-                className="absolute top-0 h-full w-3 cursor-ew-resize bg-violet-500"
-                style={{
-                  left:
-                    getTimelinePosition(trimData.startTime) - HANDLE_WIDTH / 2,
-                }}
-                onMouseDown={(e) => handleDrag("startTime", e)}
-              />
-
-              <div
-                className="absolute top-0 h-full w-3 cursor-ew-resize bg-violet-500"
-                style={{
-                  left:
-                    getTimelinePosition(trimData.endTime) - HANDLE_WIDTH / 2,
-                }}
-                onMouseDown={(e) => handleDrag("endTime", e)}
-              />
-            </>
-          )}
-
-          <div
-            className="absolute top-0 h-full w-0.5 bg-red-500"
-            style={{
-              left: getTimelinePosition(currentTime),
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-row items-center w-full justify-between pt-2">
-        <div className="flex items-center gap-2">
-          <Volume2 size={20} className="text-violet-600" />
-          <input
-            type="range"
-            min="0"
-            max="2"
-            step="0.01"
-            value={volume}
-            onChange={(e) => setVolume(parseFloat(e.target.value))}
-            className="w-60 h-2 rounded-lg appearance-none cursor-pointer bg-gray-200
-                [&::-webkit-slider-runnable-track]:h-2 
-                [&::-webkit-slider-thumb]:appearance-none 
-                [&::-webkit-slider-thumb]:h-4 
-                [&::-webkit-slider-thumb]:w-4 
-                [&::-webkit-slider-thumb]:rounded-full 
-                [&::-webkit-slider-thumb]:bg-violet-600 
-                [&::-webkit-slider-thumb]:mt-[-4px] 
-                [&::-webkit-slider-thumb]:cursor-pointer
-                [&::-webkit-slider-thumb]:border-2
-                [&::-webkit-slider-thumb]:border-white
-                [&::-webkit-slider-thumb]:shadow-md"
-            style={{
-              background: `linear-gradient(to right, 
-                  rgb(124, 58, 237) 0%, 
-                  rgb(124, 58, 237) ${(volume / 2) * 100}%, 
-                  rgb(229, 231, 235) ${(volume / 2) * 100}%, 
-                  rgb(229, 231, 235) 100%)`,
-            }}
-          />
-          <span className="min-w-[3rem] text-sm text-violet-600 font-medium">
-            {Math.round(serverVolume)}%
-          </span>
-          {/* <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-            <input
-              type="checkbox"
-              id="noiseReduction"
-              checked={noiseReduction}
-              onChange={handleNoiseReductionChange}
-              className="w-4 h-4 text-violet-600 rounded border-gray-300 focus:ring-violet-500"
-            />
-            <label htmlFor="noiseReduction" className="text-gray-300">잡음 제거</label>
-          </div> */}
-        </div>
-
-        <div className="flex flex-col gap-2 items-end">
-          {uploadProgress > 0 && (
-            <div className="text-sm text-gray-300">
-              업로드 진행률: {uploadProgress}% (
-              {(uploadedBytes / (1024 * 1024)).toFixed(2)} MB)
+            <div className="flex gap-4">
+              <span>시작 : {formatTime(trimData.startTime)}</span>
+              <span>끝 : {formatTime(trimData.endTime)}</span>
+              <span>
+                영상 길이 : {formatTime(trimData.endTime - trimData.startTime)}
+              </span>
             </div>
           )}
-          <button
-            type="button"
-            onClick={handleUpload}
-            className="flex items-center gap-2 rounded hover:bg-violet-800 px-4 py-2 hover:text-violet-700 border border-violet-900 bg-violet-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={handlePlayPause}
             disabled={isProcessing}
+            className="rounded-full"
           >
-            <Upload size={20} />
-            {isProcessing ? "Uploading..." : "Upload"}
-          </button>
+            {isPlaying ? (
+              <Pause className="h-4 w-4" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
+          </Button>
+
+          <div ref={containerRef} className="relative flex-1 h-6">
+            <div
+              ref={timelineRef}
+              className="h-full rounded-md bg-secondary"
+              onClick={handleTimelineClick}
+            >
+              {trimData && (
+                <>
+                  <div
+                    className="absolute top-0 h-full bg-primary/20"
+                    style={{
+                      left: `${(trimData.startTime / videoData.duration) * 100}%`,
+                      width: `${((trimData.endTime - trimData.startTime) / videoData.duration) * 100}%`,
+                    }}
+                  />
+                  <div
+                    className="absolute top-0 h-full w-1 cursor-ew-resize bg-primary"
+                    style={{
+                      left: `${(trimData.startTime / videoData.duration) * 100}%`,
+                    }}
+                    onMouseDown={(e) => handleDrag("startTime", e)}
+                  />
+                  <div
+                    className="absolute top-0 h-full w-1 cursor-ew-resize bg-primary"
+                    style={{
+                      left: `${(trimData.endTime / videoData.duration) * 100}%`,
+                    }}
+                    onMouseDown={(e) => handleDrag("endTime", e)}
+                  />
+                </>
+              )}
+              <div
+                className="absolute top-0 h-full w-0.5 bg-destructive"
+                style={{
+                  left: `${(currentTime / videoData.duration) * 100}%`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 w-[300px]">
+            <Volume2 className="h-4 w-4 text-primary" />
+            <Slider
+              defaultValue={[volume]}
+              max={2}
+              step={0.01}
+              onValueChange={handleVolumeChange}
+              className="flex-1"
+            />
+            <span className="min-w-[3rem] text-sm text-primary font-medium">
+              {Math.round(serverVolume)}%
+            </span>
+          </div>
+
+          <div className="flex flex-col items-end gap-1">
+            {uploadProgress > 0 && (
+              <div className="flex flex-col gap-0">
+                <Progress value={uploadProgress} className="w-[200px]" />
+                <p className="text-sm text-muted-foreground">
+                  업로드 진행률: {uploadProgress}% (
+                  {(uploadedBytes / (1024 * 1024)).toFixed(2)} MB)
+                </p>
+              </div>
+            )}
+            <Button
+              onClick={handleUpload}
+              disabled={isProcessing}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              {isProcessing ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

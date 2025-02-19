@@ -131,11 +131,9 @@ export const getFollowingProjects = async (): Promise<
   Array<FollowingProjectResponse>
 > => {
   try {
-    console.log("API 호출 시작");
     const data = await axiosInstance.get<Array<FollowingProjectResponse>>(
       `/project/follow?page=0&size=2`
     );
-    console.log("API 응답:", data);
     return data;
   } catch (error) {
     console.error("API 에러:", error);
