@@ -12,7 +12,7 @@ import type {
 } from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
 
-const SOCKET_URL = `http://i12a602.p.ssafy.io:8080/ws-stomp`;
+const SOCKET_URL = `https://api.blendeo.shop/ws-stomp`;
 
 export interface ChatState {
   rooms: ChatRoom[];
