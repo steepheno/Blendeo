@@ -45,7 +45,6 @@ const Sidebar = () => {
       const response = await getFollowingProjects();
       if (response) {
         setSubscriptionItems(response);
-        console.log("상태 업데이트됨");
       }
     };
 
