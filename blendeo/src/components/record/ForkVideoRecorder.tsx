@@ -31,6 +31,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
   const navigate = useNavigate();
   const { setRecordedData } = useForkVideoStore();
   const [isRecording, setIsRecording] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentLoop, setCurrentLoop] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,10 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const previewRef = useRef<HTMLVideoElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const destinationNodeRef = useRef<MediaStreamAudioDestinationNode | null>(
+    null
+  );
 
   // 원본 비디오의 방향 감지
   useEffect(() => {
@@ -58,30 +63,83 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
     }
   }, []);
 
+  // Web Audio API 설정
+  const setupAudioContext = useCallback(async (userStream: MediaStream) => {
+    if (!videoRef.current) return;
+
+    // AudioContext 초기화
+    audioContextRef.current = new AudioContext();
+
+    // 비디오와 마이크의 오디오 소스 생성
+    const videoSource = audioContextRef.current.createMediaElementSource(
+      videoRef.current
+    );
+    const micSource =
+      audioContextRef.current.createMediaStreamSource(userStream);
+
+    // 마이크와 비디오 오디오를 믹스하기 위한 게인 노드
+    const videoGain = audioContextRef.current.createGain();
+    const micGain = audioContextRef.current.createGain();
+
+    videoGain.gain.value = 1.0; // 비디오 볼륨
+    micGain.gain.value = 0.6; // 마이크 볼륨
+
+    // 비디오 오디오는 스피커로 직접 출력되도록 연결
+    videoSource.connect(videoGain);
+    videoGain.connect(audioContextRef.current.destination); // 스피커로 출력
+
+    // 녹화를 위한 destination 노드 생성
+    destinationNodeRef.current =
+      audioContextRef.current.createMediaStreamDestination();
+
+    videoGain.connect(destinationNodeRef.current); // 녹화에 포함
+
+    // 비디오와 마이크 둘 다 녹화 대상에 연결
+    videoSource.connect(destinationNodeRef.current);
+    micSource.connect(micGain);
+    micGain.connect(destinationNodeRef.current);
+  }, []);
+
   // 비디오 녹화 설정
   const setupRecording = useCallback(async () => {
     try {
+      setIsLoading(true);
+
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
-      const constraints: MediaStreamConstraints = {
+      // 카메라와 마이크 스트림 가져오기
+      const userStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: DIMENSIONS[originalOrientation].width },
           height: { ideal: DIMENSIONS[originalOrientation].height },
         },
         audio: true,
-      };
+      });
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // AudioContext가 없으면 설정
+      if (!audioContextRef.current) {
+        await setupAudioContext(userStream);
+      }
 
-      streamRef.current = stream;
+      if (!destinationNodeRef.current) {
+        throw new Error("Audio destination node not initialized");
+      }
+
+      // 비디오 스트림과 오디오 스트림 결합
+      const combinedStream = new MediaStream([
+        ...userStream.getVideoTracks(),
+        ...destinationNodeRef.current.stream.getAudioTracks(),
+      ]);
+
+      streamRef.current = combinedStream;
       if (previewRef.current) {
-        previewRef.current.srcObject = stream;
+        previewRef.current.srcObject = userStream;
       }
 
       chunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(stream, {
+      const mediaRecorder = new MediaRecorder(combinedStream, {
         mimeType: "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
       });
 
@@ -130,10 +188,14 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
       mediaRecorderRef.current = mediaRecorder;
       setError(null);
     } catch (err) {
-      setError("카메라를 시작할 수 없습니다. 카메라 권한을 확인해주세요.");
-      console.error("카메라 접근 에러:", err);
+      setError(
+        "카메라나 오디오 설정을 시작할 수 없습니다. 권한을 확인해주세요."
+      );
+      console.error("설정 에러:", err);
+    } finally {
+      setIsLoading(false);
     }
-  }, [originalOrientation, navigate, setRecordedData]);
+  }, [originalOrientation, navigate, setRecordedData, setupAudioContext]);
 
   // 컴포넌트 마운트 시 설정
   useEffect(() => {
@@ -148,8 +210,11 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
+      if (audioContextRef.current) {
+        void audioContextRef.current.close();
+      }
     };
-  }, [setupRecording]); // originalOrientation이 변경되면 녹화 설정을 다시 함
+  }, [setupRecording]);
 
   // 비디오 재생 종료 처리
   const handleVideoEnd = () => {
@@ -169,17 +234,35 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
   };
 
   // 동기화된 재생 및 녹화 시작
-  const startSyncedRecording = () => {
-    if (!isPlaying && videoRef.current) {
-      setIsPlaying(true);
-      setIsRecording(true);
-      videoRef.current.currentTime = 0;
+  const startSyncedRecording = async () => {
+    if (!isPlaying && videoRef.current && !isLoading) {
+      try {
+        setIsLoading(true);
 
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.start(1000);
+        // AudioContext 재개
+        if (audioContextRef.current?.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
+
+        // 비디오 초기화
+        videoRef.current.currentTime = 0;
+        setIsPlaying(true);
+        setIsRecording(true);
+
+        // MediaRecorder 시작
+        if (mediaRecorderRef.current) {
+          mediaRecorderRef.current.start(200); // 더 작은 타임슬라이스 사용
+        }
+
+        // 약간의 지연 후 비디오 재생 시작
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        await videoRef.current.play();
+      } catch (err) {
+        setError("녹화 시작 중 오류가 발생했습니다.");
+        console.error("녹화 시작 에러:", err);
+      } finally {
+        setIsLoading(false);
       }
-
-      void videoRef.current.play();
     }
   };
 
@@ -202,7 +285,9 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
 
   return (
     <div
-      className={`flex gap-2 items-start p-4 ${originalOrientation === "landscape" ? "flex-col" : "flex-row"}`}
+      className={`flex gap-2 items-start p-4 ${
+        originalOrientation === "landscape" ? "flex-col" : "flex-row"
+      }`}
     >
       {/* 원본 비디오 플레이어 */}
       <div className="flex flex-col items-center space-y-4">
@@ -216,6 +301,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
             onEnded={handleVideoEnd}
             preload="auto"
             playsInline
+            crossOrigin="anonymous"
           >
             <source src={videoUrl} type="video/mp4" />
           </video>
@@ -249,10 +335,12 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
 
         <button
           onClick={startSyncedRecording}
-          disabled={isRecording || isPlaying}
+          disabled={isRecording || isPlaying || isLoading}
           className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isRecording ? (
+          {isLoading ? (
+            "준비중..."
+          ) : isRecording ? (
             <>
               <Square className="w-5 h-5" />
               녹화 중
