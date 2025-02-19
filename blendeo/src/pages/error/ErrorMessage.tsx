@@ -8,7 +8,7 @@ interface ErrorPageProps {
 }
 
 const ErrorPage = ({ 
-  title = 'Oops! Something went wrong',
+  title = '앗! 무엇인가 잘못되었어요.',
   message = 'We encountered an error while processing your request.',
   onRetry,
   fullPage = true

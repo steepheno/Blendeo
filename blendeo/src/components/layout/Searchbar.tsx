@@ -101,7 +101,7 @@ const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
         </div>
       </div>
 
-      <div className="h-[81px]" />
+      <div className="h-[65px]" />
     </>
   );
 };
