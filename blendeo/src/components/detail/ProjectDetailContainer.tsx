@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { getProject, checkLikeBookmark, getParent } from "@/api/project";
+import { getProject, checkLikeBookmark, getParent, getProjectRandom } from "@/api/project";
 import { getAllComments } from "@/api/comment";
 import { Project } from "@/types/api/project";
 
@@ -20,7 +20,7 @@ import {
   MessageSquare,
   Heart,
   Bookmark,
-  Share2,
+  Copy,
   Users,
   GitBranchPlusIcon,
   ArrowLeftCircle,
@@ -103,6 +103,7 @@ const ProjectDetailContainer = () => {
   const [commentCnt, setCommentCnt] = useState<number>(0);
   const [bookmarkFilled, setBookmarkFilled] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [localLikeCnt, setLocalLikeCnt] = useState(0);
 
   const setOriginalProjectData = useForkVideoStore(
     (state) => state.setOriginalProjectData
@@ -173,6 +174,13 @@ const ProjectDetailContainer = () => {
     };
     checkUserInteractions();
   }, [projectId]);
+
+  // 좋아요 실시간 업데이트
+  useEffect(() => {
+    if (projectData) {
+      setLocalLikeCnt(projectData.likeCnt);
+    }
+  }, [projectData]);
 
   const paginate = useCallback((newDirection: number) => {
     setPage((prev) => [prev[0] + newDirection, newDirection]);
@@ -252,8 +260,10 @@ const ProjectDetailContainer = () => {
     try {
       if (heartFilled) {
         await unlikeProject(projectData?.projectId);
+        setLocalLikeCnt(prev => prev - 1)
       } else {
         await likeProject(projectData?.projectId);
+        setLocalLikeCnt(prev => prev + 1)
       }
       setHeartFilled(!heartFilled);
     } catch (error) {
@@ -261,6 +271,17 @@ const ProjectDetailContainer = () => {
       alert("좋아요 처리 중 에러 발생")
     }
   };
+
+  // 좋아요 수
+  const likeTotal = async () => {
+    try {
+      const response = await getProjectRandom();
+      return response.likeCnt;
+    } catch (error) {
+      console.error("좋아요 수 조회 실패: ", error);
+    }
+  };
+  console.log(likeTotal);  // 빌드용 코드
 
   // 북마크
   const handleBookmarkClick = async () => {
@@ -360,7 +381,7 @@ const ProjectDetailContainer = () => {
       />
       <InteractionButton
         icon={Heart}
-        count="0"
+        count={localLikeCnt.toString()}
         fill={heartFilled ? "red" : "none"}
         iconColor={heartFilled ? "red" : "#4B5563"}
         onClick={() => handleLikeClick()}
@@ -387,7 +408,7 @@ const ProjectDetailContainer = () => {
         icon={ArrowUpLeft}
         onClick={() => goToParent(projectId)}
        />
-      <InteractionButton onClick={copyLink} icon={Share2} count={copied ? "복사됨!" : "0"} isActive={copied} />
+      <InteractionButton onClick={copyLink} icon={Copy} count={copied ? "복사됨!" : "0"} isActive={copied} />
       <InteractionButton
         icon={GitFork}
         onClick={() => handleTabClick("showTree")}

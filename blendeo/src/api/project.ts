@@ -61,6 +61,10 @@ export const getProject = async (projectId: number) => {
   return axiosInstance.get<Project>(`/project/get/info/${projectId}`);
 };
 
+export const getProjectRandom = async () => {
+  return axiosInstance.get<Project>(`/project/get/info/random`);
+}
+
 export const updateProjectState = async (projectId: number, state: boolean) => {
   return axiosInstance.patch<void>(`/project/state/${projectId}`, { state });
 };
