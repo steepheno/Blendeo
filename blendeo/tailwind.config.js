@@ -7,10 +7,17 @@ export default {
   ],
   theme: {
   	extend: {
+		fontFamily: {
+			'orbitron': ['Orbitron', 'sans-serif'],
+			'pretendard': ['Pretendard', 'sans-serif'],
+		},
   		colors: {
   			'custom-dark': '#0B1013',
 			'custom-lavender': '#F2F0F5',
 			'white': '#FFFFFF',
+			'darkblue': "#171226",
+			'main_100': "#8B63FF",
+			'main_200' : "#6A02FA",
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
