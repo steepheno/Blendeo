@@ -19,7 +19,6 @@ const publicPaths = [
   "/mail/verify",
   "/user/auth",
   "/project/get",
-  "/project/status",
   "/user/follow/get-follow",
   "/user/get-user",
   "/comment/get-all",
