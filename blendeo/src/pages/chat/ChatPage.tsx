@@ -67,6 +67,19 @@ const ChatPage = () => {
 
   return (
     <Layout showNotification>
+      {!chatWindowOpened && (
+        <div className="absolute left-1/2 top-1/2 -translate-x-[55%] -translate-y-[60%] flex flex-col items-center justify-center space-y-6 max-w-[calc(100vw-640px)] md:max-w-[calc(100vw-768px)]">
+          <div className="w-64 h-64 bg-center bg-no-repeat bg-contain bg-[url('/images/login_img.png')]" />
+          <h1 className="text-2xl font-bold text-gray-800">
+            채팅을 시작해보세요!
+          </h1>
+          <p className="text-gray-600 text-center max-w-md">
+            좌측의 채팅 목록에서 대화할 상대를 선택하거나,
+            <br />
+            새로운 대화를 시작할 수 있습니다.
+          </p>
+        </div>
+      )}
       <ChatApp
         chatWindowOpened={chatWindowOpened}
         setChatWindowOpened={setChatWindowOpened}
