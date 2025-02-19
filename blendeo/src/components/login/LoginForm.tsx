@@ -1,14 +1,19 @@
-// src/components/login/LoginForm.tsx
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import type { SigninRequest } from "@/types/api/auth";
 import { AxiosError } from "axios";
 import LoginInput from "./LoginInput";
+import { toast } from "sonner";
 
 interface ErrorResponse {
   message?: string;
   status?: number;
+}
+
+interface ValidationErrors {
+  email?: string;
+  password?: string;
 }
 
 const LoginForm = () => {
@@ -17,35 +22,86 @@ const LoginForm = () => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>("");
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
   const { signin } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // 이메일 유효성 검사
+  const validateEmail = (email: string): string | undefined => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      return "이메일을 입력해주세요.";
+    }
+    if (!emailRegex.test(email)) {
+      return "올바른 이메일 형식이 아닙니다.";
+    }
+    return undefined;
+  };
+
+  // 비밀번호 유효성 검사
+  const validatePassword = (password: string): string | undefined => {
+    if (!password) {
+      return "비밀번호를 입력해주세요.";
+    }
+    if (password.length < 8) {
+      return "비밀번호는 8자 이상이어야 합니다.";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "비밀번호는 소문자를 포함해야 합니다.";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "비밀번호는 숫자를 포함해야 합니다.";
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+      return "비밀번호는 특수문자(!@#$%^&*)를 포함해야 합니다.";
+    }
+    return undefined;
+  };
+
+  // 전체 폼 유효성 검사
+  const validateForm = (): boolean => {
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+
+    setValidationErrors({
+      email: emailError,
+      password: passwordError,
+    });
+
+    return !emailError && !passwordError;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 제출 전 유효성 검사
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
-    setError("");
 
     try {
-      console.log("loc:",location);
-      
       await signin(formData);
+      toast.success("로그인이 성공적으로 이뤄졌습니다!");
       const from = location.state?.from || "/";
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof AxiosError) {
         const errorResponse = err.response?.data as ErrorResponse;
 
-        if (err.response?.status === 401) {
-          setError("이메일 또는 비밀번호가 올바르지 않습니다.");
-        } else if (err.response?.status === 404) {
-          setError("존재하지 않는 계정입니다.");
+        if (errorResponse.status === 401) {
+          toast.error("이메일 또는 비밀번호가 올바르지 않습니다.");
+        } else if (errorResponse.status === 404) {
+          toast.error("존재하지 않는 계정입니다.");
         } else {
-          setError(errorResponse?.message || "로그인 중 오류가 발생했습니다.");
+          toast.error("로그인 중 오류가 발생했습니다.");
         }
       } else {
-        setError("로그인 중 오류가 발생했습니다.");
+        toast.error("로그인 중 오류가 발생했습니다.");
       }
       console.error("Login error:", err);
     } finally {
@@ -59,20 +115,23 @@ const LoginForm = () => {
       ...prev,
       [name]: value,
     }));
-    setError(""); // 입력이 변경되면 에러 메시지 초기화
+
+    // 실시간 유효성 검사
+    if (name === "email") {
+      setValidationErrors((prev) => ({
+        ...prev,
+        email: validateEmail(value),
+      }));
+    } else if (name === "password") {
+      setValidationErrors((prev) => ({
+        ...prev,
+        password: validatePassword(value),
+      }));
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col w-full">
-      {error && (
-        <div
-          className="mb-4 p-3 text-red-500 text-sm bg-red-50 rounded-md border border-red-200 cursor-pointer"
-          onClick={() => setError("")}
-        >
-          {error}
-        </div>
-      )}
-
       <LoginInput
         id="email"
         type="email"
@@ -80,8 +139,13 @@ const LoginForm = () => {
         value={formData.email}
         onChange={handleChange}
         disabled={isLoading}
-        error={!!error && error.includes("이메일")}
+        error={!!validationErrors.email}
       />
+      {validationErrors.email && (
+        <div className="mt-1 text-sm text-red-500">
+          {validationErrors.email}
+        </div>
+      )}
 
       <LoginInput
         id="password"
@@ -90,12 +154,29 @@ const LoginForm = () => {
         value={formData.password}
         onChange={handleChange}
         disabled={isLoading}
-        error={!!error && error.includes("비밀번호")}
+        error={!!validationErrors.password}
       />
+      {validationErrors.password && (
+        <div className="mt-1 text-sm text-red-500">
+          {validationErrors.password}
+        </div>
+      )}
+
+      {!validationErrors.password && formData.password && (
+        <div className="mt-1 text-sm text-gray-600">
+          비밀번호는 8자 이상, 소문자, 숫자, 특수문자를 포함해야 합니다.
+        </div>
+      )}
 
       <button
         type="submit"
-        disabled={isLoading || !formData.email || !formData.password}
+        disabled={
+          isLoading ||
+          !formData.email ||
+          !formData.password ||
+          !!validationErrors.email ||
+          !!validationErrors.password
+        }
         className="mt-6 p-4 w-full text-white bg-violet-700 rounded-md font-semibold hover:bg-violet-800 disabled:bg-violet-400 transition-colors duration-200"
       >
         {isLoading ? "로그인 중..." : "로그인"}

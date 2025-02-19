@@ -29,7 +29,6 @@ import {
   ArrowUpLeft,
 } from "lucide-react";
 
-import { TabType } from "@/types/components/video/videoDetail";
 import { useUserStore } from "@/stores/userStore";
 import useForkVideoStore from "@/stores/forkVideoStore";
 
@@ -37,20 +36,20 @@ import { likeProject, unlikeProject, bookProject, unbookProject } from "@/api/pr
 
 // 애니메이션 variants 정의
 const variants = {
-  enter: (direction : number) => ({
+  enter: (direction: number) => ({
     x: direction > 0 ? 1000 : -1000,
-    opacity: 0
+    opacity: 0,
   }),
   center: {
     zIndex: 1,
     x: 0,
-    opacity: 1
+    opacity: 1,
   },
-  exit: (direction : number) => ({
+  exit: (direction: number) => ({
     zIndex: 0,
     x: direction < 0 ? 1000 : -1000,
-    opacity: 0
-  })
+    opacity: 0,
+  }),
 };
 
 // 스와이프 감도 설정
@@ -59,19 +58,30 @@ const swipePower = (offset: number, velocity: number) => {
   return Math.abs(offset) * velocity;
 };
 
-type RedirectSource = 'project-edit' | 'project-create' | 'project-detail' | 'project-fork';
+type RedirectSource =
+  | "project-edit"
+  | "project-create"
+  | "project-detail"
+  | "project-fork";
 
 // 형제 프로젝트 조회 API 함수
-const getSiblingProject = async (currentProjectId: number, direction: 'next' | 'before') => {
+const getSiblingProject = async (
+  currentProjectId: number,
+  direction: "next" | "before"
+) => {
   try {
-    const response = await fetch(`/api/v1/project/get/sibling?currentProjectId=${currentProjectId}&direction=${direction}`);
-    if (!response.ok) throw new Error('Failed to fetch sibling project');
+    const response = await fetch(
+      `/api/v1/project/get/sibling?currentProjectId=${currentProjectId}&direction=${direction}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch sibling project");
     return await response.json();
   } catch (error) {
-    console.error('Error fetching sibling project:', error);
+    console.error("Error fetching sibling project:", error);
     return null;
   }
 };
+
+type TabType = "comments" | "settings" | "contributors" | "showTree" | null;
 
 const ProjectDetailContainer = () => {
   const params = useParams();
@@ -121,9 +131,10 @@ const ProjectDetailContainer = () => {
         setProjectData(response);
         setError(null);
       } catch (err) {
-        const errorMessage = err instanceof Error
-          ? err.message
-          : "프로젝트 정보를 불러오는데 실패했습니다.";
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "프로젝트 정보를 불러오는데 실패했습니다.";
         setError(errorMessage);
         console.error("Error fetching project data:", err);
       } finally {
@@ -165,60 +176,70 @@ const ProjectDetailContainer = () => {
   }, [projectId]);
 
   const paginate = useCallback((newDirection: number) => {
-    setPage(prev => [prev[0] + newDirection, newDirection]);
+    setPage((prev) => [prev[0] + newDirection, newDirection]);
   }, []);
 
-  const handleSiblingNavigation = useCallback(async (direction: 'next' | 'before') => {
-    if (!projectId || siblingLoading) return;
+  const handleSiblingNavigation = useCallback(
+    async (direction: "next" | "before") => {
+      if (!projectId || siblingLoading) return;
 
-    try {
-      setSiblingLoading(true);
-      paginate(direction === 'next' ? 1 : -1);
+      try {
+        setSiblingLoading(true);
+        paginate(direction === "next" ? 1 : -1);
 
-      const siblingProject = await getSiblingProject(parseInt(projectId), direction);
+        const siblingProject = await getSiblingProject(
+          parseInt(projectId),
+          direction
+        );
 
-      if (siblingProject) {
-        navigate(`/project/${siblingProject.projectId}`);
-      } else {
-        alert(direction === 'next' ? "다음 프로젝트가 없습니다." : "이전 프로젝트가 없습니다.");
-        paginate(direction === 'next' ? -1 : 1);
+        if (siblingProject) {
+          navigate(`/project/${siblingProject.projectId}`);
+        } else {
+          alert(
+            direction === "next"
+              ? "다음 프로젝트가 없습니다."
+              : "이전 프로젝트가 없습니다."
+          );
+          paginate(direction === "next" ? -1 : 1);
+        }
+      } catch (error) {
+        console.error(`Error navigating to ${direction} project:`, error);
+        alert("프로젝트 이동 중 오류가 발생했습니다.");
+        paginate(direction === "next" ? -1 : 1);
+      } finally {
+        setSiblingLoading(false);
       }
-    } catch (error) {
-      console.error(`Error navigating to ${direction} project:`, error);
-      alert("프로젝트 이동 중 오류가 발생했습니다.");
-      paginate(direction === 'next' ? -1 : 1);
-    } finally {
-      setSiblingLoading(false);
-    }
-  }, [projectId, siblingLoading, navigate, paginate]);
+    },
+    [projectId, siblingLoading, navigate, paginate]
+  );
 
   // 키보드 네비게이션
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (!siblingLoading) {
-        if (event.key === 'ArrowLeft') {
-          handleSiblingNavigation('before');
-        } else if (event.key === 'ArrowRight') {
-          handleSiblingNavigation('next');
+        if (event.key === "ArrowLeft") {
+          handleSiblingNavigation("before");
+        } else if (event.key === "ArrowRight") {
+          handleSiblingNavigation("next");
         }
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
   }, [projectId, siblingLoading, handleSiblingNavigation]);
 
   const handleTabClick = (tab: TabType) => {
-    if (tab === 'showTree') navigate('tree');
+    if (tab === "showTree") navigate("tree");
     setActiveTab(activeTab === tab ? null : tab);
   };
 
   const handleForkClick = (type: RedirectSource) => {
     if (projectData) {
       alert("Blend 페이지로 이동합니다!");
-        setOriginalProjectData(projectData);
-        setRedirectState(projectData, type);
-        navigate('/fork/record');
+      setOriginalProjectData(projectData);
+      setRedirectState(projectData, type);
+      navigate("/fork/record");
     }
   };
 
@@ -253,9 +274,9 @@ const ProjectDetailContainer = () => {
       }
       setBookmarkFilled(!bookmarkFilled);
     } catch (error) {
-      alert(error)
+      alert(error);
     }
-  }
+  };
 
   const renderLoadingState = () => (
     <div className="flex items-center justify-center h-screen">
@@ -400,7 +421,7 @@ const ProjectDetailContainer = () => {
           <div className="flex flex-col justify-center items-center p-4">
             <InteractionButton
               icon={ArrowLeftCircle}
-              onClick={() => handleSiblingNavigation('before')}
+              onClick={() => handleSiblingNavigation("before")}
               size={8}
               disabled={siblingLoading}
             />
@@ -417,7 +438,7 @@ const ProjectDetailContainer = () => {
                 exit="exit"
                 transition={{
                   x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }
+                  opacity: { duration: 0.2 },
                 }}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
@@ -426,9 +447,9 @@ const ProjectDetailContainer = () => {
                   const swipe = swipePower(offset.x, velocity.x);
 
                   if (swipe < -swipeConfidenceThreshold) {
-                    handleSiblingNavigation('next');
+                    handleSiblingNavigation("next");
                   } else if (swipe > swipeConfidenceThreshold) {
-                    handleSiblingNavigation('before');
+                    handleSiblingNavigation("before");
                   }
                 }}
                 className="w-full h-full flex"
@@ -444,7 +465,7 @@ const ProjectDetailContainer = () => {
                         name: projectData.authorNickname,
                         profileImage: projectData.authorProfileImage,
                       },
-                      viewCnt: projectData.viewCnt
+                      viewCnt: projectData.viewCnt,
                     }}
                     isPortrait={true}
                   />
@@ -454,7 +475,9 @@ const ProjectDetailContainer = () => {
                 </div>
 
                 <SidePanel
-                  activeTab={activeTab && activeTab !== 'showTree' ? activeTab : null}
+                  activeTab={
+                    activeTab && activeTab !== "showTree" ? activeTab : null
+                  }
                   content={renderSidePanelContent()}
                 />
               </motion.div>
@@ -464,7 +487,7 @@ const ProjectDetailContainer = () => {
           <div className="flex flex-col justify-center p-4">
             <InteractionButton
               icon={ArrowRightCircle}
-              onClick={() => handleSiblingNavigation('next')}
+              onClick={() => handleSiblingNavigation("next")}
               size={8}
               disabled={siblingLoading}
             />

@@ -1,16 +1,20 @@
-// src/hooks/useChatMessages.ts
+// src/hooks/chat/useChatMessages.ts
 import { useCallback, useMemo } from "react";
 import { useChatStore } from "@/stores/chatStore";
 import type { ChatMessage } from "@/types/api/chat";
 import { useUserStore } from "@/stores/userStore";
 
+interface ProcessedMessage extends ChatMessage {
+  isOwnMessage: boolean;
+}
+
 export const useChatMessages = (roomId: number) => {
   const { messagesByRoom, addMessage, clearMessages } = useChatStore();
   const currentUser = useUserStore((state) => state.currentUser);
 
-  // 메시지 처리 (isOwnMessage 추가)
+  // 메시지 처리: isOwnMessage 속성 추가
   const processedMessages = useMemo(() => {
-    return (messagesByRoom[roomId] || []).map((message) => ({
+    return (messagesByRoom[roomId] || []).map((message: ChatMessage) => ({
       ...message,
       isOwnMessage: message.userId === currentUser?.id,
     }));
@@ -21,7 +25,7 @@ export const useChatMessages = (roomId: number) => {
     () =>
       [...processedMessages].sort(
         (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       ),
     [processedMessages]
   );
@@ -30,22 +34,34 @@ export const useChatMessages = (roomId: number) => {
   const groupMessagesByDate = useCallback(() => {
     return sortedMessages.reduce(
       (groups, message) => {
-        const date = new Date(message.timestamp).toLocaleDateString();
+        const date = new Date(message.createdAt).toLocaleDateString();
         if (!groups[date]) {
           groups[date] = [];
         }
         groups[date].push(message);
         return groups;
       },
-      {} as Record<string, ChatMessage[]>
+      {} as Record<string, ProcessedMessage[]>
     );
   }, [sortedMessages]);
+
+  // 새 메시지 추가 핸들러
+  const handleAddMessage = useCallback(
+    (message: ChatMessage) => {
+      if (message.chatRoomId === roomId) {
+        addMessage(message);
+      }
+    },
+    [roomId, addMessage]
+  );
 
   return {
     messages: sortedMessages,
     groupedMessages: groupMessagesByDate(),
-    addMessage,
+    addMessage: handleAddMessage,
     clearMessages,
     currentUser,
   };
 };
+
+export default useChatMessages;

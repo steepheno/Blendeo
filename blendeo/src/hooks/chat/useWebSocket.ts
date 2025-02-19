@@ -1,14 +1,18 @@
+// src/hooks/chat/useWebSocket.ts
 import { useEffect, useCallback, useRef } from "react";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
+import type { ChatStore } from "@/stores/chatStore";
 
 interface WebSocketHookResult {
-  sendMessage: (content: string) => void;
+  sendMessage: (content: string, createdAt?: string) => void;
   closeConnection: () => void;
   isConnected: boolean;
 }
 
 export const useWebSocket = (): WebSocketHookResult => {
+  const hasInitialized = useRef(false);
+
   const {
     currentRoom,
     wsStatus,
@@ -16,12 +20,10 @@ export const useWebSocket = (): WebSocketHookResult => {
     connectWebSocket,
     disconnectWebSocket,
     sendMessage: storeSendMessage,
-  } = useChatStore();
+  } = useChatStore() as ChatStore;
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const userId = useAuthStore((state) => state.userId);
-
-  const hasInitialized = useRef(false);
 
   // 초기 연결 설정
   useEffect(() => {
@@ -45,7 +47,7 @@ export const useWebSocket = (): WebSocketHookResult => {
 
   // 메시지 전송 메서드
   const sendMessage = useCallback(
-    (content: string) => {
+    (content: string, createdAt?: string) => {
       if (!isAuthenticated || !userId) {
         console.error("User is not authenticated");
         return;
@@ -63,7 +65,7 @@ export const useWebSocket = (): WebSocketHookResult => {
       }
 
       try {
-        storeSendMessage(content);
+        storeSendMessage(content, createdAt);
       } catch (error) {
         console.error("Error sending message:", error);
       }
@@ -93,3 +95,5 @@ export const useWebSocket = (): WebSocketHookResult => {
     ),
   };
 };
+
+export default useWebSocket;

@@ -3,6 +3,7 @@ import { InputHTMLAttributes } from "react";
 export interface BaseInputProps extends InputHTMLAttributes<HTMLInputElement> {
   id: string;
   "aria-label": string;
+  error?: boolean;
 }
 
 export interface SignupInputProps extends BaseInputProps {

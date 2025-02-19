@@ -3,9 +3,7 @@ import { devtools } from "zustand/middleware";
 import { VideoData, TrimData } from "../types/components/recording/video";
 import { uploadBlendedVideo, createProject } from "@/api/project";
 // import { SimpleProjectData } from "@/types/api/project";
-import {
-  CreateProjectRequest,
-} from "@/types/api/project";
+import { CreateProjectRequest } from "@/types/api/project";
 
 interface VideoStore {
   // State

@@ -6,7 +6,7 @@ import VideoGrid from "@/components/common/VideoGrid";
 import VideoCard from "@/components/common/VideoCard";
 import TabNavigation from "@/components/common/TabNavigation";
 import HeroSection from "@/components/mainpage/HeroSection";
-import GenreSection from "@/components/mainpage/GenreSection";
+// import GenreSection from "@/components/mainpage/GenreSection";
 import useMainPageStore from "@/stores/mainPageStore";
 import type { ProjectType } from "@/stores/mainPageStore";
 
@@ -40,9 +40,9 @@ const MainPage = () => {
     setActiveTab(tab as ProjectType);
   }, [setActiveTab]);
 
-  const handleGenreSelect = useCallback((genre: string) => {
-    console.log("Selected genre:", genre);
-  }, []);
+  // const handleGenreSelect = useCallback((genre: string) => {
+  //   console.log("Selected genre:", genre);
+  // }, []);
 
   useEffect(() => {
     fetchProjects(activeTab);    
@@ -57,11 +57,11 @@ const MainPage = () => {
           tabs={mainTabs}
           onTabChange={handleTabChange}
         />
-        <GenreSection
-          selectedGenre="All"  // store로 이동 가능
+        {/* <GenreSection
+          selectedGenre="All"
 
           onGenreSelect={handleGenreSelect}
-        />
+        /> */}
         <VideoGrid type="uploaded">
           {projects.map((project) => (
             <VideoCard

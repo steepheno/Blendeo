@@ -22,43 +22,46 @@ const VerificationInput = React.forwardRef<
     },
     ref
   ) => (
-    <div className="flex items-center gap-2.5 mb-4 w-full">
-      <SignupInput
-        ref={ref}
-        type={type}
-        placeholder={placeholder}
-        className={className}
-        id={id}
-        aria-label={ariaLabel}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        {...props}
-      />
-      <button
-        onClick={onVerify}
-        disabled={disabled}
-        className="
-          px-4 
-          py-0 
-          h-12 
-          text-xl 
-          font-semibold 
-          text-white 
-          whitespace-nowrap 
-          bg-violet-700 
-          rounded-3xl 
-          cursor-pointer 
-          border-[none]
-          transition-colors
-          hover:bg-violet-800
-          disabled:opacity-50
-          disabled:cursor-not-allowed
-        "
-        type="button"
-      >
-        {buttonText}
-      </button>
+    <div className="relative w-full">
+      <div className="flex items-center w-full">
+        <SignupInput
+          ref={ref}
+          type={type}
+          placeholder={placeholder}
+          className={className}
+          id={id}
+          aria-label={ariaLabel}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          {...props}
+        />
+        <button
+          onClick={onVerify}
+          disabled={disabled}
+          className="
+            absolute
+            right-2
+            top-1/2
+            -translate-y-1
+            px-4
+            text-sm
+            font-semibold
+            text-violet-700
+            bg-transparent
+            rounded-md
+            transition-colors
+            hover:bg-violet-50
+            disabled:opacity-50
+            disabled:cursor-not-allowed
+            disabled:hover:bg-transparent
+
+          "
+          type="button"
+        >
+          {buttonText}
+        </button>
+      </div>
     </div>
   )
 );
