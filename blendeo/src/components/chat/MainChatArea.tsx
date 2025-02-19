@@ -83,6 +83,14 @@ const MainChatArea = ({ setChatWindowOpened }: MainChatAreaProps) => {
     }
   };
 
+  const handleProfileClick = (userId: number) => {
+    if (userId === user?.id) {
+      navigate("/profile/me");
+    } else {
+      navigate(`/profile/${userId}`);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       <header className="flex items-center gap-2 border-b p-4">
@@ -139,7 +147,10 @@ const MainChatArea = ({ setChatWindowOpened }: MainChatAreaProps) => {
                       : "flex-row"
                   )}
                 >
-                  <Avatar className="h-8 w-8 flex-shrink-0">
+                  <Avatar
+                    className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80"
+                    onClick={() => handleProfileClick(message.userId)}
+                  >
                     <AvatarImage
                       src={
                         message.userId === user?.id
@@ -167,9 +178,10 @@ const MainChatArea = ({ setChatWindowOpened }: MainChatAreaProps) => {
                   >
                     <span
                       className={cn(
-                        "text-sm font-medium",
+                        "text-sm font-medium cursor-pointer hover:text-blue-600",
                         message.userId === user?.id ? "text-right" : "text-left"
                       )}
+                      onClick={() => handleProfileClick(message.userId)}
                     >
                       {message.userId === user?.id
                         ? "나"
