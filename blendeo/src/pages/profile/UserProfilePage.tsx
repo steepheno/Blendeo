@@ -1,17 +1,19 @@
-import { MessageSquare } from 'lucide-react';
-import { useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { MessageSquare } from "lucide-react";
+import { useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
-import Layout from '@/components/layout/Layout';
-import VideoGrid from '@/components/common/VideoGrid';
-import VideoCard from '@/components/common/VideoCard';
-import TabNavigation from '@/components/common/TabNavigation';
+import Layout from "@/components/layout/Layout";
+import VideoGrid from "@/components/common/VideoGrid";
+import VideoCard from "@/components/common/VideoCard";
+import TabNavigation from "@/components/common/TabNavigation";
+import { chatAPI } from "@/api/chat";
 
-import { ProjectType } from '@/stores/userPageStore';
-import useUserPageStore from '@/stores/userPageStore';
+import { ProjectType } from "@/stores/userPageStore";
+import useUserPageStore from "@/stores/userPageStore";
+import { useAuthStore } from "@/stores/authStore";
 
-import noUserImg from "@/assets/no_user.jpg"
-import noHeaderImg from "@/assets/defaultHeader.png"
+import noUserImg from "@/assets/no_user.jpg";
+import noHeaderImg from "@/assets/defaultHeader.png";
 
 const useProfileData = (userId: number) => {
   const {
@@ -23,13 +25,13 @@ const useProfileData = (userId: number) => {
     getProjectLoading,
     getHasMoreProjects,
     fetchInitialData,
-    setActiveTab
+    setActiveTab,
   } = useUserPageStore();
 
   useEffect(() => {
     if (userId) {
       fetchInitialData(userId);
-      setActiveTab('uploaded');
+      setActiveTab("uploaded");
     }
   }, [userId, fetchInitialData, setActiveTab]);
 
@@ -47,7 +49,8 @@ const useProfileData = (userId: number) => {
 const UserProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  
+  const { user: currentUser } = useAuthStore();
+
   const {
     user,
     userLoading,
@@ -58,17 +61,64 @@ const UserProfile = () => {
     getHasMoreProjects,
   } = useProfileData(parseInt(userId as string));
 
-  const {
-    activeTab,
-    setActiveTab,
-    loadMore,
-    followUser,
-    unfollowUser,
-  } = useUserPageStore();
+  const { activeTab, setActiveTab, loadMore, followUser, unfollowUser } =
+    useUserPageStore();
+
+  const handleMessageClick = useCallback(async () => {
+    if (!currentUser || !userId || !user) {
+      alert("로그인 후에 메시지를 보낼 수 있어요!");
+      navigate("/auth/signin", { state: { from: `/profile/${userId}` } });
+      return;
+    }
+
+    try {
+      const rooms = await chatAPI.getRooms();
+      const existingRoom = rooms.find((room) => {
+        const participants = room.participants || [];
+        const participantIds = participants.map((p) => p.id);
+        return (
+          participants.length === 2 &&
+          participantIds.includes(currentUser.id) &&
+          participantIds.includes(parseInt(userId))
+        );
+      });
+
+      if (existingRoom) {
+        navigate(`/chat`, {
+          state: { roomId: existingRoom.id, openChat: true },
+        });
+      } else {
+        const response = await chatAPI.createRoom([
+          currentUser.id,
+          parseInt(userId),
+        ]);
+
+        if (!response) {
+          throw new Error("채팅방 생성 응답이 없습니다.");
+        }
+
+        const roomId = response.roomId;
+        if (!roomId) {
+          throw new Error("생성된 채팅방 ID를 찾을 수 없습니다.");
+        }
+
+        navigate(`/chat`, {
+          state: { roomId: roomId, openChat: true },
+        });
+      }
+    } catch (error) {
+      console.error("채팅방 처리 중 상세 오류:", error);
+      if (error instanceof Error) {
+        alert(`채팅방 생성 실패: ${error.message}`);
+      } else {
+        alert("채팅방을 생성하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      }
+    }
+  }, [currentUser, userId, user, navigate]);
 
   const handleFollowClick = useCallback(async () => {
     if (!userId || !user) return;
-    
+
     try {
       if (followData.isFollowing) {
         await unfollowUser(parseInt(userId));
@@ -78,21 +128,32 @@ const UserProfile = () => {
     } catch (error) {
       alert("로그인 후에 팔로우할 수 있어요!");
       navigate("/auth/signin", { state: { from: `/profile/${userId}` } });
-      console.error('Failed to follow/unfollow:', error);
+      console.error("Failed to follow/unfollow:", error);
     }
-  }, [userId, user, followData.isFollowing, followUser, unfollowUser, navigate]);
+  }, [
+    userId,
+    user,
+    followData.isFollowing,
+    followUser,
+    unfollowUser,
+    navigate,
+  ]);
 
-  const userTabs = [
-    { id: "uploaded", label: "업로드한 영상" },
-  ];
+  const userTabs = [{ id: "uploaded", label: "업로드한 영상" }];
 
-  const handleProjectClick = useCallback((projectId: number) => {
-    navigate(`/project/${projectId}`);
-  }, [navigate]);
+  const handleProjectClick = useCallback(
+    (projectId: number) => {
+      navigate(`/project/${projectId}`);
+    },
+    [navigate]
+  );
 
-  const handleTabChange = useCallback((tab: string) => {
-    setActiveTab(tab as ProjectType);
-  }, [setActiveTab]);
+  const handleTabChange = useCallback(
+    (tab: string) => {
+      setActiveTab(tab as ProjectType);
+    },
+    [setActiveTab]
+  );
 
   if (userLoading) {
     return (
@@ -106,7 +167,7 @@ const UserProfile = () => {
 
   if (userError || !user) {
     console.log(userError, user);
-    
+
     return (
       <Layout showNotification>
         <div className="w-full h-screen flex items-center justify-center">
@@ -174,22 +235,25 @@ const UserProfile = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   onClick={handleFollowClick}
                   disabled={followData.loading}
                   className={`px-6 py-2 rounded-full ${
                     followData.isFollowing
-                      ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
                   } disabled:opacity-50`}
                 >
                   {followData.loading
-                    ? '처리 중...'
+                    ? "처리 중..."
                     : followData.isFollowing
-                    ? '언팔로우'
-                    : '팔로우'}
+                      ? "언팔로우"
+                      : "팔로우"}
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-full">
+                <button
+                  onClick={handleMessageClick}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
                   <MessageSquare className="w-6 h-6 text-gray-700" />
                 </button>
               </div>

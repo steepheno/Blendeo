@@ -8,20 +8,20 @@ import MainPage from "@/pages/main/MainPage";
 import ChatPage from "@/pages/chat/ChatPage";
 
 import ProjectDetailPage from "@/pages/project/ProjectDetailPage";
+import ForkRecordPage from "@/pages/fork/ForkRecordPage";
 
 import ProjectTreePage from "@/pages/project/ProjectTreePage";
 import UserProfilePage from "@/pages/profile/UserProfilePage";
 import MyProfilePage from "@/pages/profile/MyProfilePage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
-import VideoCallPage from "@/pages/chat/VideoCallPage";
+import VideoChatPage from "@/pages/chat/VideoChatPage";
+import ExplorePage from "@/pages/explore/ExplorePage";
 import InstrumentSelector from "@/components/signup/InstrumentSelector";
 
 import SeedRecordPage from "@/pages/seed/SeedRecodePage";
 import SeedEditPage from "@/pages/seed/SeedEditPage";
-import ForkRecordPage from "@/pages/fork/ForkRecordPage";
 import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
 import ForkEditor from "@/pages/fork/ForkEditPage";
-import ExplorePage from "@/pages/explore/ExplorePage";
 import ExploreFullScreenPage from "@/pages/explore/ExploreFullScreenPage";
 
 export const router = createBrowserRouter([
@@ -41,8 +41,12 @@ export const router = createBrowserRouter([
     path: "/explore",
     children: [
       { path: "", element: <ExplorePage /> },
-      { path: "full", element: <ExploreFullScreenPage/> },
+      { path: "full", element: <ExploreFullScreenPage /> },
     ],
+  },
+  {
+    path: "/explore",
+    children: [{ path: "", element: <ExplorePage /> }],
   },
   {
     path: "/seed",
@@ -157,7 +161,7 @@ export const router = createBrowserRouter([
         path: ":roomId/video", // /chat/:roomId/video
         element: (
           <ProtectedRoute>
-            <VideoCallPage />
+            <VideoChatPage />
           </ProtectedRoute>
         ),
       },

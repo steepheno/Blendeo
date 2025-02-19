@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
 interface VideoPlayerProps {
   videoUrl?: string;
@@ -6,14 +6,14 @@ interface VideoPlayerProps {
 }
 
 const PreciseVideoPlayer: React.FC<VideoPlayerProps> = ({
-  videoUrl = 'https://blendeo-s3-bucket.s3.ap-northeast-2.amazonaws.com/videos/origin_5b2cfbb3-ef57-4a0b-8b34-7a859edb476b.mp4',
-  initialLoops = 4
+  videoUrl = "https://blendeo-s3-bucket.s3.ap-northeast-2.amazonaws.com/videos/origin_5b2cfbb3-ef57-4a0b-8b34-7a859edb476b.mp4",
+  initialLoops = 4,
 }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentLoop, setCurrentLoop] = useState<number>(0);
   const [maxLoops, setMaxLoops] = useState<number>(initialLoops);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  
+
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
@@ -24,11 +24,12 @@ const PreciseVideoPlayer: React.FC<VideoPlayerProps> = ({
     if (currentLoop < maxLoops - 1) {
       if (videoRef.current) {
         videoRef.current.currentTime = 0;
-        void videoRef.current.play()
-          .then(() => console.log('Video restarted successfully'))
-          .catch((err: Error) => console.error('Error restarting video:', err));
+        void videoRef.current
+          .play()
+          .then(() => console.log("Video restarted successfully"))
+          .catch((err: Error) => console.error("Error restarting video:", err));
       }
-      
+
       setCurrentLoop((prev) => prev + 1);
     } else {
       setIsPlaying(false);
@@ -40,9 +41,10 @@ const PreciseVideoPlayer: React.FC<VideoPlayerProps> = ({
     if (!isPlaying && videoRef.current) {
       setIsPlaying(true);
       videoRef.current.currentTime = 0;
-      void videoRef.current.play()
-        .then(() => console.log('Playback started successfully'))
-        .catch((err: Error) => console.error('Error starting playback:', err));
+      void videoRef.current
+        .play()
+        .then(() => console.log("Playback started successfully"))
+        .catch((err: Error) => console.error("Error starting playback:", err));
     }
   };
 
@@ -94,7 +96,9 @@ const PreciseVideoPlayer: React.FC<VideoPlayerProps> = ({
       </div>
 
       <div className="flex items-center space-x-2">
-        <label htmlFor="loopCount" className="text-sm">반복 횟수:</label>
+        <label htmlFor="loopCount" className="text-sm">
+          반복 횟수:
+        </label>
         <input
           id="loopCount"
           type="number"

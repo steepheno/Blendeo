@@ -1,11 +1,11 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
-import * as THREE from 'three';
-import { useNavigate, NavigateFunction } from 'react-router-dom';
-import { getAllNodes, getNodeInfo } from '@/api/explore';
-import type ForceGraph3D from 'react-force-graph-3d';
-import { format } from 'date-fns';
-import { Maximize2, Eye, Users, X, Clock, Heart } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
+import { useRef, useCallback, useEffect, useState } from "react";
+import * as THREE from "three";
+import { useNavigate, NavigateFunction } from "react-router-dom";
+import { getAllNodes, getNodeInfo } from "@/api/explore";
+import type ForceGraph3D from "react-force-graph-3d";
+import { format } from "date-fns";
+import { Maximize2, Eye, Users, X, Clock, Heart } from "lucide-react";
+import Layout from "@/components/layout/Layout";
 
 export interface GraphData {
   nodes: Node[];
@@ -75,7 +75,7 @@ const ExplorePage = (): JSX.Element => {
   const [graphData, setGraphData] = useState<GraphData>(initialData);
 
   useEffect(() => {
-    void import('react-force-graph-3d').then((module) => {
+    void import("react-force-graph-3d").then((module) => {
       setGraph3D(() => module.default);
     });
   }, []);
@@ -100,7 +100,7 @@ const ExplorePage = (): JSX.Element => {
 
         setGraphData({ nodes: allNodes, links: allLinks });
       } catch (error) {
-        console.error('Error fetching graph data:', error);
+        console.error("Error fetching graph data:", error);
       }
     };
 
@@ -149,7 +149,7 @@ const ExplorePage = (): JSX.Element => {
     }
 
     starsGeometry.setAttribute(
-      'position',
+      "position",
       new THREE.Float32BufferAttribute(starPositions, 3)
     );
 
@@ -172,8 +172,12 @@ const ExplorePage = (): JSX.Element => {
         const response = await getNodeInfo(node.projectId);
         setSelectedNode(response as Project);
 
-        if (typeof node.x === 'undefined' || typeof node.y === 'undefined' || typeof node.z === 'undefined') {
-          console.warn('Node position coordinates are undefined');
+        if (
+          typeof node.x === "undefined" ||
+          typeof node.y === "undefined" ||
+          typeof node.z === "undefined"
+        ) {
+          console.warn("Node position coordinates are undefined");
           return;
         }
 
@@ -188,7 +192,7 @@ const ExplorePage = (): JSX.Element => {
 
         fgRef.current.cameraPosition(newPosition, node, 3000);
       } catch (error) {
-        console.error('Error in handleNodeClick:', error);
+        console.error("Error in handleNodeClick:", error);
       }
     },
     [fgRef]
@@ -208,7 +212,7 @@ const ExplorePage = (): JSX.Element => {
   }, [Graph3D, initStarField]);
 
   const handleClick = useCallback(() => {
-    navigate('/explore/full');
+    navigate("/explore/full");
   }, [navigate]);
 
   useEffect(() => {
@@ -219,15 +223,17 @@ const ExplorePage = (): JSX.Element => {
 
   return (
     <Layout showRightSidebar={false}>
-      <div className="relative w-full h-[calc(100vh-82px)] bg-black/95" ref={containerRef}>
-      <button
-        onClick={handleClick}
-        className="absolute top-6 right-6 z-50 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white/90 hover:text-white transition-all duration-300 backdrop-blur-sm"
-        aria-label="전체화면"
+      <div
+        className="relative w-full h-[calc(100vh-82px)] bg-black/95"
+        ref={containerRef}
       >
-        <Maximize2 className="w-5 h-5" />
-      </button>
-      
+        <button
+          onClick={handleClick}
+          className="absolute top-6 right-6 z-50 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white/90 hover:text-white transition-all duration-300 backdrop-blur-sm"
+          aria-label="전체화면"
+        >
+          <Maximize2 className="w-5 h-5" />
+        </button>
 
         {selectedNode && (
           <div className="absolute left-6 top-6 z-10 max-w-xs rounded-3xl bg-black/90 shadow-2xl backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-500 ease-in-out">
@@ -258,16 +264,23 @@ const ExplorePage = (): JSX.Element => {
               <div className="flex items-center gap-4">
                 <div className="relative h-14 w-14 rounded-full overflow-hidden ring-2 ring-white/20">
                   <img
-                    src={selectedNode.authorProfileImage || '/api/placeholder/56/56'}
+                    src={
+                      selectedNode.authorProfileImage ||
+                      "/api/placeholder/56/56"
+                    }
                     alt={`${selectedNode.authorNickname}'s profile`}
                     className="h-full w-full object-cover"
                   />
                 </div>
                 <div>
-                  <p className="font-small text-white/90">{selectedNode.authorNickname}</p>
+                  <p className="font-small text-white/90">
+                    {selectedNode.authorNickname}
+                  </p>
                   <div className="flex items-center gap-2 mt-1 text-xs text-white/50">
                     <Clock className="w-4 h-4" />
-                    <span>{format(new Date(selectedNode.createdAt), 'yyyy.MM.dd')}</span>
+                    <span>
+                      {format(new Date(selectedNode.createdAt), "yyyy.MM.dd")}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -279,7 +292,9 @@ const ExplorePage = (): JSX.Element => {
                 </div>
                 <div className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-3 rounded-2xl text-xs text-white/80 transition-colors">
                   <Users className="h-4 w-4" />
-                  <span className="font-medium">{selectedNode.contributorCnt}</span>
+                  <span className="font-medium">
+                    {selectedNode.contributorCnt}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-3 rounded-2xl text-xs text-white/80 transition-colors">
                   <Heart className="h-4 w-4" />
@@ -287,18 +302,19 @@ const ExplorePage = (): JSX.Element => {
                 </div>
               </div>
 
-              {selectedNode.projectInstruments && selectedNode.projectInstruments.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {selectedNode.projectInstruments.map((instrument) => (
-                    <div
-                      key={instrument.instrument_id}
-                      className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full text-xs text-white/80 transition-colors"
-                    >
-                      <span>{instrument.instrument_name}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {selectedNode.projectInstruments &&
+                selectedNode.projectInstruments.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedNode.projectInstruments.map((instrument) => (
+                      <div
+                        key={instrument.instrument_id}
+                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full text-xs text-white/80 transition-colors"
+                      >
+                        <span>{instrument.instrument_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
               {/* Content */}
               {selectedNode.contents && (
@@ -314,27 +330,27 @@ const ExplorePage = (): JSX.Element => {
 
         {/* 3D Graph */}
         {Graph3D && (
-        <Graph3D
-          ref={fgRef}
-          graphData={graphData}
-          nodeThreeObject={createNodeThreeObject}
-          nodeLabel="title"
-          nodeAutoColorBy="projectId"
-          onNodeClick={handleNodeClick}
-          backgroundColor="#000011"
-          nodeResolution={12}
-          nodeRelSize={8}
-          linkColor={() => "rgba(255, 255, 255, 0.2)"}
-          linkWidth={0.3}
-          linkOpacity={0.4}
-          linkDirectionalParticles={2}
-          linkDirectionalParticleWidth={1}
-          linkDirectionalParticleSpeed={0.005}
-          nodeId="projectId"
-          width={window.innerWidth - 240}
-          height={window.innerHeight - 82}
-          showNavInfo={false}
-        />
+          <Graph3D
+            ref={fgRef}
+            graphData={graphData}
+            nodeThreeObject={createNodeThreeObject}
+            nodeLabel="title"
+            nodeAutoColorBy="projectId"
+            onNodeClick={handleNodeClick}
+            backgroundColor="#000011"
+            nodeResolution={12}
+            nodeRelSize={8}
+            linkColor={() => "rgba(255, 255, 255, 0.2)"}
+            linkWidth={0.3}
+            linkOpacity={0.4}
+            linkDirectionalParticles={2}
+            linkDirectionalParticleWidth={1}
+            linkDirectionalParticleSpeed={0.005}
+            nodeId="projectId"
+            width={window.innerWidth - 240}
+            height={window.innerHeight - 82}
+            showNavInfo={false}
+          />
         )}
       </div>
     </Layout>

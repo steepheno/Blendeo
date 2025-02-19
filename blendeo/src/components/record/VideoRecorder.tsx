@@ -74,7 +74,6 @@ const DIMENSIONS: DimensionsMap = {
 };
 
 const COUNTDOWN_OPTIONS = [0, 3, 5, 10, 30] as const;
-const MAX_RECORDING_TIME = 300; // 5분(300초) 제한
 
 interface Position {
   x: number;
@@ -169,7 +168,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 }) => {
   const navigate = useNavigate();
   const { setVideoData } = useVideoStore();
-  const [timer, setTimer] = useState(0);
+  const [timer, _setTimer] = useState(0);
 
   const [orientation, setOrientation] = useState<Orientation>("portrait");
   const [isRecording, setIsRecording] = useState(false);
@@ -193,16 +192,15 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
   const chunksRef = useRef<Blob[]>([]);
   const countdownTimerRef = useRef<NodeJS.Timeout>();
   const recordingTimerRef = useRef<NodeJS.Timeout>();
-  const recordingTimeIntervalRef = useRef<NodeJS.Timeout>();
 
   const [metronomeEnabled, setMetronomeEnabled] = useState(false);
   const [bpm, setBpm] = useState(120);
-  const [metronomeAudio, setMetronomeAudio] = useState<AudioContext | null>(
+  const [_metronomeAudio, _setMetronomeAudio] = useState<AudioContext | null>(
     null
   );
 
   const [timeSignature, setTimeSignature] = useState(4);
-  const [currentBeat, setCurrentBeat] = useState(1);
+  const [_currentBeat, _setCurrentBeat] = useState(1);
 
   // 가이드라인 내용
   const guideSteps = [
@@ -346,26 +344,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     setIsFlipped((prev) => !prev);
   };
 
-  useEffect(() => {
-    if (isRecording) {
-      recordingTimeIntervalRef.current = setInterval(() => {
-        setTimer((prev) => {
-          if (prev >= MAX_RECORDING_TIME) {
-            stopRecording();
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (recordingTimeIntervalRef.current) {
-        clearInterval(recordingTimeIntervalRef.current);
-      }
-    };
-  }, [isRecording]);
-
   const initializeRecording = useCallback((): void => {
     if (!streamRef.current) {
       handleError("카메라가 준비되지 않았습니다.");
@@ -498,81 +476,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     }
     cancelCountdown();
   }, [isRecording, cancelCountdown]);
-
-  // 메트로놈 사운드 생성 함수
-  const createMetronomeSound = () => {
-    const audioContext = new AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = 880; // A5 음
-    gainNode.gain.value = 0;
-
-    oscillator.start();
-
-    return { audioContext, oscillator, gainNode };
-  };
-
-  // 메트로놈 틱 소리 재생
-  const playTick = (gainNode: GainNode) => {
-    const now = gainNode.context.currentTime;
-    gainNode.gain.cancelScheduledValues(now);
-    gainNode.gain.setValueAtTime(1, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-  };
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    if (metronomeEnabled) {
-      const { audioContext, gainNode } = createMetronomeSound();
-      setMetronomeAudio(audioContext);
-
-      // BPM에 따른 간격 계산
-      const interval = (60 / bpm) * 1000;
-
-      intervalId = setInterval(() => {
-        playTick(gainNode);
-        // currentBeat 업데이트
-        setCurrentBeat((prev) => (prev % timeSignature) + 1);
-      }, interval);
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-      if (metronomeAudio) {
-        metronomeAudio.close();
-        setMetronomeAudio(null);
-      }
-      // 메트로놈 중지 시 박자 초기화
-      setCurrentBeat(1);
-    };
-  }, [metronomeEnabled, bpm, timeSignature]);
-
-  interface VisualMetronomeProps {
-    bpm: number;
-    timeSignature: number;
-    currentBeat: number;
-  }
-
-  const VisualMetronome: React.FC<VisualMetronomeProps> = ({
-    timeSignature,
-    currentBeat,
-  }) => (
-    <div className="flex gap-2 mt-2">
-      {Array.from({ length: timeSignature }).map((_, i) => (
-        <div
-          key={i}
-          className={`w-3 h-3 rounded-full transition-colors duration-100 ${
-            currentBeat - 1 === i ? "bg-violet-500 scale-110" : "bg-gray-200"
-          }`}
-        />
-      ))}
-    </div>
-  );
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -841,15 +744,15 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
               </span>
             </div>
           </div>
-
-          {/* 메트로놈 시각적 요소 */}
+          {/* 
+          메트로놈 시각적 요소
           {metronomeEnabled && (
             <VisualMetronome
               bpm={bpm}
               timeSignature={timeSignature}
               currentBeat={currentBeat}
             />
-          )}
+          )} */}
         </div>
       </DraggableToolbox>
     </div>
