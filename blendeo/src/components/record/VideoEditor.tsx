@@ -7,7 +7,7 @@ import { Progress } from "@radix-ui/react-progress";
 import { Slider } from "@radix-ui/react-slider";
 import { Card } from "../ui/card";
 
-const HANDLE_WIDTH = 6;
+// const HANDLE_WIDTH = 6;
 
 const VideoEditor: FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -180,10 +180,10 @@ const VideoEditor: FC = () => {
     }
   };
 
-  const getTimelinePosition = (time: number): number => {
-    if (!videoData?.duration) return 0;
-    return (time / videoData.duration) * timelineWidth;
-  };
+  // const getTimelinePosition = (time: number): number => {
+  //   if (!videoData?.duration) return 0;
+  //   return (time / videoData.duration) * timelineWidth;
+  // };
 
   const handleDrag = (
     type: "startTime" | "endTime",
