@@ -11,6 +11,9 @@ import { useUser, useAuthStore } from "@/stores/authStore";
 import useMyPageStore from "@/stores/myPageStore";
 import { ProjectType } from "@/stores/myPageStore";
 
+import axiosInstance from "@/api/axios";
+import { AxiosResponse } from "axios";
+
 import noUserImg from "@/assets/no_user.jpg"
 import noHeaderImg from "@/assets/defaultHeader.png"
 
@@ -97,6 +100,21 @@ const MyProfilePage = () => {
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab as ProjectType);
   }, [setActiveTab]);
+
+  // 회원 탈퇴
+  const deleteAccount = async () => {
+    if (window.confirm('정말 탈퇴하시겠습니까? 모든 데이터가 삭제되며 이 작업은 되돌릴 수 없습니다.')) {
+      try {
+        const response: AxiosResponse = await axiosInstance.delete('/user/delete-user');
+        sessionStorage.clear();  
+        alert("탈퇴 처리가 완료되었습니다.");
+        navigate("/");
+        console.log(response);
+      } catch (error) {
+        console.error("회원 탈퇴 처리 중 오류가 발생했습니다." + error);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated || !authUser?.id) {
@@ -197,13 +215,21 @@ const MyProfilePage = () => {
                 </div>
 
                 {isEditMode ? (
-                  <textarea
-                    value={editData.intro}
-                    onChange={(e) => updateEditData({ intro: e.target.value })}
-                    className="w-full mt-2 border rounded px-2 py-1"
-                    rows={3}
-                    placeholder="자기소개를 입력하세요"
-                  />
+                  <>
+                    <textarea
+                      value={editData.intro}
+                      onChange={(e) => updateEditData({ intro: e.target.value })}
+                      className="w-full mt-2 border rounded px-2 py-1"
+                      rows={3}
+                      placeholder="자기소개를 입력하세요"
+                    />
+                    {/* 탈퇴하기 버튼 */}
+                    <div className="flex justify-end mt-2">
+                      <span className="text-sm">
+                        <a onClick={deleteAccount} className="text-gray-300 cursor-pointer">탈퇴하기</a>
+                      </span> 
+                    </div>
+                  </>
                 ) : (
                   <p className="text-gray-600 text-sm mt-1">{profile.intro}</p>
                 )}

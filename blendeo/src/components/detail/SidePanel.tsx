@@ -11,9 +11,10 @@ const TAB_TITLES = {
 interface SidePanelProps {
   activeTab: "comments" | "settings" | "contributors" | "showTree" | null;
   content: React.ReactNode;
+  onClose: () => void;
 }
 
-const SidePanel = ({ activeTab, content }: SidePanelProps) => {
+const SidePanel = ({ activeTab, content, onClose }: SidePanelProps) => {
   if (!activeTab) return null;
 
   return (
@@ -25,7 +26,7 @@ const SidePanel = ({ activeTab, content }: SidePanelProps) => {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={() => {}}
+            onClick={onClose}
           >
             <X className="h-4 w-4" />
           </Button>
