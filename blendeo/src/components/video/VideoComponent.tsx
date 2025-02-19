@@ -7,6 +7,7 @@ import { StreamManager } from "openvidu-browser";
 interface VideoComponentProps {
   streamManager: StreamManager; // OpenVidu 스트림 관리자
   className?: string; // 추가 CSS 클래스 (선택적)
+  isMyVideo?: boolean; // 새로운 prop 추가
 }
 
 // 클라이언트 데이터 인터페이스
@@ -22,6 +23,7 @@ interface ClientData {
 export const VideoComponent: React.FC<VideoComponentProps> = ({
   streamManager,
   className = "",
+  isMyVideo = false, // 기본값 false로 설정
 }) => {
   // 비디오 요소에 대한 참조
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -39,15 +41,21 @@ export const VideoComponent: React.FC<VideoComponentProps> = ({
     }
   }, [streamManager]);
 
-  // 사용자 닉네임 추출 함수
-  const getNicknameTag = () => {
+  // 사용자 닉네임 추출 함수 수정
+  const _getNicknameTag = () => {
+    // 본인 비디오인 경우 "나"를 반환
+    if (isMyVideo) {
+      return "나";
+    }
+
     try {
       // 연결 데이터 추출
       const connectionData = streamManager.stream.connection.data;
       if (!connectionData) return "Unknown";
 
       // 연결 데이터 파싱
-      const parsedData = JSON.parse(connectionData) as {
+      const jsonPart = connectionData.split("%/%")[0];
+      const parsedData = JSON.parse(jsonPart) as {
         clientData: string | ClientData;
       };
       if (!parsedData.clientData) return "Unknown";
@@ -57,6 +65,7 @@ export const VideoComponent: React.FC<VideoComponentProps> = ({
       if (typeof parsedData.clientData === "string") {
         try {
           // 문자열로 된 JSON 파싱 시도
+          console.log(parsedData.clientData);
           clientData = JSON.parse(parsedData.clientData);
         } catch {
           // JSON 파싱 실패 시 문자열 그대로 사용
@@ -82,19 +91,13 @@ export const VideoComponent: React.FC<VideoComponentProps> = ({
       {/* 비디오 요소 */}
       <video autoPlay ref={videoRef} className="w-full h-full object-cover" />
 
-      {/* 사용자 정보 및 미디어 상태 오버레이 */}
+      {/* 미디어 상태만 표시하도록 수정 */}
       <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2">
-        {/* 사용자 이름 */}
-        <span className="text-sm">{getNicknameTag()}</span>
-
-        {/* 오디오 음소거 표시 */}
         {streamManager.stream.audioActive === false && (
           <span className="ml-2" title="Audio Muted">
             🔇
           </span>
         )}
-
-        {/* 비디오 끄기 표시 */}
         {streamManager.stream.videoActive === false && (
           <span className="ml-2" title="Video Off">
             🎦
