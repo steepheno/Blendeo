@@ -147,11 +147,12 @@ const ProjectDetailContainer = () => {
   // 좋아요 상태 확인
   useEffect(() => {
     const checkUserInteractions = async () => {
-      if (!projectData) return;
+      if (!projectId) return;
   
       try {
+        console.log("API 호출 시작")
         const response = await checkLikeBookmark(Number(projectId));
-        console.log("Respose data: ", response);
+        console.log("응답 데이터: ", response);
         setHeartFilled(response.liked);
         setBookmarkFilled(response.scraped);       
       } catch (error) {
@@ -159,7 +160,7 @@ const ProjectDetailContainer = () => {
       }
     };
     checkUserInteractions();
-  }, [projectData, projectId]);
+  }, [projectId]);
 
   const paginate = useCallback((newDirection: number) => {
     setPage(prev => [prev[0] + newDirection, newDirection]);
