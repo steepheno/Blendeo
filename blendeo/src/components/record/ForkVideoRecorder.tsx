@@ -330,6 +330,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({
             playsInline
             muted
             className="w-full h-full object-cover"
+            crossOrigin="anonymous"
           />
         </div>
 
