@@ -49,7 +49,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   const goToRecord = () => {
-    navigate("/seedRecord");
+    navigate("/seed/record");
   };
 
   return (
