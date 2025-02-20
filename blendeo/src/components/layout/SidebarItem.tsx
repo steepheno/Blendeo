@@ -12,7 +12,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
       case "홈":
         navigate("/main");
         break;
-      
+
       case "탐색":
         navigate("/explore");
         break;
@@ -38,6 +38,16 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
           }
         } catch {
           // Error handling
+        }
+        break;
+
+      case "구독":
+        if (isAuthenticated) {
+          navigate("/subscribe");
+        } else {
+          navigate("/auth/signin", {
+            state: { from: "/subscribe" },
+          });
         }
         break;
     }

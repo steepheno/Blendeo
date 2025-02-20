@@ -28,6 +28,12 @@ const sidebarItems = [
     path: "/profile/me",
     requireAuth: true,
   },
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/2989/2989835.png",
+    label: "구독",
+    path: "/subscribe",
+    requireAuth: true,
+  },
 ];
 
 const Sidebar = () => {

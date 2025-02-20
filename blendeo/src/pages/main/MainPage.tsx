@@ -57,6 +57,7 @@ const MainPage = () => {
 
   useEffect(() => {
     fetchProjects(activeTab);
+    window.scrollTo(0, 0);
   }, [activeTab, fetchProjects]);
 
   useEffect(() => {

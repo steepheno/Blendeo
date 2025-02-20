@@ -293,3 +293,13 @@ export const getChildProjects = async (
     `/project/get/children?projectId=${projectId}`
   );
 };
+
+// 팔로우하는 사람들의 프로젝트를 가져오는 API
+export const getFollowingProjects = async (
+  page: number = 0,
+  size: number = 10
+) => {
+  return axiosInstance.get<ProjectListItem[]>(
+    `/project/follow?page=${page}&size=${size}`
+  );
+};
