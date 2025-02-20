@@ -20,7 +20,7 @@ const SocialLoginButton = ({ onClick }: SocialLoginButtonProps) => {
       if (onClick) {
         onClick();
       } else {
-        navigate("/");
+        navigate("/main");
       }
     } catch (error) {
       console.error("Google 로그인 실패:", error);
