@@ -9,6 +9,10 @@ import type { ProjectListItem } from "@/types/api/project";
 import type { SearchProjectResponse } from "@/types/api/search";
 import type { InstrumentCategory } from "@/types/api/auth";
 
+/**
+ * 카테고리별 악기 목록 정의
+ * 각 악기는 고유 ID와 이름을 가지며 카테고리별로 그룹화되어 있습니다.
+ */
 const INSTRUMENTS_BY_CATEGORY: InstrumentCategory = {
   현악기: [
     { instrument_id: 1, instrument_name: "일렉트릭 기타" },
@@ -52,12 +56,16 @@ const INSTRUMENTS_BY_CATEGORY: InstrumentCategory = {
   ],
 };
 
+/**
+ * 검색 페이지 컴포넌트
+ * 프로젝트 검색, 악기 필터링, 무한 스크롤 기능을 제공합니다.
+ */
 const SearchPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const observerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("현악기");
-
+  // 검색 관련 상태와 함수들을 커스텀 훅에서 가져옴
   const {
     searchTerm,
     searchResults,
@@ -68,11 +76,18 @@ const SearchPage = () => {
     setSelectedInstrument,
   } = useSearch();
 
+  /**
+   * 악기 카테고리 선택 처리
+   * 같은 카테고리를 다시 클릭하면 선택 해제됩니다.
+   */
   const handleCategoryClick = (category: string) => {
     setSelectedCategory((prev) => (prev === category ? "" : category));
   };
 
-  // 무한 스크롤 설정
+  /**
+   * 무한 스크롤 설정
+   * Intersection Observer를 사용하여 스크롤 감지 및 추가 데이터 로드
+   */
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -96,10 +111,17 @@ const SearchPage = () => {
     };
   }, [hasMore, loading, loadMore]);
 
+  /**
+   * 프로젝트 클릭 시 해당 프로젝트 상세 페이지로 이동
+   */
   const handleProjectClick = (projectId: number) => {
     navigate(`/project/${projectId}`);
   };
 
+  /**
+   * 검색어 제출 처리
+   * URL 파라미터를 업데이트하고 필요한 경우 페이지 이동
+   */
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -112,6 +134,7 @@ const SearchPage = () => {
       params.delete("q");
     }
 
+    // 현재 페이지가 검색 페이지가 아닌 경우 검색 페이지로 이동
     if (!window.location.pathname.includes("/search")) {
       navigate(`/search?${params.toString()}`);
     } else {
@@ -119,16 +142,22 @@ const SearchPage = () => {
     }
   };
 
+  /**
+   * 악기 선택 처리
+   * URL 파라미터에 선택된 악기 정보를 업데이트
+   */
   const handleInstrumentClick = (
     instrumentId: number,
     instrumentName: string
   ) => {
     const params = new URLSearchParams(searchParams);
     if (selectedInstrument === instrumentName) {
+      // 이미 선택된 악기를 다시 클릭하면 필터 해제
       params.delete("instrument");
       params.delete("instrumentId");
       setSelectedInstrument(null);
     } else {
+      // 새로운 악기 선택
       params.set("instrument", instrumentName);
       params.set("instrumentId", instrumentId.toString());
       setSelectedInstrument(instrumentName);
@@ -136,7 +165,10 @@ const SearchPage = () => {
     setSearchParams(params);
   };
 
-  // API 응답을 ProjectListItem 형식으로 변환
+  /**
+   * 검색 결과를 ProjectListItem 형식으로 변환
+   * VideoCard 컴포넌트에서 요구하는 형식에 맞게 데이터 구조 변환
+   */
   const convertToProjectListItem = (
     searchResult: SearchProjectResponse
   ): ProjectListItem => ({
@@ -146,13 +178,16 @@ const SearchPage = () => {
     authorProfileImage: searchResult.authorProfileImage,
   });
 
-  // 선택된 악기에 따라 결과 필터링
+  /**
+   * 선택된 악기에 따라 검색 결과 필터링
+   */
   const filteredResults = selectedInstrument
     ? searchResults.filter((result) =>
         result.instruments.includes(selectedInstrument)
       )
     : searchResults;
 
+  // 컴포넌트 렌더링
   return (
     <Layout showNotification>
       <div className="flex flex-col gap-6 px-20 py-8">
