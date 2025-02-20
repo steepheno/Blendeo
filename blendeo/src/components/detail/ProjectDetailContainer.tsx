@@ -10,7 +10,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { getProject, checkLikeBookmark, getParent, getProjectRandom } from "@/api/project";
+import {
+  getProject,
+  checkLikeBookmark,
+  getParent,
+  getProjectRandom,
+} from "@/api/project";
 import { getAllComments } from "@/api/comment";
 import { Project } from "@/types/api/project";
 
@@ -33,7 +38,12 @@ import {
 import { useUserStore } from "@/stores/userStore";
 import useForkVideoStore from "@/stores/forkVideoStore";
 
-import { likeProject, unlikeProject, bookProject, unbookProject } from "@/api/project";
+import {
+  likeProject,
+  unlikeProject,
+  bookProject,
+  unbookProject,
+} from "@/api/project";
 
 // 애니메이션 variants 정의
 const variants = {
@@ -154,7 +164,7 @@ const ProjectDetailContainer = () => {
         console.error("Failed to fetch comments:", error);
         setCommentCnt(0);
       }
-    }
+    };
 
     fetchProjectData();
     fetchCommentCnt();
@@ -164,7 +174,7 @@ const ProjectDetailContainer = () => {
   useEffect(() => {
     const checkUserInteractions = async () => {
       if (!projectId) return;
-  
+
       try {
         const response = await checkLikeBookmark(Number(projectId));
         setHeartFilled(response.liked);
@@ -261,10 +271,10 @@ const ProjectDetailContainer = () => {
     try {
       if (heartFilled) {
         await unlikeProject(projectData?.projectId);
-        setLocalLikeCnt(prev => prev - 1)
+        setLocalLikeCnt((prev) => prev - 1);
       } else {
         await likeProject(projectData?.projectId);
-        setLocalLikeCnt(prev => prev + 1)
+        setLocalLikeCnt((prev) => prev + 1);
       }
       setHeartFilled(!heartFilled);
     } catch (error) {
@@ -282,7 +292,7 @@ const ProjectDetailContainer = () => {
       console.error("좋아요 수 조회 실패: ", error);
     }
   };
-  console.log(likeTotal);  // 빌드용 코드
+  console.log(likeTotal); // 빌드용 코드
 
   // 북마크
   const handleBookmarkClick = async () => {
@@ -323,7 +333,7 @@ const ProjectDetailContainer = () => {
       const parentPjtId = response.projectId;
       navigate(`/project/${parentPjtId}`);
     } catch (error) {
-      console.error('부모 프로젝트 조회 실패:', error);
+      console.error("부모 프로젝트 조회 실패:", error);
     }
   };
 
@@ -333,32 +343,31 @@ const ProjectDetailContainer = () => {
       setCopied(true);
 
       // 복사 성공 시 스타일
-      const shareButton = document.querySelector('[data-share-button]');
+      const shareButton = document.querySelector("[data-share-button]");
       if (shareButton) {
-        shareButton.classList.add('bg-purple-100');
-        const icon = shareButton.querySelector('svg');
-        
+        shareButton.classList.add("bg-purple-100");
+        const icon = shareButton.querySelector("svg");
+
         if (icon) {
-          icon.classList.remove('text-gray-600');
-          icon.classList.add('text-purple-600');
+          icon.classList.remove("text-gray-600");
+          icon.classList.add("text-purple-600");
         }
       }
 
       // 2초 후 원상복구
       setTimeout(() => {
         setCopied(false);
-        const shareButton = document.querySelector('[data-share-button');
+        const shareButton = document.querySelector("[data-share-button");
 
         if (shareButton) {
-          shareButton.classList.remove('bg-purple-100');
-          const icon = shareButton.querySelector('svg');
+          shareButton.classList.remove("bg-purple-100");
+          const icon = shareButton.querySelector("svg");
           if (icon) {
-            icon.classList.remove('text-purple-600');
-            icon.classList.add('text-gray-600');
+            icon.classList.remove("text-purple-600");
+            icon.classList.add("text-gray-600");
           }
         }
       }, 2000);
-
     } catch (error) {
       console.error("URL 복사 중 오류가 발생했습니다. : ", error);
     }
@@ -408,8 +417,13 @@ const ProjectDetailContainer = () => {
       <InteractionButton
         icon={ArrowUpLeft}
         onClick={() => goToParent(projectId)}
-       />
-      <InteractionButton onClick={copyLink} icon={Copy} count={copied ? "복사됨!" : "0"} isActive={copied} />
+      />
+      <InteractionButton
+        onClick={copyLink}
+        icon={Copy}
+        count={copied ? "복사됨!" : "0"}
+        isActive={copied}
+      />
       <InteractionButton
         icon={GitFork}
         onClick={() => handleTabClick("showTree")}
@@ -459,7 +473,7 @@ const ProjectDetailContainer = () => {
                 exit="exit"
                 transition={{
                   x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }, 
+                  opacity: { duration: 0.2 },
                 }}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}

@@ -1,6 +1,6 @@
 import { ProjectListItem } from "@/types/api/project";
 import { create } from "zustand";
-import { mainPageApi } from "@/api/mainPage";
+import { userPageApi } from "@/api/userPage";
 import { User } from "@/types/api/user";
 import {
   getUser,
@@ -8,6 +8,7 @@ import {
   getFollowers,
   getFollowings,
 } from "@/api/user";
+import { useAuthStore } from "./authStore";
 
 export type ProjectType = "uploaded" | "scraped";
 
@@ -55,15 +56,19 @@ export interface MyPageStore {
 
   // 프로젝트 관련 액션
   setActiveTab: (tab: ProjectType) => void;
-  fetchProjects: (type: ProjectType, size?: number, forceRefresh?: boolean) => Promise<void>;
+  fetchProjects: (
+    type: ProjectType,
+    size?: number,
+    forceRefresh?: boolean
+  ) => Promise<void>;
   loadMore: () => Promise<void>;
   resetProjects: (type?: ProjectType) => void;
-  
+
   // Getter 메서드
   getCurrentProjects: () => ProjectListItem[];
   getProjectLoading: () => boolean;
   getHasMoreProjects: () => boolean;
-  
+
   // 편집 관련 액션
   setEditMode: (isEdit: boolean) => void;
   updateEditData: (data: Partial<EditData>) => void;
@@ -129,7 +134,8 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
       const profile = await getUser(userId);
       set({ profile });
     } catch (error) {
-      const profileError = error instanceof Error ? error : new Error("Failed to fetch profile");
+      const profileError =
+        error instanceof Error ? error : new Error("Failed to fetch profile");
       set({ profileError });
       throw profileError;
     } finally {
@@ -148,7 +154,10 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
 
   fetchInitialData: async (userId: number) => {
     try {
-      set({ profileLoading: true, followData: { ...INITIAL_FOLLOW_DATA, loading: true } });
+      set({
+        profileLoading: true,
+        followData: { ...INITIAL_FOLLOW_DATA, loading: true },
+      });
       const [profile, followers, followings] = await Promise.all([
         getUser(userId),
         getFollowers(userId),
@@ -165,10 +174,13 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
         },
       });
     } catch (error) {
-      const profileError = error instanceof Error ? error : new Error("Failed to fetch initial data");
-      set({ 
+      const profileError =
+        error instanceof Error
+          ? error
+          : new Error("Failed to fetch initial data");
+      set({
         profileError,
-        followData: { ...INITIAL_FOLLOW_DATA, error: profileError }
+        followData: { ...INITIAL_FOLLOW_DATA, error: profileError },
       });
     } finally {
       set({ profileLoading: false });
@@ -181,13 +193,18 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
     const { lastUpdated, projectStates } = get();
     const lastUpdate = lastUpdated[tab];
     const hasExpired = !lastUpdate || Date.now() - lastUpdate > CACHE_DURATION;
-    
+
     if (projectStates[tab].items.length === 0 || hasExpired) {
       get().fetchProjects(tab, PAGE_SIZE, true);
     }
   },
 
-  fetchProjects: async (type: ProjectType, size = PAGE_SIZE, forceRefresh = false) => {
+  // fetchProjects 함수의 에러 처리를 개선합니다
+  fetchProjects: async (
+    type: ProjectType,
+    size = PAGE_SIZE,
+    forceRefresh = false
+  ) => {
     const { loading, projectStates } = get();
 
     if (loading[type] || (!forceRefresh && !projectStates[type].hasMore)) {
@@ -197,22 +214,40 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
     set({ loading: { ...loading, [type]: true } });
 
     try {
-      const apiMethod = type === "scraped" ? mainPageApi.getNewProjects : mainPageApi.getNewProjects;
+      const apiMethod =
+        type === "scraped"
+          ? userPageApi.getScrapProjects
+          : userPageApi.getNewProjects;
       const currentPage = forceRefresh ? 0 : projectStates[type].currentPage;
-      const projects = await apiMethod(currentPage, size);
+      const userId = useAuthStore.getState().userId as number;
+
+      const projects = await apiMethod(userId, currentPage, size);
 
       set((state) => ({
         projectStates: {
           ...state.projectStates,
           [type]: {
-            items: forceRefresh ? projects : [...state.projectStates[type].items, ...projects],
+            items: forceRefresh
+              ? projects
+              : [...state.projectStates[type].items, ...projects],
             hasMore: projects.length === size,
-            currentPage: forceRefresh ? 1 : state.projectStates[type].currentPage + 1,
+            currentPage: currentPage + 1,
           },
         },
         lastUpdated: {
           ...state.lastUpdated,
           [type]: Date.now(),
+        },
+      }));
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+      set((state) => ({
+        projectStates: {
+          ...state.projectStates,
+          [type]: {
+            ...state.projectStates[type],
+            hasMore: false,
+          },
         },
       }));
     } finally {
@@ -223,7 +258,14 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
   },
 
   loadMore: async () => {
-    const { activeTab } = get();
+    const { activeTab, loading, projectStates } = get();
+
+    // 이미 로딩 중이거나 더 이상 불러올 데이터가 없는 경우 중단
+    if (loading[activeTab] || !projectStates[activeTab].hasMore) {
+      return;
+    }
+
+    // 데이터 가져오기
     await get().fetchProjects(activeTab);
   },
 
@@ -313,7 +355,9 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
         editData: INITIAL_EDIT_DATA,
       });
     } catch (error) {
-      throw error instanceof Error ? error : new Error("Failed to update profile");
+      throw error instanceof Error
+        ? error
+        : new Error("Failed to update profile");
     }
   },
 }));
