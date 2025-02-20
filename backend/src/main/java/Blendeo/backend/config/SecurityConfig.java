@@ -82,7 +82,8 @@ public class SecurityConfig {
                                 "/api/v1/user/follow/**",
                                 "/api/v1/fork/**",
                                 "/api/v1/project/create/video/blend/upload",
-                                "/api/v1/project/get/**"
+                                "/api/v1/project/get/**",
+                                "/api/v1/search/**"
                         ).permitAll()
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
