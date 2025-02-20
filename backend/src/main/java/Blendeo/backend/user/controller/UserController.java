@@ -60,9 +60,7 @@ public class UserController {
     public ResponseEntity<?> saveFavoriteInstrument(@RequestParam("lists") List<Integer> instrumentIds) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        instrumentService.deleteInstrument(Integer.parseInt(user.getUsername()));
-
-        instrumentService.saveInstrument(Integer.parseInt(user.getUsername()), instrumentIds);
+        instrumentService.updateInstrument(Integer.parseInt(user.getUsername()), instrumentIds);
         return ResponseEntity.ok().build();
     }
 
