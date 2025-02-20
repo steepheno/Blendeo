@@ -91,6 +91,7 @@ const ProjectDetailContainer = () => {
   const navigate = useNavigate();
 
   const { currentUser, setCurrentUser, getUser } = useUserStore();
+  const { setRedirectState } = useProjectStore();
 
   const [activeTab, setActiveTab] = useState<TabType>(null);
   const [projectData, setProjectData] = useState<Project | null>(null);
@@ -243,7 +244,6 @@ const ProjectDetailContainer = () => {
 
   const handleForkClick = (type: RedirectSource) => {
     if (projectData) {
-      toast.success("Blend 페이지로 이동합니다!");
       setOriginalProjectData(projectData);
       setRedirectState(projectData, type);
       navigate("/fork/record");
