@@ -24,7 +24,7 @@ import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
 import ForkEditor from "@/pages/fork/ForkEditPage";
 import ExploreFullScreenPage from "@/pages/explore/ExploreFullScreenPage";
 import SearchPage from "@/pages/search/SearchPage";
-
+import SubscribePage from "@/pages/subscribe/SubscribePage";
 import LandingPage from "@/pages/main/LandingPage";
 
 export const router = createBrowserRouter([
@@ -39,6 +39,14 @@ export const router = createBrowserRouter([
   {
     path: "/search",
     element: <SearchPage />,
+  },
+  {
+    path: "/subscribe",
+    element: (
+      <ProtectedRoute>
+        <SubscribePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/auth",

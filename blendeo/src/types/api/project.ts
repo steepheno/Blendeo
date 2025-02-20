@@ -23,6 +23,7 @@ export interface Project {
   etcInstruments: Instrument[];
   createdAt: string;
   state: boolean;
+  childProjects?: ProjectChildren[];
 }
 
 export interface SimpleProjectData {
@@ -65,4 +66,20 @@ export interface ProjectListItem {
   authorNickname: string;
   authorProfileImage?: string;
   instruments: string[];
+}
+
+export interface ProjectChildren {
+  projectId: number;
+  forkId: number;
+  title: string;
+  contents: string;
+  state: boolean;
+  thumbnail: string;
+  videoUrl: string;
+  duration: number;
+  viewCnt: number;
+  contributorCnt: number;
+  projectInstruments: Instrument[];
+  etcInstruments: string[];
+  createdAt: string;
 }

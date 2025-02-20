@@ -10,7 +10,11 @@ import type {
   ProjectListItem,
 } from "@/types/api/project";
 
-type RedirectSource = 'project-edit' | 'project-create' | 'project-detail' | 'project-fork';
+type RedirectSource =
+  | "project-edit"
+  | "project-create"
+  | "project-detail"
+  | "project-fork";
 
 interface RedirectState {
   project: Project | null;
@@ -54,6 +58,10 @@ interface ProjectStore {
   setRedirectState: (project: Project, source: RedirectSource) => void;
   clearRedirectState: () => void;
   getRedirectState: (source: RedirectSource) => Project | null;
+  childProjects: Project[];
+  getChildProjects: (projectId: number) => Promise<void>;
+  setChildProjects: (projects: Project[]) => void;
+  clearChildProjects: () => void;
 }
 
 export const useProjectStore = create<ProjectStore>()(
@@ -63,6 +71,7 @@ export const useProjectStore = create<ProjectStore>()(
       comments: [],
       newProjects: [],
       contributors: [],
+      childProjects: [],
 
       createProject: async (data) => {
         await projectApi.createProject(data);
@@ -143,15 +152,15 @@ export const useProjectStore = create<ProjectStore>()(
 
       redirectState: {
         project: null,
-        source: null
+        source: null,
       },
 
       setRedirectState: (project: Project, source: RedirectSource) => {
         set({
           redirectState: {
             project,
-            source
-          }
+            source,
+          },
         });
       },
 
@@ -159,8 +168,8 @@ export const useProjectStore = create<ProjectStore>()(
         set({
           redirectState: {
             project: null,
-            source: null
-          }
+            source: null,
+          },
         });
       },
 
@@ -170,6 +179,24 @@ export const useProjectStore = create<ProjectStore>()(
           return redirectState.project;
         }
         return null;
+      },
+
+      getChildProjects: async (projectId: number) => {
+        try {
+          const response = await projectApi.getChildProjects(projectId);
+          set({ childProjects: response });
+        } catch (error) {
+          console.error("Failed to fetch child projects:", error);
+          throw error;
+        }
+      },
+
+      setChildProjects: (projects: Project[]) => {
+        set({ childProjects: projects });
+      },
+
+      clearChildProjects: () => {
+        set({ childProjects: [] });
       },
     }),
     { name: "project-store" }
@@ -190,12 +217,12 @@ export const useEditStore = create<BlendedUrl>()(
 
 export const useSeedStore = create<SeedUrl>()(
   devtools(
-    (set, get) =>({
+    (set, get) => ({
       url: null,
       getUrl: () => get().url,
       setUrl: (url) => set({ url }),
       clear: () => set({ url: null }),
     }),
-    {name: "seed-store" }
+    { name: "seed-store" }
   )
 );
