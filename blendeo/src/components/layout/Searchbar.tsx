@@ -1,3 +1,5 @@
+// src/components/layout/Navbar.tsx
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Bell } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
@@ -7,10 +9,11 @@ interface NavbarProps {
   showNotification?: boolean;
 }
 
-const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
+const Navbar: React.FC<NavbarProps> = ({ showNotification }) => {
   const navigate = useNavigate();
   const currentUser = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const goToMain = () => {
     navigate("/main");
@@ -37,6 +40,17 @@ const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
     }
   };
 
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
   const dummyProfileImage = noUserImg;
   const profileImageUrl = currentUser?.profileImage || dummyProfileImage;
 
@@ -44,7 +58,7 @@ const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
     <>
       <div className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-200">
         <div className="flex justify-between items-center px-10 py-4 w-full min-h-[65px] max-md:px-5">
-          {/* 로고 영역 - 최소 너비 확보 */}
+          {/* 로고 영역 */}
           <div
             onClick={goToMain}
             className="flex items-center gap-2 cursor-pointer min-w-[120px]"
@@ -58,28 +72,39 @@ const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
             <span className="text-xl font-bold text-neutral-900">BLENDEO</span>
           </div>
 
-          {/* 오른쪽 요소들 - 반응형 간격 및 검색창 조정 */}
+          {/* 오른쪽 요소들 */}
           <div className="flex items-center gap-6 max-lg:gap-4 max-md:gap-2">
             {showNotification && (
               <button className="p-2 hover:bg-gray-100 rounded-full">
                 <Bell className="w-5 h-5 text-gray-600" />
               </button>
             )}
-            <form className="relative max-md:hidden" role="search">
+
+            {/* 데스크톱 검색창 */}
+            <form
+              onSubmit={handleSearch}
+              className="relative max-md:hidden"
+              role="search"
+            >
               <div className="flex items-center bg-gray-100 rounded-full overflow-hidden">
                 <div className="flex items-center justify-center pl-4">
                   <Search className="w-5 h-5 text-gray-400" />
                 </div>
                 <input
                   type="search"
-                  placeholder="Search"
-                  className="w-64 max-xl:w-48 max-lg:w-40 py-2 px-3 text-base bg-transparent outline-none text-gray-700 placeholder-gray-500"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  placeholder="프로젝트 제목 또는 @닉네임으로 검색"
+                  className="w-80 max-xl:w-64 max-lg:w-48 max-md:hidden py-2 px-3 text-base bg-transparent outline-none text-gray-700 placeholder-gray-500"
                 />
               </div>
             </form>
 
-            {/* 모바일에서만 보이는 검색 아이콘 */}
-            <button className="hidden max-md:flex items-center justify-center p-2 hover:bg-gray-100 rounded-full">
+            {/* 모바일 검색 버튼 */}
+            <button
+              onClick={() => navigate("/search")}
+              className="hidden max-md:flex items-center justify-center p-2 hover:bg-gray-100 rounded-full"
+            >
               <Search className="w-5 h-5 text-gray-600" />
             </button>
 
@@ -106,4 +131,4 @@ const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
   );
 };
 
-export default Searchbar;
+export default Navbar;

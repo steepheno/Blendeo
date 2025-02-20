@@ -93,7 +93,7 @@ const MainChatArea = ({ setChatWindowOpened }: MainChatAreaProps) => {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full pr-96">
       <header className="flex items-center gap-2 border-b p-4">
         <div
           className="flex items-center gap-2 cursor-pointer"
@@ -192,7 +192,7 @@ const MainChatArea = ({ setChatWindowOpened }: MainChatAreaProps) => {
                       className={cn(
                         "rounded-lg px-4 py-2",
                         message.userId === user?.id
-                          ? "bg-customPurple text-primary-foreground"
+                          ? "bg-custom-lavender"
                           : "bg-muted"
                       )}
                     >

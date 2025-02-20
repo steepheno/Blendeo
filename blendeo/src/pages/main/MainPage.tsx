@@ -9,6 +9,13 @@ import HeroSection from "@/components/mainpage/HeroSection";
 // import GenreSection from "@/components/mainpage/GenreSection";
 import useMainPageStore from "@/stores/mainPageStore";
 import type { ProjectType } from "@/stores/mainPageStore";
+import { useSearchStore } from "@/stores/searchStore";
+
+const styles = `
+  ::-webkit-scrollbar {
+    display: none;
+  }
+`;
 
 const MainPage = () => {
   const navigate = useNavigate();
@@ -21,6 +28,7 @@ const MainPage = () => {
     loadMore,
     fetchProjects,
   } = useMainPageStore();
+  const { resetSearch } = useSearchStore();
 
   const observerRef = useRef<HTMLDivElement>(null);
 
@@ -74,8 +82,13 @@ const MainPage = () => {
     };
   }, [hasMore, loading, loadMore]);
 
+  useEffect(() => {
+    resetSearch();
+  }, [resetSearch]);
+
   return (
     <Layout showNotification={true}>
+      <style>{styles}</style>
       <div className="flex flex-col flex-1 shrink self-start px-20 pt-2.5 basis-0 min-w-[240px]">
         <HeroSection />
         <TabNavigation

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoPlayerProps } from "@/types/components/video/videoDetail";
-import { Eye, Volume2, VolumeX } from "lucide-react";
+import { Eye, Play, Volume2, VolumeX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function VideoPlayer({
@@ -11,7 +11,7 @@ function VideoPlayer({
   const [isHovered, setIsHovered] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);  // 초기값은 음소거 상태
+  const [isMuted, setIsMuted] = useState(false); // 초기값은 음소거 상태
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const navigate = useNavigate();
 
@@ -21,7 +21,7 @@ function VideoPlayer({
         try {
           await videoRef.current?.play();
         } catch (error) {
-          console.error('Video autoplay failed:', error);
+          console.error("Video autoplay failed:", error);
           setIsPlaying(false);
         }
       };
@@ -52,9 +52,9 @@ function VideoPlayer({
 
   const handleNavigate = (id: number) => {
     console.log(metadata);
-    
+
     navigate(`/profile/${id}`);
-  }
+  };
 
   return (
     <div
@@ -80,26 +80,25 @@ function VideoPlayer({
           autoPlay
           loop
           preload="auto"
-          style={{ backgroundColor: 'black' }}
+          style={{ backgroundColor: "black" }}
         >
           <source src={videoUrl} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
         {/* Play/Pause Button Overlay - only show when manually paused */}
-        {!isPlaying && videoRef.current && !videoRef.current.ended && (videoRef.current.readyState ?? 0) > 2 && (
-          <div
-            className="absolute inset-0 flex items-center justify-center 
-              bg-black bg-opacity-40 cursor-pointer z-10"
-            onClick={handlePlayPause}
-          >
-            <div className="w-16 h-16 rounded-full bg-white bg-opacity-80 
-              flex items-center justify-center">
-              <div className="w-0 h-0 border-t-8 border-b-8 border-l-12 
-                border-transparent border-l-black ml-1" />
+        {!isPlaying &&
+          videoRef.current &&
+          !videoRef.current.ended &&
+          (videoRef.current.readyState ?? 0) > 2 && (
+            <div
+              className="absolute inset-0 flex items-center justify-center 
+  bg-black bg-opacity-40 cursor-pointer z-10"
+              onClick={handlePlayPause}
+            >
+              <Play className="w-16 h-16 text-white" strokeWidth={1.5} />
             </div>
-          </div>
-        )}
+          )}
 
         {/* Volume Control - show when hovered */}
         {isHovered && (
@@ -136,10 +135,15 @@ function VideoPlayer({
             from-black to-transparent opacity-90 pointer-events-none"
         />
 
-          <h3 className="font-bold line-clamp-1 text-white relative text-lg pb-2">{metadata.title}</h3>
+        <h3 className="font-bold line-clamp-1 text-white relative text-lg pb-2">
+          {metadata.title}
+        </h3>
         <div className="relative flex items-end space-x-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 
-            border-2 border-white" onClick={()=>handleNavigate(metadata.author.id)}>
+          <div
+            className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 
+            border-2 border-white"
+            onClick={() => handleNavigate(metadata.author.id)}
+          >
             <img
               src={metadata.author.profileImage}
               alt={metadata.author.name}

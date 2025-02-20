@@ -11,12 +11,12 @@ const ProjectUploadPage = () => {
     <div
       className="w-full h-full"
       style={{
-        backgroundColor: "#171222",
+        backgroundColor: "#171226",
       }}
     >
       <div
         style={{
-          backgroundColor: "#171222",
+          backgroundColor: "#171226",
           position: "absolute",
           top: "0",
           bottom: "0",
