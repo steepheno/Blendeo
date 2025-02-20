@@ -23,6 +23,7 @@ import SeedEditPage from "@/pages/seed/SeedEditPage";
 import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
 import ForkEditor from "@/pages/fork/ForkEditPage";
 import ExploreFullScreenPage from "@/pages/explore/ExploreFullScreenPage";
+import SearchPage from "@/pages/search/SearchPage";
 
 import LandingPage from "@/pages/main/LandingPage";
 
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
   {
     path: "/main",
     element: <MainPage />,
+  },
+  {
+    path: "/search",
+    element: <SearchPage />,
   },
   {
     path: "/auth",
@@ -142,7 +147,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "selectinstrument",
-        element: <InstrumentSelector />
+        element: <InstrumentSelector />,
       },
     ],
   },
