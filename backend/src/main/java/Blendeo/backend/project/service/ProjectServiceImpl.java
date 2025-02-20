@@ -173,9 +173,6 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.updateViewCount(projectId);
         rankingService.incrementScore(projectId);
 
-        org.springframework.security.core.userdetails.User user = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        int userId = Integer.parseInt(user.getUsername());
-
         List<ProjectInstrument> projectInstruments = projectInstrumentRepository.getAllByProjectId(projectId);
 
         return ProjectGetRes.builder()
