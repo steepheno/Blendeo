@@ -11,6 +11,7 @@ import Blendeo.backend.instrument.repository.InstrumentRepository;
 import Blendeo.backend.instrument.repository.UserInstrumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,12 +27,19 @@ public class InstrumentService {
         return instrumentRepository.findAll();
     }
 
+    @Transactional
+    public void updateInstrument(int userId, List<Integer> instrumentIds) {
+        deleteInstrument(userId);
+        instrumentRepository.flush();
+
+        saveInstrument(userId, instrumentIds);
+    }
+
     public void saveInstrument(int userId, List<Integer> instrumentIds) {
         if ( instrumentIds==null || instrumentIds.isEmpty()) {
             return;
         }
         for (int instrumentId : instrumentIds) {
-            System.out.println(instrumentId);
             Instrument instrument = instrumentRepository.findById(instrumentId)
                     .orElseThrow(()->new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, ErrorCode.ENTITY_NOT_FOUND.getMessage()));
             userInstrumentRepository.save(UserInstrument.builder().userId(userId).instrument(instrument).build());
@@ -42,7 +50,7 @@ public class InstrumentService {
         List<UserInstrument> instruments = userInstrumentRepository.getUserInstrumentsByUserId(userId)
                 .orElseGet(null);
 
-        if (instruments != null) {
+        if (instruments == null) {
             return;
         }
         userInstrumentRepository.deleteAll(instruments);

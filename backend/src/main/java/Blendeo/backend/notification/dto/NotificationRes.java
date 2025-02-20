@@ -16,16 +16,19 @@ public class NotificationRes {
     private boolean isRead;
     private String content;
     private URL profileImage;
+    private String nickname;
     private LocalDateTime createdAt;
 
+
     @Builder
-    public NotificationRes(long notificationId, int receiverId, int senderId, boolean isRead, String content, URL profileImage) {
+    public NotificationRes(long notificationId, int receiverId, int senderId, boolean isRead, String content, URL profileImage, String nickname) {
         this.notificationId = notificationId;
         this.receiverId = receiverId;
         this.senderId = senderId;
         this.isRead = isRead;
         this.content = content;
         this.profileImage = profileImage;
+        this.nickname = nickname;
         this.createdAt = LocalDateTime.now();
     }
 }

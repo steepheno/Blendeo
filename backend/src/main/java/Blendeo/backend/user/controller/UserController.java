@@ -60,9 +60,7 @@ public class UserController {
     public ResponseEntity<?> saveFavoriteInstrument(@RequestParam("lists") List<Integer> instrumentIds) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        instrumentService.deleteInstrument(Integer.parseInt(user.getUsername()));
-
-        instrumentService.saveInstrument(Integer.parseInt(user.getUsername()), instrumentIds);
+        instrumentService.updateInstrument(Integer.parseInt(user.getUsername()), instrumentIds);
         return ResponseEntity.ok().build();
     }
 
@@ -126,7 +124,7 @@ public class UserController {
                 .refreshToken(userLoginPostResWithToken.getRefreshToken()).build();
 
         response.setHeader("Set-Cookie", "AccessToken=" + userLoginPostResWithToken.getAccessToken()
-                + "; Max-Age=" + (15 * 60) // 15분
+                + "; Max-Age=" + (60 * 60 * 24) // 1일
                 + "; Path=/"
                 + "; Domain=" + frontDomain
                 + "; HttpOnly" // JavaScript에서 쿠키에 접근할 수 없게 하여 XSS 공격 방지
@@ -160,7 +158,7 @@ public class UserController {
         }
 
         response.setHeader("Set-Cookie", "AccessToken=" + newAccessToken
-                + "; Max-Age=" + (15 * 60) // 15분
+                + "; Max-Age=" + (60 * 60 * 24) // 1일
                 + "; Path=/"
                 + "; Domain=" + frontDomain
                 + "; HttpOnly" // JavaScript에서 쿠키에 접근할 수 없게 하여 XSS 공격 방지
