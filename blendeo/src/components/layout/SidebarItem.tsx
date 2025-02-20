@@ -10,7 +10,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label }) => {
   const routing = () => {
     switch (label) {
       case "홈":
-        navigate("/");
+        navigate("/main");
         break;
       
       case "탐색":

@@ -26,7 +26,7 @@ const publicPaths = [
   "/fork/hierarchy",
 ];
 
-const noRedirectPaths = ["/", "/project/list"];
+const noRedirectPaths = ["/main", "/project/list"];
 
 // Request Interceptor
 videoAxiosInstance.interceptors.request.use(async (config) => {

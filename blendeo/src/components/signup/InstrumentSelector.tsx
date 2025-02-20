@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Music } from 'lucide-react';
 import { Instrument, InstrumentCategory } from '@/types/api/auth'
 import { signup } from '@/api/auth';
+import { modifyUserInst } from '@/api/user';
 
 interface ApiError extends Error {
   response?: {
@@ -14,11 +15,13 @@ interface ApiError extends Error {
 
 const InstrumentSelector = () => {
   const [selectedInstruments, setSelectedInstruments] = useState<Instrument[]>([]);
+  const [initialInstruments, setInitialInstruments] = useState<Instrument[]>([]);
   const [, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const location = useLocation();
   const navigate = useNavigate();
   const formData = location.state;
+  const mode = location.state?.mode || 'signup';
 
   const instrumentsWithIds: InstrumentCategory = {
     "현악기": [
@@ -81,41 +84,62 @@ const InstrumentSelector = () => {
     }
   };
 
+  // 초기 악기 정보 설정
+  useEffect(() => {
+    if (mode === 'modify' && location.state?.instruments) {
+      setInitialInstruments(location.state.instruments);
+      setSelectedInstruments(location.state.instruments);
+    }
+  }, [mode, location.state]);
+
+  // 회원가입 모드 or 마이페이지 수정모드 분기 처리
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      // 선택된 악기들의 ID만 추출
       const selectedInstrumentIds = selectedInstruments.map(
         instrument => instrument.instrument_id
       );
 
-      // 최종 전송될 데이터
-      const signupData = {
-        ...formData,
-        instrumentIds : selectedInstrumentIds
-      };
-      
-      // 최종 전송될 데이터 확인
       if (selectedInstrumentIds.length === 0) {
         setError("연주 가능한 악기를 선택해주세요");
         return;
       }
 
-      await signup(signupData);
-      alert("회원가입이 완료되었습니다.");
-      navigate("/auth/signin", {
-        state: { message: "회원가입이 완료되었습니다. 로그인해주세요." },
-      });
+      // 회원가입 모드
+      if (mode === 'signup') {
+        const signupData = {
+          ...formData,
+          instrumentIds: selectedInstrumentIds
+        };
+        
+        await signup(signupData);
+        alert("회원가입이 완료되었습니다.");
+        navigate("/auth/signin", {
+          state: { message: "회원가입이 완료되었습니다. 로그인해주세요." },
+        });
+      } else {
+        // 악기 정보 수정 모드
+        const newInstrumentIds = selectedInstruments.map(
+          instrument => instrument.instrument_id
+        ).filter(id =>
+          !initialInstruments.some(initial => initial.instrument_id === id)
+        )
+        await modifyUserInst(newInstrumentIds);
+        alert("악기 정보가 수정되었습니다.");
+        navigate("/profile/me", {
+          state: { message: "악기 정보가 성공적으로 수정되었습니다." }
+        });
+      }
     } catch (err) {
-      console.error("회원가입 실패: ", err);
+      console.error(`${mode === 'signup' ? '회원가입' : '악기 정보 수정'} 실패:`, err);
       const error = err as ApiError;
       setError(
         error.response?.data?.message ||
-          error.message ||
-          "회원가입에 실패했습니다."
+        error.message ||
+        `${mode === 'signup' ? '회원가입' : '악기 정보 수정'}에 실패했습니다.`
       );
     } finally {
       setIsLoading(false);
@@ -183,7 +207,9 @@ const InstrumentSelector = () => {
         disabled={isLoading}
         className="gap-3 w-full px-6 py-5 mt-9 text-xl font-semibold tracking-wide leading-none text-center text-white bg-violet-700 rounded-md hover:bg-violet-800 disabled:opacity-50"
       >
-        {isLoading ? "가입 중..." : "회원가입하기"}
+        {isLoading
+          ? (mode === 'signup' ? "가입 중..." : "수정 중...")
+          : (mode === 'signup' ? "회원가입하기" : "수정하기")}
       </button>
     </div>
   );

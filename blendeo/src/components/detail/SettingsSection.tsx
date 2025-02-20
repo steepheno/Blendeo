@@ -17,7 +17,7 @@ const SettingsSection = ( { projectId } : SettingsSectionProps) => {
         // 확인 누르면 삭제
         await deletePjt(projectId);
         alert("프로젝트 삭제가 완료되었습니다.");
-        navigate("/")
+        navigate("/main")
       }
     } catch (error) {
       console.error("프로젝트 삭제 실패: ", error);

@@ -13,7 +13,7 @@ const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
   const logout = useAuthStore((state) => state.logout);
 
   const goToMain = () => {
-    navigate("/");
+    navigate("/main");
   };
 
   const goToMypage = () => {
@@ -28,7 +28,7 @@ const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
     if (currentUser) {
       try {
         await logout();
-        navigate("/");
+        navigate("/main");
       } catch (error) {
         console.error("Logout failed:", error);
       }

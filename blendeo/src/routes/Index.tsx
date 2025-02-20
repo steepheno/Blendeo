@@ -24,9 +24,15 @@ import ProjectUploadPage from "@/pages/project/ProjectUploadPage";
 import ForkEditor from "@/pages/fork/ForkEditPage";
 import ExploreFullScreenPage from "@/pages/explore/ExploreFullScreenPage";
 
+import LandingPage from "@/pages/main/LandingPage";
+
 export const router = createBrowserRouter([
   {
     path: "/",
+    element: <LandingPage />,
+  },
+  {
+    path: "/main",
     element: <MainPage />,
   },
   {
@@ -133,6 +139,10 @@ export const router = createBrowserRouter([
             <MyProfilePage />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: "selectinstrument",
+        element: <InstrumentSelector />
       },
     ],
   },
