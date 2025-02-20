@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import type { ChatMessage, ChatRoom, RoomParticipant } from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
 import { ChatMessages } from "./ChatMessages";
+import { toast } from "sonner";
 
 // 컴포넌트의 props 인터페이스 정의
 // 채팅방 정보, 메시지 목록, 메시지 전송 핸들러, 연결 상태 등을 포함
@@ -35,7 +36,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     try {
       // 연결 상태 확인
       if (!isConnected) {
-        alert("채팅 연결이 끊어져 있습니다. 연결 상태를 확인해주세요.");
+        toast.error("채팅 연결이 끊어져 있습니다. 연결 상태를 확인해주세요.");
         return;
       }
 
@@ -46,7 +47,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     } catch (error) {
       // 화상 통화 초기화 실패 시 에러 처리
       console.error("화상통화 초기화 실패:", error);
-      alert("화상통화를 시작할 수 없습니다. 다시 시도해주세요.");
+      toast.error("화상통화를 시작할 수 없습니다. 다시 시도해주세요.");
     }
   };
 
@@ -73,7 +74,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       setNewMessage("");
     } catch (error) {
       console.error("메시지 전송 실패:", error);
-      alert("메시지 전송에 실패했습니다. 다시 시도해주세요.");
+      toast.error("메시지 전송에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsSending(false);
     }

@@ -20,6 +20,7 @@ import { useWebSocket } from "@/hooks/chat/useWebSocket";
 import useChatStore from "@/stores/chatStore";
 import { cn } from "@/lib/utils";
 import { useChatRooms } from "@/hooks/chat/useChatRooms";
+import { toast } from "sonner";
 
 const VideoChatPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -113,7 +114,7 @@ const VideoChatPage: React.FC = () => {
           setRetryCount((prev) => prev + 1);
           setTimeout(connectSession, 2000);
         } else {
-          alert("화상통화 연결에 실패했습니다.");
+          toast.error("화상통화 연결에 실패했습니다.");
           navigate(`/chat`);
         }
       }

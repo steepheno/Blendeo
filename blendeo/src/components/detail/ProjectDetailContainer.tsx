@@ -213,11 +213,12 @@ const ProjectDetailContainer = () => {
         if (siblingProject) {
           navigate(`/project/${siblingProject.projectId}`);
         } else {
-          toast.error(direction === "next"
-            ? "다음 프로젝트가 없습니다."
-            : "이전 프로젝트가 없습니다."
-          );
+          toast.error(
+            direction === "next"
+              ? "다음 프로젝트가 없습니다."
+              : "이전 프로젝트가 없습니다."
 
+          );
           paginate(direction === "next" ? -1 : 1);
         }
       } catch (error) {
@@ -238,7 +239,6 @@ const ProjectDetailContainer = () => {
 
   const handleForkClick = (type: RedirectSource) => {
     if (projectData) {
-      toast.success("프로젝트 이동 중 오류가 발생했습니다.");
       setOriginalProjectData(projectData);
       setRedirectState(projectData, type);
       navigate("/fork/record");

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronUp, ChevronDown} from "lucide-react";
 import ForkVideoRecorder from '@/components/record/ForkVideoRecorder';
 import useForkVideoStore from '@/stores/forkVideoStore';
+import { toast } from "sonner";
 
 
 
@@ -26,7 +27,7 @@ function ForkRecordPage() {
 
   useEffect(() => {
     if (!project) {
-      alert('프로젝트를 찾을 수 없습니다.');
+      toast.error('프로젝트를 찾을 수 없습니다.');
       navigate('/');
     }
   }, [project, navigate]);

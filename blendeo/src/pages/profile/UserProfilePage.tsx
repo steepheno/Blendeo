@@ -15,6 +15,8 @@ import { useAuthStore } from "@/stores/authStore";
 import noUserImg from "@/assets/no_user.jpg";
 import noHeaderImg from "@/assets/defaultHeader.png";
 
+import { toast } from "sonner";
+
 const useProfileData = (userId: number) => {
   const {
     user,
@@ -66,7 +68,7 @@ const UserProfile = () => {
 
   const handleMessageClick = useCallback(async () => {
     if (!currentUser || !userId || !user) {
-      alert("로그인 후에 메시지를 보낼 수 있어요!");
+      toast.error("로그인 후에 메시지를 보낼 수 있어요!");
       navigate("/auth/signin", { state: { from: `/profile/${userId}` } });
       return;
     }
@@ -109,9 +111,9 @@ const UserProfile = () => {
     } catch (error) {
       console.error("채팅방 처리 중 상세 오류:", error);
       if (error instanceof Error) {
-        alert(`채팅방 생성 실패: ${error.message}`);
+        toast.error(`채팅방 생성 실패: ${error.message}`);
       } else {
-        alert("채팅방을 생성하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        toast.error("채팅방을 생성하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
       }
     }
   }, [currentUser, userId, user, navigate]);
@@ -126,7 +128,7 @@ const UserProfile = () => {
         await followUser(parseInt(userId));
       }
     } catch (error) {
-      alert("로그인 후에 팔로우할 수 있어요!");
+      toast.error("로그인 후에 팔로우할 수 있어요!");
       navigate("/auth/signin", { state: { from: `/profile/${userId}` } });
       console.error("Failed to follow/unfollow:", error);
     }
