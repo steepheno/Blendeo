@@ -116,6 +116,15 @@ const MyProfilePage = () => {
     }
   };
 
+  // 악기 수정
+  const modiInstrument = () => {
+    navigate("/profile/selectinstrument", {
+      state: {
+        mode: 'edit',
+      }
+    })
+  }
+
   useEffect(() => {
     if (!isAuthenticated || !authUser?.id) {
       navigate("/auth/signin", { state: { from: "/profile/me" } });
@@ -235,7 +244,7 @@ const MyProfilePage = () => {
                 )}
 
                 <div className="flex gap-4 mt-3">
-                <span className="text-sm">
+                  <span className="text-sm">
                     <span className="font-bold">{followData.followingCount}</span>
                     <span className="text-gray-600"> 팔로잉</span>
                   </span>
@@ -254,6 +263,12 @@ const MyProfilePage = () => {
                       {instrument.instrument_name}
                     </span>
                   ))}
+                  <span
+                    className="inline-flex items-center text-black-600 cursor-pointer"
+                    onClick={modiInstrument}
+                  >
+                    수정하기
+                  </span>
                 </div>
               </div>
 

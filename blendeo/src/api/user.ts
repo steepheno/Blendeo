@@ -140,3 +140,26 @@ export const getFollowingProjects = async (): Promise<
     return [];
   }
 };
+
+// 연주 가능한 악기 수정
+export const modifyUserInst = async (instrumentIds: number[]) => {
+  try {
+    const response = await axiosInstance.patch<boolean>(
+      '/user/favorite/instrument/save',
+      null,
+      {
+        params: {
+          lists: instrumentIds,
+        },
+        paramsSerializer: {
+          indexes: null // request URL에 []를 추가하지 않도록 설정
+        },
+      },
+    );
+    console.log(response);
+    return response;
+  } catch (error) {
+    console.error('악기 정보 수정 실패:', error);
+    throw new Error('악기 정보 수정에 실패했습니다.' + error);
+  }
+};
