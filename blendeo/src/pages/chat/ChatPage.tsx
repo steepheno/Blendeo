@@ -74,7 +74,7 @@ const ChatPage = () => {
             채팅을 시작해보세요!
           </h1>
           <p className="text-gray-600 text-center max-w-md">
-            좌측의 채팅 목록에서 대화할 상대를 선택하거나,
+            우측의 채팅 목록에서 대화할 상대를 선택하거나,
             <br />
             새로운 대화를 시작할 수 있습니다.
           </p>
