@@ -162,12 +162,6 @@ const LoginForm = () => {
         </div>
       )}
 
-      {!validationErrors.password && formData.password && (
-        <div className="mt-1 text-sm text-gray-600">
-          비밀번호는 8자 이상, 소문자, 숫자, 특수문자를 포함해야 합니다.
-        </div>
-      )}
-
       <button
         type="submit"
         disabled={
