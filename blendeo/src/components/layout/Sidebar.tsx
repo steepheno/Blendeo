@@ -17,7 +17,7 @@ const sidebarItems = [
     requireAuth: true,
   },
   {
-    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/89a0072ef0dbff743855d5c27a472bde87b46dbf1c2df85532ab140f348af1d3",
+    icon: "https://cdn-icons-png.flaticon.com/512/1380/1380338.png",
     label: "채팅",
     path: "/chat",
     requireAuth: true,
@@ -51,8 +51,7 @@ const Sidebar = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-  }, [subscriptionItems]);
+  useEffect(() => {}, [subscriptionItems]);
   return (
     <>
       {/* 실제 Sidebar */}
