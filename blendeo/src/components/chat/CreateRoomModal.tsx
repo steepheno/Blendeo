@@ -152,7 +152,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
               {selectedUsers.map((user) => (
                 <div
                   key={user.userId}
-                  className="bg-blue-100 px-2 py-1 rounded-full flex items-center gap-2 text-sm"
+                  className="bg-violet-100 px-2 py-1 rounded-full flex items-center gap-2 text-sm"
                 >
                   {user.profileImage && (
                     <img
@@ -168,7 +168,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveUser(user.userId)}
-                    className="text-blue-500 hover:text-blue-700"
+                    className="text-violet-700 hover:text-violet-800"
                     aria-label="제거"
                   >
                     ×
@@ -223,7 +223,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-violet-700 text-white rounded hover:bg-violet-800 disabled:bg-violet-300 disabled:cursor-not-allowed transition-colors"
               disabled={selectedUsers.length === 0 || isLoading}
             >
               {isLoading ? "생성 중..." : "만들기"}
