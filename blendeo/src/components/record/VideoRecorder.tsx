@@ -27,6 +27,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -50,6 +51,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "../ui/input";
 
 type Orientation = "portrait" | "landscape";
 
@@ -201,6 +203,75 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
   const [timeSignature, setTimeSignature] = useState(4);
   const [_currentBeat, _setCurrentBeat] = useState(1);
+
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const handleModalOpen = () => {
+    setShowUploadModal(true);
+  };
+  // 파일 업로드 처리 함수
+  const handleVideoUpload = async (file) => {
+    try {
+      // 여기에 실제 업로드 로직을 구현하세요
+      // 예: FormData를 사용한 서버 업로드
+      const formData = new FormData();
+      formData.append("video", file);
+
+      // 먼저 이렇게 VideoData를 만드는 함수를 수정해볼게요
+      async function createVideoData(blob: Blob): Promise<VideoData> {
+        // Blob을 File로 변환 (이름과 타입 지정)
+        const file = new File([blob], "recorded-video.mp4", {
+          type: blob.type,
+        });
+        const blobUrl = URL.createObjectURL(file);
+
+        // 비디오 엘리먼트를 만들어서 duration 얻기
+        const video = document.createElement("video");
+        video.src = blobUrl;
+        video.load();
+
+        const duration = await new Promise<number>((resolve) => {
+          video.addEventListener("loadedmetadata", () => {
+            // 메타데이터가 로드된 후 duration 확인
+            if (video.duration === Infinity) {
+              // seekable이 설정될 때까지 기다림
+              video.currentTime = Number.MAX_SAFE_INTEGER;
+              video.addEventListener("seeked", () => {
+                // 실제 duration을 얻을 수 있음
+                resolve(video.duration);
+              });
+            } else {
+              resolve(video.duration);
+            }
+          });
+        });
+
+        // 화면 방향과 크기 정보도 가져오기
+        const orientation =
+          video.videoWidth > video.videoHeight ? "landscape" : "portrait";
+
+        return {
+          blobUrl,
+          orientation,
+          duration,
+        };
+      }
+
+      const videoData = await createVideoData(file);
+
+      setVideoData(videoData);
+      if (onRecordingComplete) {
+        onRecordingComplete(file);
+      }
+      navigate("/seed/edit");
+
+      // 성공 처리
+      console.log("파일 업로드 성공:", file.name);
+    } catch (error) {
+      console.error("업로드 중 오류 발생:", error);
+      // 에러 처리
+    }
+  };
 
   // 가이드라인 내용
   const guideSteps = [
@@ -528,6 +599,53 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* 새로운 업로드 모달 */}
+      <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>영상 업로드</DialogTitle>
+            <DialogDescription>
+              MP4 형식의 영상 파일을 선택해주세요.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex items-center gap-4">
+              <Input
+                id="video-upload"
+                type="file"
+                accept=".mp4"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setSelectedFile(file);
+                  }
+                }}
+              />
+            </div>
+            {selectedFile && (
+              <p className="text-sm text-gray-500">
+                선택된 파일: {selectedFile.name}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadModal(false)}>
+              취소
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedFile) {
+                  handleVideoUpload(selectedFile);
+                  setShowUploadModal(false);
+                }
+              }}
+              disabled={!selectedFile}
+            >
+              업로드
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 에러 알림 */}
       {error && (
@@ -671,6 +789,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
             </>
           )}
         </Button>
+        <Button onClick={handleModalOpen}>파일 업로드</Button>
       </div>
       <DraggableToolbox>
         {/* 카메라 선택 및 컨트롤 */}
