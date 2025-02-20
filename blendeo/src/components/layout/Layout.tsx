@@ -3,6 +3,12 @@ import Navbar from "./Searchbar";
 import Sidebar from "./Sidebar";
 import NotificationButton from "../common/NotificationButton";
 
+const styles = `
+  ::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
 interface LayoutProps {
   children: ReactNode;
   showRightSidebar?: boolean;
@@ -32,6 +38,7 @@ const Layout = ({
 }: LayoutProps) => {
   return (
     <div className="flex overflow-hidden flex-col h-full">
+      <style>{styles}</style>
       <Navbar />
 
       <div className="flex flex-wrap flex-1 gap-2.5 mt-2.5 size-full max-md:max-w-full">
