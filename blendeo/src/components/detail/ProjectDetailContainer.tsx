@@ -20,6 +20,7 @@ import { getAllComments } from "@/api/comment";
 import { Project } from "@/types/api/project";
 
 import { useProjectStore } from "@/stores/projectStore";
+import { toast } from "sonner";
 
 import {
   MessageSquare,
@@ -212,16 +213,16 @@ const ProjectDetailContainer = () => {
         if (siblingProject) {
           navigate(`/project/${siblingProject.projectId}`);
         } else {
-          alert(
-            direction === "next"
-              ? "다음 프로젝트가 없습니다."
-              : "이전 프로젝트가 없습니다."
+          toast.error(direction === "next"
+            ? "다음 프로젝트가 없습니다."
+            : "이전 프로젝트가 없습니다."
           );
+
           paginate(direction === "next" ? -1 : 1);
         }
       } catch (error) {
         console.error(`Error navigating to ${direction} project:`, error);
-        alert("프로젝트 이동 중 오류가 발생했습니다.");
+        toast.error("프로젝트 이동 중 오류가 발생했습니다.");
         paginate(direction === "next" ? -1 : 1);
       } finally {
         setSiblingLoading(false);
@@ -253,7 +254,7 @@ const ProjectDetailContainer = () => {
 
   const handleForkClick = (type: RedirectSource) => {
     if (projectData) {
-      alert("Blend 페이지로 이동합니다!");
+      toast.success("프로젝트 이동 중 오류가 발생했습니다.");
       setOriginalProjectData(projectData);
       setRedirectState(projectData, type);
       navigate("/fork/record");
@@ -278,7 +279,7 @@ const ProjectDetailContainer = () => {
       setHeartFilled(!heartFilled);
     } catch (error) {
       console.error("좋아요 토글 실패: ", error);
-      alert("좋아요 처리 중 에러 발생");
+      toast.error("좋아요 처리 중 에러 발생");
     }
   };
 
