@@ -40,7 +40,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "signin", element: <SignInPage /> },
       { path: "signup", element: <SignUpPage /> },
-      { path: "selectinstrument", element: <InstrumentSelector /> },
+      { path: "signup2", element: <InstrumentSelector /> },
     ],
   },
   {
