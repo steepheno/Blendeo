@@ -223,7 +223,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-violet-700 text-white rounded hover:bg-violet-800 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
               disabled={selectedUsers.length === 0 || isLoading}
             >
               {isLoading ? "생성 중..." : "만들기"}

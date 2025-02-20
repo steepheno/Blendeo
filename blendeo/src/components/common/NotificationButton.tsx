@@ -65,7 +65,7 @@ const NotificationButton = () => {
         {/* 알림 버튼 */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg relative"
+          className="bg-violet-700 hover:bg-violet-800 text-white rounded-full p-3 shadow-lg relative"
         >
           <svg
             className="w-6 h-6"
@@ -138,7 +138,7 @@ const NotificationButton = () => {
                     </span>
                   </div>
                   {!notification.isRead && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
+                    <div className="w-2 h-2 rounded-full bg-violet-700 mt-2" />
                   )}
                 </div>
               ))}

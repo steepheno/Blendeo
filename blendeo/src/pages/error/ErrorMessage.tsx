@@ -32,7 +32,7 @@ const ErrorPage = ({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-violet-700 text-white rounded-lg hover:bg-violet-800 transition-colors"
           >
             <RefreshCw className="h-5 w-5" />
             다시 시도

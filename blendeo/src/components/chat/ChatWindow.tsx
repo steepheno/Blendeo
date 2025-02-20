@@ -201,7 +201,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             type="submit"
             className={`px-6 py-2 rounded-lg ${
               isConnected
-                ? "bg-blue-500 text-white hover:bg-blue-600"
+                ? "bg-violet-700 text-white hover:bg-violet-800"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             } focus:outline-none focus:ring-2 focus:ring-blue-500`}
             disabled={!isConnected}
