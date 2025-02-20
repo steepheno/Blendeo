@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from "react";
-import { UserCog } from 'lucide-react';
+import { Pencil, UserCog } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 
 import Layout from "@/components/layout/Layout";
@@ -267,7 +267,7 @@ const MyProfilePage = () => {
                     className="inline-flex items-center text-black-600 cursor-pointer"
                     onClick={modiInstrument}
                   >
-                    수정하기
+                    <Pencil className="ml-5 w-5 h-5" />
                   </span>
                 </div>
               </div>
