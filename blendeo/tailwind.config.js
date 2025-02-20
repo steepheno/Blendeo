@@ -15,6 +15,8 @@ export default {
 			'darkblue': "#171226",
 			'main_100': "#8B63FF",
 			'main_200' : "#6A02FA",
+			'color1': "#763AF5",
+			'color2': "#A604F2",
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
