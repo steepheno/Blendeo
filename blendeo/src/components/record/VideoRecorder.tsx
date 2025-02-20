@@ -215,7 +215,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [resourcesCleared, setResourcesCleared] = useState(true);
 
   const handleModalOpen = () => {
     setShowUploadModal(true);
@@ -559,20 +558,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     }
     chunksRef.current = [];
   }, []);
-
-  useEffect(() => {
-    const checkResources = async () => {
-      if (streamRef.current) {
-        const tracks = streamRef.current.getTracks();
-        const allStopped = tracks.every(
-          (track) => track.readyState === "ended"
-        );
-        setResourcesCleared(allStopped);
-      }
-    };
-
-    void checkResources();
-  }, [cleanup]);
 
   // 뒤로가기 및 페이지 이동 감지 추가
   useEffect(() => {
