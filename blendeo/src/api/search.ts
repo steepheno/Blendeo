@@ -14,6 +14,8 @@ export const searchProjects = async (
   if (params.page !== undefined)
     queryParams.append("page", params.page.toString());
   if (params.size) queryParams.append("size", params.size.toString());
+  if (params.instrumentId)
+    queryParams.append("instrumentId", params.instrumentId);
 
   const response = await axiosInstance.get<SearchProjectResponse[]>(
     `/search/project/title?${queryParams}`
@@ -42,7 +44,7 @@ export const searchByInstrument = async (
 ): Promise<SearchProjectResponse[]> => {
   const queryParams = new URLSearchParams();
 
-  if (params.instrument) queryParams.append("keyword", params.instrument);
+  if (params.instrumentId) queryParams.append("keyword", params.instrumentId);
   if (params.page !== undefined)
     queryParams.append("page", params.page.toString());
   if (params.size) queryParams.append("size", params.size.toString());

@@ -5,13 +5,16 @@ import type {
   SearchActions,
 } from "@/types/components/search/search";
 
-interface SearchStore extends SearchState, SearchActions {}
+interface SearchStore extends SearchState, SearchActions {
+  selectedInstrument: string | null;
+  setSelectedInstrument: (instrument: string | null) => void;
+}
 
 export const useSearchStore = create<SearchStore>((set) => ({
   searchTerm: "",
   searchResults: [],
   loading: false,
-  hasMore: true,
+  hasMore: false,
   currentPage: 0,
   selectedInstrument: null,
 
@@ -31,7 +34,7 @@ export const useSearchStore = create<SearchStore>((set) => ({
       searchTerm: "",
       searchResults: [],
       loading: false,
-      hasMore: true,
+      hasMore: false,
       currentPage: 0,
       selectedInstrument: null,
     }),

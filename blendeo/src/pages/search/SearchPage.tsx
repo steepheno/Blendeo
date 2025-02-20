@@ -1,5 +1,5 @@
 // src/pages/search/SearchPage.tsx
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import VideoGrid from "@/components/common/VideoGrid";
@@ -7,13 +7,70 @@ import VideoCard from "@/components/common/VideoCard";
 import { useSearch } from "@/hooks/useSearch";
 import type { ProjectListItem } from "@/types/api/project";
 import type { SearchProjectResponse } from "@/types/api/search";
+import type { InstrumentCategory } from "@/types/api/auth";
+
+const INSTRUMENTS_BY_CATEGORY: InstrumentCategory = {
+  현악기: [
+    { instrument_id: 1, instrument_name: "일렉트릭 기타" },
+    { instrument_id: 2, instrument_name: "어쿠스틱 기타" },
+    { instrument_id: 3, instrument_name: "클래식 기타" },
+    { instrument_id: 4, instrument_name: "베이스 기타" },
+    { instrument_id: 5, instrument_name: "바이올린" },
+    { instrument_id: 6, instrument_name: "첼로" },
+  ],
+  건반악기: [
+    { instrument_id: 9, instrument_name: "피아노" },
+    { instrument_id: 8, instrument_name: "신디사이저" },
+    { instrument_id: 19, instrument_name: "멜로디언" },
+  ],
+  타악기: [
+    { instrument_id: 7, instrument_name: "드럼" },
+    { instrument_id: 12, instrument_name: "카혼" },
+    { instrument_id: 14, instrument_name: "탬버린" },
+    { instrument_id: 15, instrument_name: "셰이커" },
+    { instrument_id: 21, instrument_name: "실로폰" },
+    { instrument_id: 20, instrument_name: "캐스터넷츠" },
+    { instrument_id: 13, instrument_name: "핸드 드럼" },
+  ],
+  목관악기: [{ instrument_id: 10, instrument_name: "색소폰" }],
+  전자음향: [
+    { instrument_id: 11, instrument_name: "MIDI 컨트롤러" },
+    { instrument_id: 30, instrument_name: "글리치 사운드" },
+    { instrument_id: 29, instrument_name: "노이즈" },
+    { instrument_id: 24, instrument_name: "오토튠" },
+    { instrument_id: 23, instrument_name: "보코더" },
+    { instrument_id: 26, instrument_name: "필드 레코딩" },
+    { instrument_id: 27, instrument_name: "샘플" },
+    { instrument_id: 28, instrument_name: "패드" },
+  ],
+  "바디 퍼커션": [
+    { instrument_id: 16, instrument_name: "클랩" },
+    { instrument_id: 17, instrument_name: "발구르기" },
+    { instrument_id: 22, instrument_name: "비트박스" },
+    { instrument_id: 18, instrument_name: "보컬" },
+    { instrument_id: 25, instrument_name: "보컬 이펙트" },
+  ],
+};
 
 const SearchPage = () => {
   const navigate = useNavigate();
-  const [, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const observerRef = useRef<HTMLDivElement>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("현악기");
 
-  const { searchTerm, searchResults, loading, hasMore, loadMore } = useSearch();
+  const {
+    searchTerm,
+    searchResults,
+    loading,
+    hasMore,
+    loadMore,
+    selectedInstrument,
+    setSelectedInstrument,
+  } = useSearch();
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory((prev) => (prev === category ? "" : category));
+  };
 
   // 무한 스크롤 설정
   useEffect(() => {
@@ -48,17 +105,35 @@ const SearchPage = () => {
     const formData = new FormData(e.currentTarget);
     const searchTerm = formData.get("search") as string;
 
+    const params = new URLSearchParams(searchParams);
     if (searchTerm.trim()) {
-      // 현재 페이지가 /search가 아닐 경우 직접 URL로 이동
-      if (!window.location.pathname.includes("/search")) {
-        navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-      } else {
-        // 이미 검색 페이지에 있는 경우 파라미터만 업데이트
-        const params = new URLSearchParams();
-        params.set("q", searchTerm.trim());
-        setSearchParams(params);
-      }
+      params.set("q", searchTerm.trim());
+    } else {
+      params.delete("q");
     }
+
+    if (!window.location.pathname.includes("/search")) {
+      navigate(`/search?${params.toString()}`);
+    } else {
+      setSearchParams(params);
+    }
+  };
+
+  const handleInstrumentClick = (
+    instrumentId: number,
+    instrumentName: string
+  ) => {
+    const params = new URLSearchParams(searchParams);
+    if (selectedInstrument === instrumentName) {
+      params.delete("instrument");
+      params.delete("instrumentId");
+      setSelectedInstrument(null);
+    } else {
+      params.set("instrument", instrumentName);
+      params.set("instrumentId", instrumentId.toString());
+      setSelectedInstrument(instrumentName);
+    }
+    setSearchParams(params);
   };
 
   // API 응답을 ProjectListItem 형식으로 변환
@@ -70,6 +145,13 @@ const SearchPage = () => {
     thumbnail: searchResult.thumbnail || null,
     authorProfileImage: searchResult.authorProfileImage,
   });
+
+  // 선택된 악기에 따라 결과 필터링
+  const filteredResults = selectedInstrument
+    ? searchResults.filter((result) =>
+        result.instruments.includes(selectedInstrument)
+      )
+    : searchResults;
 
   return (
     <Layout showNotification>
@@ -103,10 +185,55 @@ const SearchPage = () => {
           </button>
         </form>
 
+        {/* 악기 카테고리 */}
+        <div className="w-full">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {Object.keys(INSTRUMENTS_BY_CATEGORY).map((category) => (
+              <button
+                key={category}
+                onClick={() => handleCategoryClick(category)}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm transition-colors ${
+                  selectedCategory === category
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          {/* 선택된 카테고리의 악기들 */}
+          {selectedCategory && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="flex flex-wrap gap-2">
+                {INSTRUMENTS_BY_CATEGORY[selectedCategory].map((instrument) => (
+                  <button
+                    key={instrument.instrument_id}
+                    onClick={() =>
+                      handleInstrumentClick(
+                        instrument.instrument_id,
+                        instrument.instrument_name
+                      )
+                    }
+                    className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                      selectedInstrument === instrument.instrument_name
+                        ? "bg-blue-500 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+                    }`}
+                  >
+                    {instrument.instrument_name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* 검색 결과 */}
-        {searchResults.length > 0 ? (
+        {filteredResults.length > 0 ? (
           <VideoGrid type="search">
-            {searchResults.map((result, index) => (
+            {filteredResults.map((result, index) => (
               <VideoCard
                 key={`project-${result.projectId}-${index}`}
                 project={convertToProjectListItem(result)}

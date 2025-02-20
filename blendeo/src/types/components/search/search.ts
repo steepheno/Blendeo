@@ -6,6 +6,7 @@ export interface SearchState {
   loading: boolean;
   hasMore: boolean;
   currentPage: number;
+  selectedInstrument: string | null;
 }
 
 export interface SearchActions {

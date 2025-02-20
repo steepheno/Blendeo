@@ -4,6 +4,7 @@ export interface SearchProjectParams {
   nickname?: string;
   page?: number;
   size?: number;
+  instrumentId?: string;
 }
 
 export interface SearchProjectResponse {
