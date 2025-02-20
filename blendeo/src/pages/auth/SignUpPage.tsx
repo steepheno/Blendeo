@@ -21,20 +21,6 @@ const SignUpPage = () => {
 
         <SignUpForm />
 
-        <div className="mt-4 text-center text-sm text-gray-500">
-          또는 SNS 계정으로 로그인
-        </div>
-
-        <button
-          onClick={handleGoogleSignup}
-          className="flex gap-4 justify-center items-center p-4 mt-6 w-full rounded-md border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
-        >
-          <img src="/svgs/google-icon.svg" alt="Google" className="w-6 h-6" />
-          <span className="text-sm font-medium tracking-wide text-slate-900">
-            구글 계정으로 회원가입
-          </span>
-        </button>
-
         <div className="mt-7 text-base tracking-wide text-center">
           이미 계정이 있으신가요?{" "}
           <button

@@ -20,21 +20,6 @@ const SignInPage = () => {
 
         <LoginForm />
 
-        <div className="mt-4 text-center text-sm text-gray-500">
-          또는 SNS 계정으로 로그인
-        </div>
-
-        {/* 구글 로그인 버튼 */}
-        <button
-          onClick={() => navigate("/")}
-          className="flex gap-4 justify-center items-center p-4 mt-6 w-full rounded-md border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
-        >
-          <img src="/svgs/google-icon.svg" alt="Google" className="w-6 h-6" />
-          <span className="text-sm font-medium tracking-wide text-slate-900">
-            구글 계정으로 회원가입
-          </span>
-        </button>
-
         {/* 회원가입 링크 */}
         <div className="mt-7 text-base tracking-wide text-center">
           <span>계정이 없으신가요? </span>
