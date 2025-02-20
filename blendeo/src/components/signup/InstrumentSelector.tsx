@@ -170,7 +170,7 @@ const InstrumentSelector = () => {
                   onClick={() => handleSelect(instrument)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
                     ${selectedInstruments.some(selected => selected.instrument_id === instrument.instrument_id)
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-violet-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
                     ${selectedInstruments.length >= 3 && !selectedInstruments.some(selected => selected.instrument_id === instrument.instrument_id)
                       ? 'opacity-50 cursor-not-allowed'
@@ -193,7 +193,7 @@ const InstrumentSelector = () => {
             selectedInstruments.map((instrument) => (
               <span
                 key={instrument.instrument_id}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                className="px-3 py-1 bg-violet-100 text-violet-800 rounded-full text-sm"
               >
                 {instrument.instrument_name}
               </span>

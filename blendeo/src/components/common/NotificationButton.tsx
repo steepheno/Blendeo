@@ -117,7 +117,7 @@ const NotificationButton = () => {
                 <div
                   key={notification.id}
                   className={`flex items-start space-x-3 mb-4 last:mb-0 p-2 rounded-lg transition-colors ${
-                    !notification.isRead ? "bg-blue-50" : ""
+                    !notification.isRead ? "bg-violet-50" : ""
                   }`}
                   onClick={() => markAsRead(notification.id)}
                 >

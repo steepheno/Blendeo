@@ -21,7 +21,7 @@ export function UserMiniInfo({ user, className = '' }: UserMiniInfoProps) {
             <div className="flex flex-col gap-2">
                 <span className="font-semibold">{user.nickname}</span>
                 {user.instruments?.length > 0 && (
-                    <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                    <span className="inline-block bg-violet-100 text-violet-800 px-3 py-1 rounded-full text-sm">
                         {user.instruments[0].instrument_name}
                     </span>
                 )}

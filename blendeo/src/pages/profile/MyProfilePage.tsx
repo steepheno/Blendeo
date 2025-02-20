@@ -318,7 +318,7 @@ const MyProfilePage = () => {
                   <>
                     <button
                       onClick={handleProfileUpdate}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700"
+                      className="bg-violet-600 text-white px-4 py-2 rounded-full hover:bg-violet-700"
                     >
                       저장
                     </button>
@@ -341,7 +341,7 @@ const MyProfilePage = () => {
                         intro: profile.intro || "",
                       });
                     }}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700"
+                    className="bg-violet-600 text-white px-6 py-2 rounded-full hover:bg-violet-700"
                   >
                     <UserCog />
                   </button>

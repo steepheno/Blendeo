@@ -166,7 +166,7 @@ function ProfileSection({
                 <button
                   type="submit"
                   disabled={isUpdating}
-                  className="px-4 py-2 text-sm bg-violet-700 text-white rounded-md hover:bg-violet-800 disabled:bg-blue-300"
+                  className="px-4 py-2 text-sm bg-violet-700 text-white rounded-md hover:bg-violet-800 disabled:bg-violet-300"
                 >
                   {isUpdating ? "업데이트 중..." : "저장"}
                 </button>
