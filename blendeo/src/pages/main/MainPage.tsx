@@ -10,6 +10,12 @@ import HeroSection from "@/components/mainpage/HeroSection";
 import useMainPageStore from "@/stores/mainPageStore";
 import type { ProjectType } from "@/stores/mainPageStore";
 
+const styles = `
+  ::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
 const MainPage = () => {
   const navigate = useNavigate();
   const {
@@ -76,6 +82,7 @@ const MainPage = () => {
 
   return (
     <Layout showNotification={true}>
+      <style>{styles}</style>
       <div className="flex flex-col flex-1 shrink self-start px-20 pt-2.5 basis-0 min-w-[240px]">
         <HeroSection />
         <TabNavigation
