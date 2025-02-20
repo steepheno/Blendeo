@@ -60,6 +60,12 @@ interface Dimensions {
   height: number;
 }
 
+interface VideoData2 {
+  blobUrl: string;
+  orientation: "landscape" | "portrait";
+  duration: number;
+}
+
 interface VideoRecorderProps {
   onError?: (error: string) => void;
   onRecordingComplete?: (blob: Blob) => void;
@@ -205,39 +211,32 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
   const [_currentBeat, _setCurrentBeat] = useState(1);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const handleModalOpen = () => {
     setShowUploadModal(true);
   };
+
   // 파일 업로드 처리 함수
-  const handleVideoUpload = async (file) => {
+  const handleVideoUpload = async (file: Blob | File) => {
     try {
-      // 여기에 실제 업로드 로직을 구현하세요
-      // 예: FormData를 사용한 서버 업로드
       const formData = new FormData();
       formData.append("video", file);
 
-      // 먼저 이렇게 VideoData를 만드는 함수를 수정해볼게요
-      async function createVideoData(blob: Blob): Promise<VideoData> {
-        // Blob을 File로 변환 (이름과 타입 지정)
+      async function createVideoData(blob: Blob): Promise<VideoData2> {
         const file = new File([blob], "recorded-video.mp4", {
           type: blob.type,
         });
         const blobUrl = URL.createObjectURL(file);
 
-        // 비디오 엘리먼트를 만들어서 duration 얻기
         const video = document.createElement("video");
         video.src = blobUrl;
         video.load();
 
         const duration = await new Promise<number>((resolve) => {
           video.addEventListener("loadedmetadata", () => {
-            // 메타데이터가 로드된 후 duration 확인
             if (video.duration === Infinity) {
-              // seekable이 설정될 때까지 기다림
               video.currentTime = Number.MAX_SAFE_INTEGER;
               video.addEventListener("seeked", () => {
-                // 실제 duration을 얻을 수 있음
                 resolve(video.duration);
               });
             } else {
@@ -246,7 +245,6 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
           });
         });
 
-        // 화면 방향과 크기 정보도 가져오기
         const orientation =
           video.videoWidth > video.videoHeight ? "landscape" : "portrait";
 
@@ -265,11 +263,11 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
       }
       navigate("/seed/edit");
 
-      // 성공 처리
-      console.log("파일 업로드 성공:", file.name);
+      // 파일 이름 로깅을 위한 타입 체크
+      const fileName = file instanceof File ? file.name : "blob";
+      console.log("파일 업로드 성공:", fileName);
     } catch (error) {
       console.error("업로드 중 오류 발생:", error);
-      // 에러 처리
     }
   };
 
