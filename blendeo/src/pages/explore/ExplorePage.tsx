@@ -87,16 +87,33 @@ const ExplorePage = (): JSX.Element => {
 
         const nodeMap = new Map();
         const allNodes = data.flatMap((item: DataItem) => {
-          item.nodes.forEach((node) => nodeMap.set(node.projectId, node));
+          item.nodes.forEach((node) => {
+            if (node.projectId) {
+              // projectId가 있는 경우만 맵에 추가
+              nodeMap.set(node.projectId, node);
+            }
+          });
           return item.nodes;
         });
 
+        // 유효한 링크만 필터링
         const allLinks = data.flatMap((item: DataItem) =>
-          item.links.map((link) => ({
-            source: nodeMap.get(link.source),
-            target: nodeMap.get(link.target),
-          }))
+          item.links
+            .filter((link) => {
+              // source와 target이 모두 nodeMap에 존재하는 경우만 포함
+              const sourceNode = nodeMap.get(link.source);
+              const targetNode = nodeMap.get(link.target);
+              return sourceNode && targetNode;
+            })
+            .map((link) => ({
+              source: nodeMap.get(link.source),
+              target: nodeMap.get(link.target),
+            }))
         );
+
+        console.log("Nodes:", allNodes);
+        console.log("Links:", allLinks);
+        console.log("NodeMap size:", nodeMap.size);
 
         setGraphData({ nodes: allNodes, links: allLinks });
       } catch (error) {
@@ -104,7 +121,7 @@ const ExplorePage = (): JSX.Element => {
       }
     };
 
-    void fetchData();
+    fetchData();
   }, []);
 
   const createNodeThreeObject = useCallback((node: any) => {
