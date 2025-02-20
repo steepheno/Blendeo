@@ -233,6 +233,7 @@ public class NotificationService {
                         .isRead(notification.getIsRead())
                         .content(notification.getContent())
                         .profileImage(notification.getSender().getProfileImage())
+                        .nickname(notification.getSender().getNickname())
                         .build())
                 .collect(Collectors.toList());
     }
