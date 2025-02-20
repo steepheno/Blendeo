@@ -215,7 +215,7 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [resourcesCleared, setResourcesCleared] = useState(true);
+  const [_resourcesCleared, setResourcesCleared] = useState(true);
 
   const handleModalOpen = () => {
     setShowUploadModal(true);
