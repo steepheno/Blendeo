@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Video, Square } from 'lucide-react';
 import useForkVideoStore from '@/stores/forkVideoStore';
+import { RecordingTimer } from "@/components/record/RecordingTimer";
+import { RecordingController } from "@/components/record/RecordingController"
 
 type Orientation = 'portrait' | 'landscape';
 
@@ -38,6 +40,9 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const previewRef = useRef<HTMLVideoElement>(null);
+
+  const [timer, setTimer] = useState(0)
+
 
   // 원본 비디오의 방향 감지
   useEffect(() => {
@@ -161,6 +166,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
     }
   };
 
+
   // 동기화된 재생 및 녹화 시작
   const startSyncedRecording = () => {
     if (!isPlaying && videoRef.current) {
@@ -175,6 +181,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
       void videoRef.current.play();
     }
   };
+  
 
   // 녹화 중지
   const stopRecording = () => {
@@ -194,11 +201,11 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
   };
 
   return (
-    <div className={`flex gap-2 items-start p-4 ${originalOrientation === 'landscape' ? 'flex-col' : 'flex-row'}`}>
+    <div className={`flex gap-2 items-start justify-center p-4 ${originalOrientation === 'landscape' ? 'flex-row' : 'flex-row'}`}>
       {/* 원본 비디오 플레이어 */}
-      <div className="flex flex-col items-center space-y-4">
+      <div className="flex flex-col items-center space-y-4 relative">
         <div 
-          className="bg-black rounded-lg overflow-hidden"
+          className="bg-black overflow-hidden"
           style={getVideoContainerStyle()}
         >
           <video
@@ -210,23 +217,34 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
           >
             <source src={videoUrl} type="video/mp4" />
           </video>
+          <div className="absolute top-0 left-0 w-full h-full"> {/* 오버레이 컨테이너 추가 */}
+            <RecordingTimer 
+              isRecording={isRecording} 
+              timer={timer} 
+            />
+            <RecordingController 
+              isRecording={isRecording} 
+              onTimerChange={setTimer} 
+            />
+          </div>
         </div>
         
         <div className="text-sm text-gray-600">
           현재 {currentLoop + 1}번째 재생 중 / 총 {repeatCount}회
         </div>
+        
       </div>
 
       {/* 녹화 미리보기 */}
       <div className="flex flex-col items-center space-y-4">
         {error && (
-          <div className="w-full p-4 mb-4 text-red-700 bg-red-100 rounded-lg">
+          <div className="w-full p-4 mb-4 text-red-700 bg-red-100 rounded-sm">
             {error}
           </div>
         )}
 
         <div 
-          className="bg-black rounded-lg overflow-hidden"
+          className="bg-black overflow-hidden"
           style={getVideoContainerStyle()}
         >
           <video
@@ -241,7 +259,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
         <button
           onClick={startSyncedRecording}
           disabled={isRecording || isPlaying}
-          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 bg-main_100 text-white rounded-lg hover:bg-main_200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isRecording ? (
             <>
@@ -255,6 +273,7 @@ const ForkVideoRecorder: React.FC<ForkVideoRecorderProps> = ({ videoUrl, repeatC
             </>
           )}
         </button>
+        
       </div>
     </div>
   );

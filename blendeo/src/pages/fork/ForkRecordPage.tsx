@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown} from "lucide-react";
 import ForkVideoRecorder from '@/components/record/ForkVideoRecorder';
 import useForkVideoStore from '@/stores/forkVideoStore';
+
+
 
 function ForkRecordPage() {
   const navigate = useNavigate();
   const project = useForkVideoStore((state) => state.originalProjectData);
   const loopCnt = useForkVideoStore((state) => state.loopCnt);
   const setLoopCnt = useForkVideoStore((state) => state.setLoopCnt);
+
 
   const increaseCount = () => {
     setLoopCnt(loopCnt + 1);
@@ -19,6 +22,7 @@ function ForkRecordPage() {
       setLoopCnt(loopCnt - 1);
     }
   };
+
 
   useEffect(() => {
     if (!project) {
