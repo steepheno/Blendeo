@@ -12,6 +12,7 @@ import { useWebSocket } from "@/hooks/chat/useWebSocket";
 import { useNavigate } from "react-router-dom";
 import EditRoomNameModal from "./EditRoomNameModal";
 import { chatAPI } from "@/api/chat";
+import { toast } from "sonner";
 
 interface MainChatAreaProps {
   setChatWindowOpened: (opened: boolean) => void;
@@ -79,7 +80,7 @@ const MainChatArea = ({ setChatWindowOpened }: MainChatAreaProps) => {
       updateRoom(updatedRoom);
     } catch (error) {
       console.error("채팅방 이름 수정 실패:", error);
-      alert("채팅방 이름 수정에 실패했습니다.");
+      toast.error("채팅방 이름 수정에 실패했습니다.");
     }
   };
 
