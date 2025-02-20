@@ -4,6 +4,7 @@ import { Music } from 'lucide-react';
 import { Instrument, InstrumentCategory } from '@/types/api/auth'
 import { signup } from '@/api/auth';
 import { modifyUserInst } from '@/api/user';
+import { toast } from "sonner";
 
 interface ApiError extends Error {
   response?: {
@@ -116,7 +117,7 @@ const InstrumentSelector = () => {
         };
         
         await signup(signupData);
-        alert("회원가입이 완료되었습니다.");
+        toast.success("회원가입이 완료되었습니다.");
         navigate("/auth/signin", {
           state: { message: "회원가입이 완료되었습니다. 로그인해주세요." },
         });
@@ -128,7 +129,7 @@ const InstrumentSelector = () => {
           !initialInstruments.some(initial => initial.instrument_id === id)
         )
         await modifyUserInst(newInstrumentIds);
-        alert("악기 정보가 수정되었습니다.");
+        toast.success("악기 정보가 수정되었습니다.");
         navigate("/profile/me", {
           state: { message: "악기 정보가 성공적으로 수정되었습니다." }
         });

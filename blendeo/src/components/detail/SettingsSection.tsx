@@ -1,5 +1,6 @@
 import { useProjectStore } from '@/stores/projectStore';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "sonner";
 
 interface SettingsSectionProps {
   projectId: number;
@@ -16,11 +17,12 @@ const SettingsSection = ( { projectId } : SettingsSectionProps) => {
       if (result) {
         // 확인 누르면 삭제
         await deletePjt(projectId);
-        alert("프로젝트 삭제가 완료되었습니다.");
+        toast.success("프로젝트 삭제가 완료되었습니다.");
         navigate("/main")
       }
     } catch (error) {
       console.error("프로젝트 삭제 실패: ", error);
+      toast.error("프로젝트 삭제 실패했습니다.");
     }
   };
 

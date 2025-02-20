@@ -17,6 +17,8 @@ import { AxiosResponse } from "axios";
 import noUserImg from "@/assets/no_user.jpg"
 import noHeaderImg from "@/assets/defaultHeader.png"
 
+import { toast } from "sonner";
+
 const useProfileData = (userId: number) => {
   const {
     profile,
@@ -107,7 +109,7 @@ const MyProfilePage = () => {
       try {
         const response: AxiosResponse = await axiosInstance.delete('/user/delete-user');
         sessionStorage.clear();  
-        alert("탈퇴 처리가 완료되었습니다.");
+        toast.success("탈퇴 처리가 완료되었습니다.");
         navigate("/main");
         console.log(response);
       } catch (error) {
