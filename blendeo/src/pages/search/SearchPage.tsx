@@ -229,7 +229,7 @@ const SearchPage = () => {
                 onClick={() => handleCategoryClick(category)}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm transition-colors ${
                   selectedCategory === category
-                    ? "bg-blue-500 text-white"
+                    ? "bg-violet-700 text-white hover:bg-violet-800"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -253,7 +253,7 @@ const SearchPage = () => {
                     }
                     className={`px-4 py-2 rounded-full text-sm transition-colors ${
                       selectedInstrument === instrument.instrument_name
-                        ? "bg-blue-500 text-white"
+                        ? "bg-violet-700 text-white hover:bg-violet-800"
                         : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
                     }`}
                   >
