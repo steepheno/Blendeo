@@ -1,5 +1,5 @@
 import { MessageSquare } from "lucide-react";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import Layout from "@/components/layout/Layout";
@@ -14,6 +14,7 @@ import { useAuthStore } from "@/stores/authStore";
 
 import noUserImg from "@/assets/no_user.jpg";
 import noHeaderImg from "@/assets/defaultHeader.png";
+import FollowListModal from "@/components/follow/FollowListModal";
 
 const useProfileData = (userId: number) => {
   const {
@@ -63,6 +64,10 @@ const UserProfile = () => {
 
   const { activeTab, setActiveTab, loadMore, followUser, unfollowUser } =
     useUserPageStore();
+
+  const [followModalType, setFollowModalType] = useState<
+    "following" | "followers" | null
+  >(null);
 
   const handleMessageClick = useCallback(async () => {
     if (!currentUser || !userId || !user) {
@@ -139,6 +144,13 @@ const UserProfile = () => {
     navigate,
   ]);
 
+  const handleFollowListClick = useCallback(
+    (type: "following" | "followers") => {
+      setFollowModalType(type);
+    },
+    []
+  );
+
   const userTabs = [{ id: "uploaded", label: "업로드한 영상" }];
 
   const handleProjectClick = useCallback(
@@ -214,10 +226,16 @@ const UserProfile = () => {
                 <p className="text-gray-600 text-sm mt-1">{user.intro}</p>
 
                 <div className="flex gap-4 mt-2">
-                  <span className="text-gray-700">
+                  <span
+                    className="text-gray-700 cursor-pointer hover:text-blue-600"
+                    onClick={() => handleFollowListClick("following")}
+                  >
                     <strong>{followData.followingCount}</strong> 팔로잉
                   </span>
-                  <span className="text-gray-700">
+                  <span
+                    className="text-gray-700 cursor-pointer hover:text-blue-600"
+                    onClick={() => handleFollowListClick("followers")}
+                  >
                     <strong>{followData.followerCount}</strong> 팔로워
                   </span>
                 </div>
@@ -290,6 +308,13 @@ const UserProfile = () => {
           </div>
         )}
       </div>
+
+      <FollowListModal
+        isOpen={followModalType !== null}
+        onClose={() => setFollowModalType(null)}
+        type={followModalType || "following"}
+        followData={followData}
+      />
     </Layout>
   );
 };
