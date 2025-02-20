@@ -9,6 +9,7 @@ import HeroSection from "@/components/mainpage/HeroSection";
 // import GenreSection from "@/components/mainpage/GenreSection";
 import useMainPageStore from "@/stores/mainPageStore";
 import type { ProjectType } from "@/stores/mainPageStore";
+import { useSearchStore } from "@/stores/searchStore";
 
 const styles = `
   ::-webkit-scrollbar {
@@ -27,6 +28,7 @@ const MainPage = () => {
     loadMore,
     fetchProjects,
   } = useMainPageStore();
+  const { resetSearch } = useSearchStore();
 
   const observerRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +81,10 @@ const MainPage = () => {
       }
     };
   }, [hasMore, loading, loadMore]);
+
+  useEffect(() => {
+    resetSearch();
+  }, [resetSearch]);
 
   return (
     <Layout showNotification={true}>

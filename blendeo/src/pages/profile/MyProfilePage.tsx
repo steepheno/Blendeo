@@ -1,10 +1,9 @@
 import { useEffect, useCallback } from "react";
-import { Pencil, UserCog } from 'lucide-react';
+import { Pencil, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import Layout from "@/components/layout/Layout";
-import VideoGrid from "@/components/common/VideoGrid";
-import VideoCard from "@/components/common/VideoCard";
+import InfiniteVideoGrid from "@/components/profile/InfiniteVideoGrid";
 import TabNavigation from "@/components/common/TabNavigation";
 
 import { useUser, useAuthStore } from "@/stores/authStore";
@@ -14,8 +13,8 @@ import { ProjectType } from "@/stores/myPageStore";
 import axiosInstance from "@/api/axios";
 import { AxiosResponse } from "axios";
 
-import noUserImg from "@/assets/no_user.jpg"
-import noHeaderImg from "@/assets/defaultHeader.png"
+import noUserImg from "@/assets/no_user.jpg";
+import noHeaderImg from "@/assets/defaultHeader.png";
 
 const useProfileData = (userId: number) => {
   const {
@@ -27,12 +26,12 @@ const useProfileData = (userId: number) => {
     getCurrentProjects,
     getProjectLoading,
     getHasMoreProjects,
-    setActiveTab
+    setActiveTab,
   } = useMyPageStore();
 
   useEffect(() => {
     fetchInitialData(userId);
-    setActiveTab('uploaded');
+    setActiveTab("uploaded");
   }, [userId, fetchInitialData, setActiveTab]);
 
   return {
@@ -57,14 +56,11 @@ const MyProfilePage = () => {
     profileError,
     followData,
     getCurrentProjects,
-    getProjectLoading,
-    getHasMoreProjects,
   } = useProfileData(authUser?.id as number);
 
   const {
     activeTab,
     setActiveTab,
-    loadMore,
     isEditMode,
     editData,
     setEditMode,
@@ -73,18 +69,22 @@ const MyProfilePage = () => {
     saveProfile,
   } = useMyPageStore();
 
-  const handleFileChange = useCallback((type: 'profileImage' | 'header') => (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      updateEditData({ [type]: file });
-    }
-  }, [updateEditData]);
+  const handleFileChange = useCallback(
+    (type: "profileImage" | "header") =>
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+          updateEditData({ [type]: file });
+        }
+      },
+    [updateEditData]
+  );
 
   const handleProfileUpdate = useCallback(async () => {
     try {
       await saveProfile();
     } catch (err) {
-      console.error('프로필 업데이트 실패:', err);
+      console.error("프로필 업데이트 실패:", err);
     }
   }, [saveProfile]);
 
@@ -93,20 +93,31 @@ const MyProfilePage = () => {
     { id: "scraped", label: "스크랩한 영상" },
   ];
 
-  const handleProjectClick = useCallback((projectId: number) => {
-    navigate(`/project/${projectId}`);
-  }, [navigate]);
+  const handleProjectClick = useCallback(
+    (projectId: number) => {
+      navigate(`/project/${projectId}`);
+    },
+    [navigate]
+  );
 
-  const handleTabChange = useCallback((tab: string) => {
-    setActiveTab(tab as ProjectType);
-  }, [setActiveTab]);
+  const handleTabChange = useCallback(
+    (tab: string) => {
+      setActiveTab(tab as ProjectType);
+    },
+    [setActiveTab]
+  );
 
   // 회원 탈퇴
   const deleteAccount = async () => {
-    if (window.confirm('정말 탈퇴하시겠습니까? 모든 데이터가 삭제되며 이 작업은 되돌릴 수 없습니다.')) {
+    if (
+      window.confirm(
+        "정말 탈퇴하시겠습니까? 모든 데이터가 삭제되며 이 작업은 되돌릴 수 없습니다."
+      )
+    ) {
       try {
-        const response: AxiosResponse = await axiosInstance.delete('/user/delete-user');
-        sessionStorage.clear();  
+        const response: AxiosResponse =
+          await axiosInstance.delete("/user/delete-user");
+        sessionStorage.clear();
         alert("탈퇴 처리가 완료되었습니다.");
         navigate("/main");
         console.log(response);
@@ -120,10 +131,10 @@ const MyProfilePage = () => {
   const modiInstrument = () => {
     navigate("/profile/selectinstrument", {
       state: {
-        mode: 'edit',
-      }
-    })
-  }
+        mode: "edit",
+      },
+    });
+  };
 
   useEffect(() => {
     if (!isAuthenticated || !authUser?.id) {
@@ -154,8 +165,6 @@ const MyProfilePage = () => {
   }
 
   const currentProjects = getCurrentProjects();
-  const hasMore = getHasMoreProjects();
-  const loading = getProjectLoading();
 
   return (
     <Layout showNotification>
@@ -163,7 +172,7 @@ const MyProfilePage = () => {
         {/* 배경 이미지 */}
         <div className="relative w-full h-48 bg-gray-200 rounded-lg mb-4">
           <img
-            src={profile.header || noHeaderImg }
+            src={profile.header || noHeaderImg}
             alt="Channel banner"
             className="w-full h-full object-cover rounded-lg"
           />
@@ -174,7 +183,7 @@ const MyProfilePage = () => {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={handleFileChange('header')}
+                  onChange={handleFileChange("header")}
                 />
                 헤더 이미지 변경
               </label>
@@ -186,7 +195,7 @@ const MyProfilePage = () => {
         <div className="flex px-4 mb-8">
           <div className="relative flex items-center mr-6">
             <img
-              src={profile.profileImage || noUserImg }
+              src={profile.profileImage || noUserImg}
               alt={`${profile.nickname}'s profile`}
               className="w-20 h-20 rounded-full"
             />
@@ -197,7 +206,7 @@ const MyProfilePage = () => {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleFileChange('profileImage')}
+                    onChange={handleFileChange("profileImage")}
                   />
                   <UserCog className="w-6 h-6" />
                 </label>
@@ -213,7 +222,9 @@ const MyProfilePage = () => {
                     <input
                       type="text"
                       value={editData.nickname}
-                      onChange={(e) => updateEditData({ nickname: e.target.value })}
+                      onChange={(e) =>
+                        updateEditData({ nickname: e.target.value })
+                      }
                       className="text-xl font-bold border rounded px-2 py-1"
                       placeholder="닉네임을 입력하세요"
                     />
@@ -227,7 +238,9 @@ const MyProfilePage = () => {
                   <>
                     <textarea
                       value={editData.intro}
-                      onChange={(e) => updateEditData({ intro: e.target.value })}
+                      onChange={(e) =>
+                        updateEditData({ intro: e.target.value })
+                      }
                       className="w-full mt-2 border rounded px-2 py-1"
                       rows={3}
                       placeholder="자기소개를 입력하세요"
@@ -235,8 +248,13 @@ const MyProfilePage = () => {
                     {/* 탈퇴하기 버튼 */}
                     <div className="flex justify-end mt-2">
                       <span className="text-sm">
-                        <a onClick={deleteAccount} className="text-gray-300 cursor-pointer">탈퇴하기</a>
-                      </span> 
+                        <a
+                          onClick={deleteAccount}
+                          className="text-gray-300 cursor-pointer"
+                        >
+                          탈퇴하기
+                        </a>
+                      </span>
                     </div>
                   </>
                 ) : (
@@ -245,11 +263,15 @@ const MyProfilePage = () => {
 
                 <div className="flex gap-4 mt-3">
                   <span className="text-sm">
-                    <span className="font-bold">{followData.followingCount}</span>
+                    <span className="font-bold">
+                      {followData.followingCount}
+                    </span>
                     <span className="text-gray-600"> 팔로잉</span>
                   </span>
                   <span className="text-sm">
-                    <span className="font-bold">{followData.followerCount}</span>
+                    <span className="font-bold">
+                      {followData.followerCount}
+                    </span>
                     <span className="text-gray-600"> 팔로워</span>
                   </span>
                 </div>
@@ -297,7 +319,7 @@ const MyProfilePage = () => {
                       setEditMode(true);
                       updateEditData({
                         nickname: profile.nickname,
-                        intro: profile.intro || '',
+                        intro: profile.intro || "",
                       });
                     }}
                     className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700"
@@ -316,28 +338,10 @@ const MyProfilePage = () => {
           onTabChange={handleTabChange}
         />
 
-        <VideoGrid type="uploaded">
-          {currentProjects.map((project) => (
-            <VideoCard
-              key={`project-${project.projectId}`}
-              project={project}
-              onClick={() => handleProjectClick(project.projectId)}
-            />
-          ))}
-        </VideoGrid>
-
-        {hasMore && (
-          <div className="flex justify-center mt-4 mb-8">
-            <button
-              type="button"
-              onClick={() => loadMore()}
-              disabled={loading}
-              className="px-8 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
-            >
-              {loading ? "Loading..." : "Load More"}
-            </button>
-          </div>
-        )}
+        <InfiniteVideoGrid
+          projects={currentProjects}
+          onProjectClick={handleProjectClick}
+        />
       </div>
     </Layout>
   );

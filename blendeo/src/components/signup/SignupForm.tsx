@@ -51,12 +51,20 @@ const SignUpForm = () => {
   };
 
   const validatePassword = (password: string): string | undefined => {
-    const regex = /^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&^])[a-z\d@$!%*?&^]{8,}$/;
     if (!password) {
       return "비밀번호를 입력해주세요.";
     }
-    if (!regex.test(password)) {
-      return "비밀번호는 영문 소문자, 숫자, 특수문자를 포함하여 8자 이상이어야 합니다.";
+    if (password.length < 8) {
+      return "비밀번호는 8자 이상이어야 합니다.";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "비밀번호는 소문자를 포함해야 합니다.";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "비밀번호는 숫자를 포함해야 합니다.";
+    }
+    if (!/[@$!%*?&^]/.test(password)) {
+      return "비밀번호는 특수문자(@$!%*?&^)를 포함해야 합니다.";
     }
     return undefined;
   };
@@ -150,15 +158,26 @@ const SignUpForm = () => {
   const handleNext = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.email || !formData.password || !formData.nickname) {
-      setValidationErrors((prev) => ({
-        ...prev,
-        email: !formData.email ? "이메일을 입력해주세요." : undefined,
-        password: !formData.password ? "비밀번호를 입력해주세요." : undefined,
-        nickname: !formData.nickname ? "닉네임을 입력해주세요." : undefined,
-      }));
+    // 1. 모든 필드의 유효성 검사 수행
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    const nicknameError = !formData.nickname ? "닉네임을 입력해주세요." : undefined;
+    const confirmPasswordError = formData.password !== formData.confirmPassword 
+      ? "비밀번호가 일치하지 않습니다." 
+      : undefined;
+
+    // 2. 에러 상태 업데이트
+    setValidationErrors({
+      email: emailError,
+      password: passwordError,
+      nickname: nicknameError,
+      confirmPassword: confirmPasswordError
+    });
+
+    // 3. 에러가 하나라도 있으면 진행 중단
+    if (emailError || passwordError || nicknameError || confirmPasswordError) {
       return;
-    }
+  }
 
     if (verificationStatus !== "success") {
       toast.error("이메일 인증을 완료해주세요.");
@@ -243,6 +262,11 @@ const SignUpForm = () => {
         name="password"
         error={!!validationErrors.password}
       />
+      {validationErrors.password ? (
+        <div className = "mt-1 text-sm text-red-500">
+          {validationErrors.password}
+        </div>
+      ) : ""}
 
       <SignupInput
         type="password"
@@ -259,16 +283,7 @@ const SignUpForm = () => {
         <div className="mt-1 text-sm text-red-500">
           {validationErrors.confirmPassword}
         </div>
-      ) : (
-        formData.password &&
-        formData.confirmPassword && (
-          <div className="mt-1.5 mb-1.5 text-xs font-light leading-5 text-zinc-400">
-            {formData.password === formData.confirmPassword
-              ? "비밀번호가 일치합니다."
-              : "비밀번호가 일치하지 않습니다."}
-          </div>
-        )
-      )}
+      ) : ""}
 
       <button
         type="submit"
