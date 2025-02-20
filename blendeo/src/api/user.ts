@@ -1,5 +1,5 @@
 import axiosInstance from "@/api/axios";
-import { User, FollowResponse } from "@/types/api/user";
+import { User, FollowingResponse, FollowerResponse } from "@/types/api/user";
 
 interface UpdateProfileRequest {
   nickname?: string;
@@ -86,9 +86,9 @@ export const unfollowUser = async (userId: number): Promise<void> => {
 
 export const getFollowings = async (
   userId: number
-): Promise<FollowResponse> => {
+): Promise<FollowingResponse> => {
   try {
-    const response = await axiosInstance.get<FollowResponse>(
+    const response = await axiosInstance.get<FollowingResponse>(
       `/user/follow/get-followings/${userId}`
     );
     return response;
@@ -97,12 +97,13 @@ export const getFollowings = async (
   }
 };
 
-export const getFollowers = async (userId: number): Promise<FollowResponse> => {
+export const getFollowers = async (
+  userId: number
+): Promise<FollowerResponse> => {
   try {
-    const response = await axiosInstance.get<FollowResponse>(
+    const response = await axiosInstance.get<FollowerResponse>(
       `/user/follow/get-followers/${userId}`
     );
-
     return response;
   } catch (error) {
     throw new Error("팔로워 목록을 불러오는데 실패했습니다." + error);
@@ -145,21 +146,21 @@ export const getFollowingProjects = async (): Promise<
 export const modifyUserInst = async (instrumentIds: number[]) => {
   try {
     const response = await axiosInstance.patch<boolean>(
-      '/user/favorite/instrument/save',
+      "/user/favorite/instrument/save",
       null,
       {
         params: {
           lists: instrumentIds,
         },
         paramsSerializer: {
-          indexes: null // request URL에 []를 추가하지 않도록 설정
+          indexes: null, // request URL에 []를 추가하지 않도록 설정
         },
-      },
+      }
     );
     console.log(response);
     return response;
   } catch (error) {
-    console.error('악기 정보 수정 실패:', error);
-    throw new Error('악기 정보 수정에 실패했습니다.' + error);
+    console.error("악기 정보 수정 실패:", error);
+    throw new Error("악기 정보 수정에 실패했습니다." + error);
   }
 };

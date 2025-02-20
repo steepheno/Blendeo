@@ -26,6 +26,10 @@ interface FollowData {
   isFollowing: boolean;
   loading: boolean;
   error: Error | null;
+  followerIdList: number[];
+  followerNicknameList: string[];
+  followingIdList: number[];
+  followingNicknameList: string[];
 }
 
 export interface UserPageStore {
@@ -47,7 +51,11 @@ export interface UserPageStore {
 
   // 프로젝트 관련 액션
   setActiveTab: (tab: ProjectType) => void;
-  fetchProjects: (type: ProjectType, size?: number, forceRefresh?: boolean) => Promise<void>;
+  fetchProjects: (
+    type: ProjectType,
+    size?: number,
+    forceRefresh?: boolean
+  ) => Promise<void>;
   loadMore: () => Promise<void>;
   resetProjects: (type?: ProjectType) => void;
 
@@ -73,6 +81,10 @@ const INITIAL_FOLLOW_DATA: FollowData = {
   isFollowing: false,
   loading: false,
   error: null,
+  followerIdList: [],
+  followerNicknameList: [],
+  followingIdList: [],
+  followingNicknameList: [],
 };
 
 export const CACHE_DURATION = 5 * 60 * 1000; // 5분
@@ -104,21 +116,16 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
     const isAuthenticated = useAuthStore.getState().isAuthenticated;
 
     try {
-      set({ 
-        userLoading: true, 
-        followData: { ...INITIAL_FOLLOW_DATA, loading: true } 
+      set({
+        userLoading: true,
+        followData: { ...INITIAL_FOLLOW_DATA, loading: true },
       });
 
-      const [
-        user, 
-        followers, 
-        followings,
-        isFollowing
-      ] = await Promise.all([
+      const [user, followers, followings, isFollowing] = await Promise.all([
         getUser(userId),
         getFollowers(userId),
         getFollowings(userId),
-        isAuthenticated ? checkFollowing(userId) : Promise.resolve(false)
+        isAuthenticated ? checkFollowing(userId) : Promise.resolve(false),
       ]);
 
       set({
@@ -129,13 +136,20 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
           isFollowing,
           loading: false,
           error: null,
+          followerIdList: followers.followerIdList,
+          followerNicknameList: followers.followerNicknameList,
+          followingIdList: followings.followingIdList,
+          followingNicknameList: followings.followingNicknameList,
         },
       });
     } catch (error) {
-      const userError = error instanceof Error ? error : new Error("Failed to fetch initial data");
-      set({ 
+      const userError =
+        error instanceof Error
+          ? error
+          : new Error("Failed to fetch initial data");
+      set({
         userError,
-        followData: { ...INITIAL_FOLLOW_DATA, error: userError }
+        followData: { ...INITIAL_FOLLOW_DATA, error: userError },
       });
     } finally {
       set({ userLoading: false });
@@ -157,13 +171,17 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
     const { lastUpdated, projectStates } = get();
     const lastUpdate = lastUpdated[tab];
     const hasExpired = !lastUpdate || Date.now() - lastUpdate > CACHE_DURATION;
-    
+
     if (projectStates[tab].items.length === 0 || hasExpired) {
       get().fetchProjects(tab, PAGE_SIZE, true);
     }
   },
 
-  fetchProjects: async (type: ProjectType, size = PAGE_SIZE, forceRefresh = false) => {
+  fetchProjects: async (
+    type: ProjectType,
+    size = PAGE_SIZE,
+    forceRefresh = false
+  ) => {
     const { loading, projectStates } = get();
 
     if (loading[type] || (!forceRefresh && !projectStates[type].hasMore)) {
@@ -180,9 +198,13 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
         projectStates: {
           ...state.projectStates,
           [type]: {
-            items: forceRefresh ? projects : [...state.projectStates[type].items, ...projects],
+            items: forceRefresh
+              ? projects
+              : [...state.projectStates[type].items, ...projects],
             hasMore: projects.length === size,
-            currentPage: forceRefresh ? 1 : state.projectStates[type].currentPage + 1,
+            currentPage: forceRefresh
+              ? 1
+              : state.projectStates[type].currentPage + 1,
           },
         },
         lastUpdated: {
@@ -243,7 +265,7 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
   // 팔로우 관련 액션
   followUser: async (userId: number) => {
     set((state) => ({
-      followData: { ...state.followData, loading: true }
+      followData: { ...state.followData, loading: true },
     }));
 
     try {
@@ -263,13 +285,14 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
         },
       }));
     } catch (error) {
-      const followError = error instanceof Error ? error : new Error("Failed to follow user");
+      const followError =
+        error instanceof Error ? error : new Error("Failed to follow user");
       set((state) => ({
-        followData: { 
-          ...state.followData, 
+        followData: {
+          ...state.followData,
           error: followError,
-          loading: false 
-        }
+          loading: false,
+        },
       }));
       throw followError;
     }
@@ -277,7 +300,7 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
 
   unfollowUser: async (userId: number) => {
     set((state) => ({
-      followData: { ...state.followData, loading: true }
+      followData: { ...state.followData, loading: true },
     }));
 
     try {
@@ -297,13 +320,14 @@ const useUserPageStore = create<UserPageStore>((set, get) => ({
         },
       }));
     } catch (error) {
-      const followError = error instanceof Error ? error : new Error("Failed to unfollow user");
+      const followError =
+        error instanceof Error ? error : new Error("Failed to unfollow user");
       set((state) => ({
-        followData: { 
-          ...state.followData, 
+        followData: {
+          ...state.followData,
           error: followError,
-          loading: false 
-        }
+          loading: false,
+        },
       }));
       throw followError;
     }

@@ -26,10 +26,15 @@ interface EditData {
 }
 
 interface FollowData {
-  followingCount: number;
+  isFollowing: boolean;
   followerCount: number;
+  followingCount: number;
   loading: boolean;
   error: Error | null;
+  followingIdList: number[];
+  followingNicknameList: string[];
+  followerIdList: number[];
+  followerNicknameList: string[];
 }
 
 export interface MyPageStore {
@@ -90,10 +95,15 @@ const INITIAL_EDIT_DATA: EditData = {
 };
 
 const INITIAL_FOLLOW_DATA: FollowData = {
-  followingCount: 0,
+  isFollowing: false,
   followerCount: 0,
+  followingCount: 0,
   loading: false,
   error: null,
+  followingIdList: [],
+  followingNicknameList: [],
+  followerIdList: [],
+  followerNicknameList: [],
 };
 
 export const CACHE_DURATION = 5 * 60 * 1000; // 5분
@@ -169,8 +179,13 @@ const useMyPageStore = create<MyPageStore>((set, get) => ({
         followData: {
           followerCount: followers.followerCount,
           followingCount: followings.followingCount,
+          isFollowing: false,
           loading: false,
           error: null,
+          followingIdList: followings.followingIdList,
+          followingNicknameList: followings.followingNicknameList,
+          followerIdList: followers.followerIdList,
+          followerNicknameList: followers.followerNicknameList,
         },
       });
     } catch (error) {

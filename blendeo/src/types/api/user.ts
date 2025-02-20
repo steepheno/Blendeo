@@ -15,23 +15,27 @@ export interface User {
 }
 
 export interface userMiniInfo {
-    userId: number;
-    nickname: string;
-    profileImage: string;
-    instruments: Instrument[];
-    etcInstruments: Instrument[];
-}
-
-export interface FollowResponse {
-  followingIdList: number[];
-  followingNicknameList: string[];
-  followingCount: number;
-  followerIdList: number[];
-  followerNicknameList: string[];
-  followerCount: number;
+  userId: number;
+  nickname: string;
+  profileImage: string;
+  instruments: Instrument[];
+  etcInstruments: Instrument[];
 }
 
 export interface UpdateUserRequest {
   nickname: string;
   profileImage?: File;
+}
+
+export interface FollowingResponse {
+  followingIdList: number[];
+  followingNicknameList: string[];
+  followingCount: number;
+}
+
+// 팔로워 응답을 위한 인터페이스
+export interface FollowerResponse {
+  followerIdList: number[];
+  followerNicknameList: string[];
+  followerCount: number;
 }
