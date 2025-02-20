@@ -215,6 +215,8 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [resourcesCleared, setResourcesCleared] = useState(true);
+
   const handleModalOpen = () => {
     setShowUploadModal(true);
   };
@@ -370,8 +372,9 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
   }, [handleError, getSupportedMimeType]);
 
   const handleRotate = async (): Promise<void> => {
-    if (!isRecording) {  // 녹화 중이 아닐 때만 실행
-      setOrientation((prev: Orientation) => 
+    if (!isRecording) {
+      // 녹화 중이 아닐 때만 실행
+      setOrientation((prev: Orientation) =>
         prev === "portrait" ? "landscape" : "portrait"
       );
       // orientation이 변경된 후 카메라 재시작
@@ -518,13 +521,18 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
 
   // cleanup 함수를 분리하여 관리
   // cleanup 함수 강화
-  const cleanup = useCallback(() => {
+  const cleanup = useCallback(async () => {
     if (streamRef.current) {
       const tracks = streamRef.current.getTracks();
-      tracks.forEach((track) => {
-        track.stop();
-        track.enabled = false;
-      });
+      await Promise.all(
+        tracks.map(async (track) => {
+          track.stop();
+          track.enabled = false;
+          // 트랙 상태 확인을 위한 지연
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          return track.readyState === "ended";
+        })
+      );
       streamRef.current = null;
     }
     if (videoRef.current) {
@@ -551,6 +559,20 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     }
     chunksRef.current = [];
   }, []);
+
+  useEffect(() => {
+    const checkResources = async () => {
+      if (streamRef.current) {
+        const tracks = streamRef.current.getTracks();
+        const allStopped = tracks.every(
+          (track) => track.readyState === "ended"
+        );
+        setResourcesCleared(allStopped);
+      }
+    };
+
+    void checkResources();
+  }, [cleanup]);
 
   // 뒤로가기 및 페이지 이동 감지 추가
   useEffect(() => {
@@ -599,52 +621,59 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
   }, [cleanup]);
 
   // setupCamera 함수 수정
-  const setupCamera = useCallback(async (): Promise<void> => {
-    try {
-      // 기존 스트림 정리
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => {
-          track.stop();
-          track.enabled = false;
-        });
-        streamRef.current = null;
+  const setupCamera = useCallback(
+    async (retryCount = 3): Promise<void> => {
+      try {
+        // 기존 스트림 정리
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => {
+            track.stop();
+            track.enabled = false;
+          });
+          streamRef.current = null;
+        }
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = null;
+        }
+
+        const constraints: MediaStreamConstraints = {
+          video: {
+            deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
+            width: { ideal: DIMENSIONS[orientation].width },
+            height: { ideal: DIMENSIONS[orientation].height },
+          },
+          audio: true,
+        };
+
+        const newStream =
+          await navigator.mediaDevices.getUserMedia(constraints);
+
+        // 음소거 상태 적용
+        const audioTrack = newStream.getAudioTracks()[0];
+        if (audioTrack) {
+          audioTrack.enabled = !isMuted;
+        }
+
+        streamRef.current = newStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = newStream;
+        }
+        setError(null);
+
+        if (onStreamReady) onStreamReady(newStream);
+      } catch (err) {
+        if (retryCount > 0) {
+          console.log(`카메라 설정 재시도... (남은 시도: ${retryCount})`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          return setupCamera(retryCount - 1);
+        }
+        handleError("카메라를 시작할 수 없습니다. 카메라 권한을 확인해주세요.");
+        console.error("카메라 접근 에러:", err);
       }
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-
-      const constraints: MediaStreamConstraints = {
-        video: {
-          deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
-          width: { ideal: DIMENSIONS[orientation].width },
-          height: { ideal: DIMENSIONS[orientation].height },
-        },
-        audio: true,
-      };
-
-      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      // 음소거 상태 적용
-      const audioTrack = newStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !isMuted;
-      }
-
-      streamRef.current = newStream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
-      }
-      setError(null);
-
-      if (onStreamReady) onStreamReady(newStream);
-    } catch (err) {
-      const errorMessage =
-        "카메라를 시작할 수 없습니다. 카메라 권한을 확인해주세요.";
-      handleError(errorMessage);
-      console.error("카메라 접근 에러:", err);
-    }
-  }, [orientation, selectedCamera, isMuted, handleError, onStreamReady]);
+    },
+    [orientation, selectedCamera, isMuted, handleError, onStreamReady]
+  );
 
   // handleExit 함수 수정
   const handleExit = useCallback(() => {
@@ -652,13 +681,12 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     navigate(-1);
   }, [navigate, cleanup]);
 
-
   // orientation이 변경될 때마다 카메라를 재시작하는 useEffect 추가
-  useEffect(() => {  
-    if (!isRecording) {  
+  useEffect(() => {
+    if (!isRecording) {
       void setupCamera();
     }
-  }, [orientation]);  
+  }, [orientation]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
