@@ -108,7 +108,7 @@ const MyProfilePage = () => {
         const response: AxiosResponse = await axiosInstance.delete('/user/delete-user');
         sessionStorage.clear();  
         alert("탈퇴 처리가 완료되었습니다.");
-        navigate("/");
+        navigate("/main");
         console.log(response);
       } catch (error) {
         console.error("회원 탈퇴 처리 중 오류가 발생했습니다." + error);

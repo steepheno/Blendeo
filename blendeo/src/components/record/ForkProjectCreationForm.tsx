@@ -42,7 +42,7 @@ const ForkProjectCreationForm = () => {
 
   useEffect(() => {
     if (!createdUrl) {
-      navigate("/");
+      navigate("/main");
     }
   }, [createdUrl, navigate]);
 

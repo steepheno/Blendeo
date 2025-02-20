@@ -87,7 +87,7 @@ const LoginForm = () => {
     try {
       await signin(formData);
       toast.success("로그인이 성공적으로 이뤄졌습니다!");
-      const from = location.state?.from || "/";
+      const from = location.state?.from || "/main";
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof AxiosError) {
