@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Pause, RotateCcw, ArrowLeft, ArrowRight } from 'lucide-react';
 import useForkVideoStore from '@/stores/forkVideoStore';
 
+
 const ForkEditor = () => {
   const navigate = useNavigate();
   const { recordedData, originalProjectData, loopCnt, uploadVideo, setCreatedUrl } = useForkVideoStore();
@@ -204,7 +205,7 @@ const ForkEditor = () => {
         {/* 원본 비디오 */}
         <div className="flex-1 max-w-xl">
           <div
-            className="bg-black rounded-lg overflow-hidden"
+            className="rounded-sm overflow-hidden"
             style={getVideoContainerStyle()}
           >
             <video
@@ -223,7 +224,7 @@ const ForkEditor = () => {
         {/* 녹화된 비디오 */}
         <div className="flex-1 max-w-xl">
           <div
-            className="bg-black rounded-lg overflow-hidden"
+            className="rounded-sm overflow-hidden"
             style={getVideoContainerStyle()}
           >
             <video

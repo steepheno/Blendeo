@@ -1,13 +1,28 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronUp, ChevronDown} from "lucide-react";
 import ForkVideoRecorder from '@/components/record/ForkVideoRecorder';
 import useForkVideoStore from '@/stores/forkVideoStore';
+
+
 
 function ForkRecordPage() {
   const navigate = useNavigate();
   const project = useForkVideoStore((state) => state.originalProjectData);
   const loopCnt = useForkVideoStore((state) => state.loopCnt);
   const setLoopCnt = useForkVideoStore((state) => state.setLoopCnt);
+
+
+  const increaseCount = () => {
+    setLoopCnt(loopCnt + 1);
+  };
+
+  const decreaseCount = () => {
+    if (loopCnt > 1) {
+      setLoopCnt(loopCnt - 1);
+    }
+  };
+
 
   useEffect(() => {
     if (!project) {
@@ -21,31 +36,43 @@ function ForkRecordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">
-          프로젝트 영상 반복 재생
-        </h1>
+    <div className="min-h-screen bg-darkblue overflow-hidden relative">
+      {/* 이미지 오버레이 */}
+      <div
+        className="flex justify-center absolute left-0 right-0 bottom-0 z-0 mx-auto"
+      >
+        <img
+          src="/images/purplelight.png"
+          alt="Purple Light"
+          className='flex w- h-80'
+        />
+      </div>
 
-        <div className="mb-6">
-          <label htmlFor="repeatCount" className="block text-sm font-medium text-gray-700 mb-2">
-            반복 횟수
-          </label>
-          <input
-            id="repeatCount"
-            type="number"
-            min="1"
-            value={loopCnt}
-            onChange={(e) => setLoopCnt(parseInt(e.target.value))}
-            className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+      <div className="max-w-6xl mx-auto px-4 scale-90 z-10">
+        <ForkVideoRecorder videoUrl={project.videoUrl} repeatCount={loopCnt} />
+      </div>
+
+      <div className="flex flex-col z-10">
+        <div className="flex justify-center text-white font-orbitron font-extrabold text-[44px]">
+          BLENDIT!
+        </div>
+        <div className="flex justify-center pt-2 text-center text-[#7F8490] text-lg">
+          원본 동영상의 반복 횟수를 지정하고 해당 시간만큼<br />
+          영상을 촬영해주세요!
         </div>
 
-        <ForkVideoRecorder 
-          videoUrl={project.videoUrl} 
-          repeatCount={loopCnt}
-        />
+        {/* 반복횟수 */}
+        <div className="mb-6 mt-6 flex justify-center z-10">
+          <div className="flex flex-row items-center gap-3">
+            <button onClick={increaseCount} className="text-white hover:text-[#7c3aed]">
+              <ChevronUp className="h-6 w-6" />
+            </button>
+            <span className="text-xl font-medium text-white">{loopCnt}</span>
+            <button onClick={decreaseCount} className="text-white hover:text-[#7c3aed]">
+              <ChevronDown className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

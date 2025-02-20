@@ -4,8 +4,7 @@ import type { CustomAxiosInstance } from "@/types/api/axios";
 import { useUserStore } from "@/stores/userStore";
 
 const baseURL = "https://19b0-211-192-252-214.ngrok-free.app/api/v1";
-// const baseURL = "http://localhost:8080/api/v1";
-// const baseURL = import.meta.env.VIDEO_API_URL || "/api/v1";
+ //const baseURL = import.meta.env.VIDEO_API_URL || "/api/v1";
 
 const videoAxiosInstance = axios.create({
   baseURL,
