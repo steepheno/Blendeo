@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,10 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import useVideoStore from "@/stores/videoStore";
-// import { CreateProjectRequest } from "@/types/api/project"; // 임시로 instrumentsId가 필수인 type 사용
 import { instruments } from "@/assets/data/instruments"; // 악기 데이터 import
 
 interface CreateProjectRequest {
@@ -62,48 +60,57 @@ const ProjectCreationForm = () => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full max-w-3xl mx-auto p-4 mt-14"
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-violet-600">
+    <form onSubmit={handleSubmit} className="flex flex-col items-center max-w-xl mx-auto p-4 mt-14">
+      <Card className="flex flex-col bg-[#171226] border border-[#171226]">
+        <CardHeader className="mb-20">
+          <CardTitle className="text-5xl font-bold text-white text-center mb-5">
             새 프로젝트 만들기
           </CardTitle>
+          <CardDescription className="text-white">
+            촬영한 프로젝트를 업로드해주세요!
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="flex items-center space-x-2">
+            <Switch
+              className="data-[state=checked]:bg-[#6A02FA]"
+              id="state"
+              checked={formData.state}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, state: checked })
+              }
+            />
+            <span className="text-sm text-gray-500">
+              {formData.state ? "공개" : "비공개"}
+            </span>
+          </div>
           <div className="space-y-2">
-            <Label htmlFor="title">프로젝트 제목</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              placeholder="프로젝트 제목을 입력하세요"
+              placeholder="프로젝트 제목"
               required
-              className="border-violet-200 focus:border-violet-400"
+              className="bg-[#231E31] border-[#454151] text-[#A7A5AD] focus:border-violet-400"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">프로젝트 설명</Label>
             <Textarea
               id="content"
               value={formData.content}
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              placeholder="프로젝트에 대해 설명해주세요"
+              placeholder="프로젝트 설명"
               required
-              className="min-h-[120px] border-violet-200 focus:border-violet-400"
+              className="min-h-[120px] bg-[#231E31] border-[#454151] text-[#A7A5AD] focus:border-violet-400"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>사용된 악기</Label>
-            {/* 이후 그 외 기타 악기 추가할 수 있도록 수정 필요 */}
             <Select
               value={formData.instrumentIds[0]?.toString()}
               onValueChange={(value) =>
@@ -113,8 +120,8 @@ const ProjectCreationForm = () => {
                 })
               }
             >
-              <SelectTrigger className="border-violet-200">
-                <SelectValue placeholder="악기를 선택하세요" />
+              <SelectTrigger className="bg-[#231E31] border-[#454151] text-[#A7A5AD]">
+                <SelectValue placeholder="사용된 악기 >" />
               </SelectTrigger>
               <SelectContent>
                 {instruments.map((instrument) => (
@@ -128,36 +135,14 @@ const ProjectCreationForm = () => {
               </SelectContent>
             </Select>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="state">공개 여부</Label>
-            <Switch
-              id="state"
-              checked={formData.state}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, state: checked })
-              }
-            />
-            <span className="text-sm text-gray-500">
-              {formData.state ? "공개" : "비공개"}
-            </span>
-          </div>
-
-          <div className="flex justify-end space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate(-1)} // router.back() 대신 navigate(-1) 사용
-              className="border-violet-600 text-violet-600 hover:bg-violet-50"
-            >
-              취소
-            </Button>
+          
+          <div className="space-y-2 w-full">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-violet-600 text-white hover:bg-violet-700"
+              className="bg-violet-600 hover:bg-violet-700 text-white w-full"
             >
-              {isSubmitting ? "생성 중..." : "프로젝트 생성"}
+              {isSubmitting ? "생성 중..." : "업로드하기"}
             </Button>
           </div>
         </CardContent>

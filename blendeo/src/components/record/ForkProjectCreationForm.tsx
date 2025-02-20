@@ -73,14 +73,13 @@ const ForkProjectCreationForm = () => {
         <CardContent className="space-y-6">
           {/* 기존 필드들 */}
           <div className="space-y-2">
-            <Label htmlFor="title">프로젝트 제목</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              placeholder="프로젝트 제목을 입력하세요"
+              placeholder="프로젝트 제목"
               required
               className="border-violet-200 focus:border-violet-400"
             />
