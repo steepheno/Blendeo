@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, RotateCcw, ArrowLeft, ArrowRight } from 'lucide-react';
 import useForkVideoStore from '@/stores/forkVideoStore';
-
+import Navbar from '@/components/layout/Searchbar';
 
 const ForkEditor = () => {
   const navigate = useNavigate();
@@ -182,19 +182,20 @@ const ForkEditor = () => {
   }
 
   return (
-    <div className="flex flex-col items-center p-4 max-w-7xl mx-auto">
+    <div className="flex flex-col items-center p-4 w-full h-full mx-auto bg-[#171226]">
+      <Navbar />
       <div className="w-full flex justify-between mb-4">
         <button
           onClick={handleGoBack}
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:text-gray-400 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 text-gray-300 hover:text-gray-400" />
           다시 촬영하기
         </button>
         <button
           onClick={handleUpload}
           disabled={isUploading}
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:text-gray-400 transition-colors"
         >
           {isUploading ? '업로드 중...' : '다음'}
           <ArrowRight className="w-5 h-5" />
@@ -218,7 +219,7 @@ const ForkEditor = () => {
               <source src={originalProjectData?.videoUrl} type="video/mp4" />
             </video>
           </div>
-          <div className="mt-2 text-center text-sm text-gray-600">원본 영상</div>
+          <div className="mt-2 text-center text-sm text-gray-300">원본 영상</div>
         </div>
 
         {/* 녹화된 비디오 */}
@@ -237,7 +238,7 @@ const ForkEditor = () => {
               <source src={blobUrl} type="video/mp4" />
             </video>
           </div>
-          <div className="mt-2 text-center text-sm text-gray-600">녹화된 영상</div>
+          <div className="mt-2 text-center text-sm text-gray-300">녹화된 영상</div>
         </div>
       </div>
 
@@ -256,21 +257,21 @@ const ForkEditor = () => {
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-300">
             {currentLoop + 1}회차 / 총 {loopCnt}회
           </div>
 
           <div className="flex gap-4">
             <button
               onClick={handleRestart}
-              className="p-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="p-2 text-gray-300 hover:text-gray-400 transition-colors"
             >
               <RotateCcw className="w-6 h-6" />
             </button>
 
             <button
               onClick={togglePlay}
-              className="p-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="p-2 text-gray-300 hover:text-gray-400 transition-colors"
             >
               {isPlaying ? (
                 <Pause className="w-6 h-6" />
@@ -280,7 +281,7 @@ const ForkEditor = () => {
             </button>
           </div>
 
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-300">
             {Math.floor(currentTime)}초 / {Math.floor(totalDuration)}초
           </div>
         </div>
