@@ -252,7 +252,7 @@ const VideoEditor: FC = () => {
 
       <div className="flex flex-col space-y-4">
         <div className="flex justify-between text-xs text-muted-foreground">
-          <p>Shift 를 누르고 드래그하여 미세하게 조절할 수 있어요!</p>
+          <p>Shift를 누르고 드래그하여 미세하게 조절할 수 있어요!</p>
           {trimData && (
             <div className="flex gap-4">
               <span>시작 : {formatTime(trimData.startTime)}</span>

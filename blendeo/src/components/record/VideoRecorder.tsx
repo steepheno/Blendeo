@@ -369,10 +369,14 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     };
   }, [handleError, getSupportedMimeType]);
 
-  const handleRotate = (): void => {
-    setOrientation((prev: Orientation) =>
-      prev === "portrait" ? "landscape" : "portrait"
-    );
+  const handleRotate = async (): Promise<void> => {
+    if (!isRecording) {  // 녹화 중이 아닐 때만 실행
+      setOrientation((prev: Orientation) => 
+        prev === "portrait" ? "landscape" : "portrait"
+      );
+      // orientation이 변경된 후 카메라 재시작
+      await setupCamera();
+    }
   };
 
   const handleFlip = (): void => {
@@ -647,6 +651,14 @@ const VideoRecorder: FC<VideoRecorderProps> = ({
     cleanup();
     navigate(-1);
   }, [navigate, cleanup]);
+
+
+  // orientation이 변경될 때마다 카메라를 재시작하는 useEffect 추가
+  useEffect(() => {  
+    if (!isRecording) {  
+      void setupCamera();
+    }
+  }, [orientation]);  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
