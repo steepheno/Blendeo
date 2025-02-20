@@ -1,18 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 
 import Layout from "@/components/layout/Layout";
 import VideoGrid from "@/components/common/VideoGrid";
 import VideoCard from "@/components/common/VideoCard";
 import TabNavigation from "@/components/common/TabNavigation";
 import HeroSection from "@/components/mainpage/HeroSection";
-import GenreSection from "@/components/mainpage/GenreSection";
+// import GenreSection from "@/components/mainpage/GenreSection";
 import useMainPageStore from "@/stores/mainPageStore";
 import type { ProjectType } from "@/stores/mainPageStore";
 
 const MainPage = () => {
   const navigate = useNavigate();
-  const { 
+  const {
     activeTab,
     getCurrentProjects,
     getIsLoading,
@@ -22,67 +22,82 @@ const MainPage = () => {
     fetchProjects,
   } = useMainPageStore();
 
+  const observerRef = useRef<HTMLDivElement>(null);
+
   const projects = getCurrentProjects();
   const loading = getIsLoading();
   const hasMore = getHasMore();
 
   const mainTabs = [
-    { id: "forYou", label: "For you" },
+    { id: "latest", label: "Latest" },
     { id: "ranking", label: "Ranking" },
-    { id: "latest", label: "Latest" }
   ];
 
-  const handleProjectClick = useCallback((projectId: number) => {
-    navigate(`/project/${projectId}`);
-  }, [navigate]);
+  const handleProjectClick = useCallback(
+    (projectId: number) => {
+      navigate(`/project/${projectId}`);
+    },
+    [navigate]
+  );
 
-  const handleTabChange = useCallback((tab: string) => {
-    setActiveTab(tab as ProjectType);
-  }, [setActiveTab]);
-
-  const handleGenreSelect = useCallback((genre: string) => {
-    console.log("Selected genre:", genre);
-  }, []);
+  const handleTabChange = useCallback(
+    (tab: string) => {
+      setActiveTab(tab as ProjectType);
+    },
+    [setActiveTab]
+  );
 
   useEffect(() => {
-    fetchProjects(activeTab);    
+    fetchProjects(activeTab);
   }, [activeTab, fetchProjects]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasMore && !loading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentObserver = observerRef.current;
+    if (currentObserver) {
+      observer.observe(currentObserver);
+    }
+
+    return () => {
+      if (currentObserver) {
+        observer.unobserve(currentObserver);
+      }
+    };
+  }, [hasMore, loading, loadMore]);
 
   return (
     <Layout showNotification={true}>
       <div className="flex flex-col flex-1 shrink self-start px-20 pt-2.5 basis-0 min-w-[240px]">
         <HeroSection />
-        <TabNavigation 
+        <TabNavigation
           activeTab={activeTab}
           tabs={mainTabs}
           onTabChange={handleTabChange}
-        />
-        <GenreSection
-          selectedGenre="All"  // store로 이동 가능
-
-          onGenreSelect={handleGenreSelect}
         />
         <VideoGrid type="uploaded">
           {projects.map((project) => (
             <VideoCard
               key={`project-${project.projectId}`}
               project={project}
-              onClick={()=>handleProjectClick(project.projectId)}
-
+              onClick={() => handleProjectClick(project.projectId)}
             />
           ))}
         </VideoGrid>
         {hasMore && (
-          <div className="flex justify-center mt-4 mb-8">
-            <button
-              type="button"
-              onClick={() => loadMore()}
-
-              disabled={loading}
-              className="px-8 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
-            >
-              {loading ? "Loading..." : "Load More"}
-            </button>
+          <div
+            ref={observerRef}
+            className="h-10 w-full flex justify-center items-center"
+          >
+            {loading && <span>Loading...</span>}
           </div>
         )}
       </div>

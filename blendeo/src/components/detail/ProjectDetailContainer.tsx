@@ -5,50 +5,51 @@ import SettingsSection from "@/components/detail/SettingsSection";
 import ContributorsSection from "@/components/detail/ContributorsSection";
 import SidePanel from "@/components/detail/SidePanel";
 import hamburgerIcon from "@/assets/hamburger_icon.png";
+
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { getProject } from "@/api/project";
+
+import { getProject, checkLikeBookmark, getParent, getProjectRandom } from "@/api/project";
+import { getAllComments } from "@/api/comment";
 import { Project } from "@/types/api/project";
 
 import { useProjectStore } from "@/stores/projectStore";
-import { useState, useEffect, useCallback } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
 
-import { getAllComments } from "@/api/comment";
 import {
   MessageSquare,
   Heart,
   Bookmark,
-  Share2,
+  Copy,
   Users,
   GitBranchPlusIcon,
   ArrowLeftCircle,
   ArrowRightCircle,
   GitFork,
+  ArrowUpLeft,
 } from "lucide-react";
 
-import { TabType } from "@/types/components/video/videoDetail";
 import { useUserStore } from "@/stores/userStore";
 import useForkVideoStore from "@/stores/forkVideoStore";
 
-import { likeProject, unlikeProject } from "@/api/project";
-import { bookProject, unbookProject } from "@/api/project";
+import { likeProject, unlikeProject, bookProject, unbookProject } from "@/api/project";
 
 // 애니메이션 variants 정의
 const variants = {
-  enter: (direction : number) => ({
+  enter: (direction: number) => ({
     x: direction > 0 ? 1000 : -1000,
-    opacity: 0
+    opacity: 0,
   }),
   center: {
     zIndex: 1,
     x: 0,
-    opacity: 1
+    opacity: 1,
   },
-  exit: (direction : number) => ({
+  exit: (direction: number) => ({
     zIndex: 0,
     x: direction < 0 ? 1000 : -1000,
-    opacity: 0
-  })
+    opacity: 0,
+  }),
 };
 
 // 스와이프 감도 설정
@@ -57,19 +58,30 @@ const swipePower = (offset: number, velocity: number) => {
   return Math.abs(offset) * velocity;
 };
 
-type RedirectSource = 'project-edit' | 'project-create' | 'project-detail' | 'project-fork';
+type RedirectSource =
+  | "project-edit"
+  | "project-create"
+  | "project-detail"
+  | "project-fork";
 
 // 형제 프로젝트 조회 API 함수
-const getSiblingProject = async (currentProjectId: number, direction: 'next' | 'before') => {
+const getSiblingProject = async (
+  currentProjectId: number,
+  direction: "next" | "before"
+) => {
   try {
-    const response = await fetch(`/api/v1/project/get/sibling?currentProjectId=${currentProjectId}&direction=${direction}`);
-    if (!response.ok) throw new Error('Failed to fetch sibling project');
+    const response = await fetch(
+      `/api/v1/project/get/sibling?currentProjectId=${currentProjectId}&direction=${direction}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch sibling project");
     return await response.json();
   } catch (error) {
-    console.error('Error fetching sibling project:', error);
+    console.error("Error fetching sibling project:", error);
     return null;
   }
 };
+
+type TabType = "comments" | "settings" | "contributors" | "showTree" | null;
 
 const ProjectDetailContainer = () => {
   const params = useParams();
@@ -90,6 +102,8 @@ const ProjectDetailContainer = () => {
   const [heartFilled, setHeartFilled] = useState(false);
   const [commentCnt, setCommentCnt] = useState<number>(0);
   const [bookmarkFilled, setBookmarkFilled] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [localLikeCnt, setLocalLikeCnt] = useState(0);
 
   const setOriginalProjectData = useForkVideoStore(
     (state) => state.setOriginalProjectData
@@ -118,9 +132,10 @@ const ProjectDetailContainer = () => {
         setProjectData(response);
         setError(null);
       } catch (err) {
-        const errorMessage = err instanceof Error
-          ? err.message
-          : "프로젝트 정보를 불러오는데 실패했습니다.";
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "프로젝트 정보를 불러오는데 실패했습니다.";
         setError(errorMessage);
         console.error("Error fetching project data:", err);
       } finally {
@@ -128,6 +143,7 @@ const ProjectDetailContainer = () => {
       }
     };
 
+    // 댓글
     const fetchCommentCnt = async () => {
       if (!projectId) return;
       try {
@@ -143,62 +159,94 @@ const ProjectDetailContainer = () => {
     fetchCommentCnt();
   }, [projectId, location.pathname, getUser, setCurrentUser]);
 
+  // 좋아요 상태 확인
+  useEffect(() => {
+    const checkUserInteractions = async () => {
+      if (!projectId) return;
+  
+      try {
+        const response = await checkLikeBookmark(Number(projectId));
+        setHeartFilled(response.liked);
+        setBookmarkFilled(response.scraped);
+      } catch (error) {
+        console.error("Failed to check like/bookmark status:", error);
+      }
+    };
+    checkUserInteractions();
+  }, [projectId]);
+
+  // 좋아요 실시간 업데이트
+  useEffect(() => {
+    if (projectData) {
+      setLocalLikeCnt(projectData.likeCnt);
+    }
+  }, [projectData]);
 
   const paginate = useCallback((newDirection: number) => {
-    setPage(prev => [prev[0] + newDirection, newDirection]);
+    setPage((prev) => [prev[0] + newDirection, newDirection]);
   }, []);
 
-  const handleSiblingNavigation = useCallback(async (direction: 'next' | 'before') => {
-    if (!projectId || siblingLoading) return;
+  const handleSiblingNavigation = useCallback(
+    async (direction: "next" | "before") => {
+      if (!projectId || siblingLoading) return;
 
-    try {
-      setSiblingLoading(true);
-      paginate(direction === 'next' ? 1 : -1);
+      try {
+        setSiblingLoading(true);
+        paginate(direction === "next" ? 1 : -1);
 
-      const siblingProject = await getSiblingProject(parseInt(projectId), direction);
+        const siblingProject = await getSiblingProject(
+          parseInt(projectId),
+          direction
+        );
 
-      if (siblingProject) {
-        navigate(`/project/${siblingProject.projectId}`);
-      } else {
-        alert(direction === 'next' ? "다음 프로젝트가 없습니다." : "이전 프로젝트가 없습니다.");
-        paginate(direction === 'next' ? -1 : 1);
+        if (siblingProject) {
+          navigate(`/project/${siblingProject.projectId}`);
+        } else {
+          alert(
+            direction === "next"
+              ? "다음 프로젝트가 없습니다."
+              : "이전 프로젝트가 없습니다."
+          );
+          paginate(direction === "next" ? -1 : 1);
+        }
+      } catch (error) {
+        console.error(`Error navigating to ${direction} project:`, error);
+        alert("프로젝트 이동 중 오류가 발생했습니다.");
+        paginate(direction === "next" ? -1 : 1);
+      } finally {
+        setSiblingLoading(false);
       }
-    } catch (error) {
-      console.error(`Error navigating to ${direction} project:`, error);
-      alert("프로젝트 이동 중 오류가 발생했습니다.");
-      paginate(direction === 'next' ? -1 : 1);
-    } finally {
-      setSiblingLoading(false);
-    }
-  }, [projectId, siblingLoading, navigate, paginate]);
+    },
+    [projectId, siblingLoading, navigate, paginate]
+  );
 
   // 키보드 네비게이션
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (!siblingLoading) {
-        if (event.key === 'ArrowLeft') {
-          handleSiblingNavigation('before');
-        } else if (event.key === 'ArrowRight') {
-          handleSiblingNavigation('next');
+        if (event.key === "ArrowLeft") {
+          handleSiblingNavigation("before");
+        } else if (event.key === "ArrowRight") {
+          handleSiblingNavigation("next");
         }
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
   }, [projectId, siblingLoading, handleSiblingNavigation]);
 
   const handleTabClick = (tab: TabType) => {
-    if (tab === 'showTree') navigate('tree');
+    if (tab === "showTree") navigate("tree");
     setActiveTab(activeTab === tab ? null : tab);
   };
 
   const handleForkClick = (type: RedirectSource) => {
     if (projectData) {
       alert("Blend 페이지로 이동합니다!");
-        setOriginalProjectData(projectData);
-        setRedirectState(projectData, type);
-        navigate('/fork/record');
+      setOriginalProjectData(projectData);
+      setRedirectState(projectData, type);
+      navigate("/fork/record");
     }
   };
 
@@ -206,20 +254,36 @@ const ProjectDetailContainer = () => {
     setActiveTab(activeTab === tab ? null : tab);
   };
 
+  // 좋아요
   const handleLikeClick = async () => {
     if (!projectData) return;
     try {
       if (heartFilled) {
-        unlikeProject(projectData?.projectId);
+        await unlikeProject(projectData?.projectId);
+        setLocalLikeCnt(prev => prev - 1)
       } else {
-        likeProject(projectData?.projectId);
+        await likeProject(projectData?.projectId);
+        setLocalLikeCnt(prev => prev + 1)
       }
       setHeartFilled(!heartFilled);
     } catch (error) {
-      alert(error)
+      console.error("좋아요 토글 실패: ", error);
+      alert("좋아요 처리 중 에러 발생")
     }
-  }
+  };
 
+  // 좋아요 수
+  const likeTotal = async () => {
+    try {
+      const response = await getProjectRandom();
+      return response.likeCnt;
+    } catch (error) {
+      console.error("좋아요 수 조회 실패: ", error);
+    }
+  };
+  console.log(likeTotal);  // 빌드용 코드
+
+  // 북마크
   const handleBookmarkClick = async () => {
     if (!projectData) return;
     try {
@@ -230,9 +294,9 @@ const ProjectDetailContainer = () => {
       }
       setBookmarkFilled(!bookmarkFilled);
     } catch (error) {
-      alert(error)
+      alert(error);
     }
-  }
+  };
 
   const renderLoadingState = () => (
     <div className="flex items-center justify-center h-screen">
@@ -249,6 +313,55 @@ const ProjectDetailContainer = () => {
       <div className="text-sm">All params: {JSON.stringify(params)}</div>
     </div>
   );
+
+  // 부모 페이지 리다이렉트
+  const goToParent = async (currentProjectId: string | undefined) => {
+    try {
+      const response = await getParent(Number(currentProjectId));
+      console.log(response);
+      const parentPjtId = response.projectId;
+      navigate(`/project/${parentPjtId}`);
+    } catch (error) {
+      console.error('부모 프로젝트 조회 실패:', error);
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+
+      // 복사 성공 시 스타일
+      const shareButton = document.querySelector('[data-share-button]');
+      if (shareButton) {
+        shareButton.classList.add('bg-purple-100');
+        const icon = shareButton.querySelector('svg');
+        
+        if (icon) {
+          icon.classList.remove('text-gray-600');
+          icon.classList.add('text-purple-600');
+        }
+      }
+
+      // 2초 후 원상복구
+      setTimeout(() => {
+        setCopied(false);
+        const shareButton = document.querySelector('[data-share-button');
+
+        if (shareButton) {
+          shareButton.classList.remove('bg-purple-100');
+          const icon = shareButton.querySelector('svg');
+          if (icon) {
+            icon.classList.remove('text-purple-600');
+            icon.classList.add('text-gray-600');
+          }
+        }
+      }, 2000);
+
+    } catch (error) {
+      console.error("URL 복사 중 오류가 발생했습니다. : ", error);
+    }
+  };
 
   const renderInteractionButtons = () => (
     <div className="ml-4 flex flex-col items-center justify-end h-full space-y-2">
@@ -268,7 +381,7 @@ const ProjectDetailContainer = () => {
       />
       <InteractionButton
         icon={Heart}
-        count="0"
+        count={localLikeCnt.toString()}
         fill={heartFilled ? "red" : "none"}
         iconColor={heartFilled ? "red" : "#4B5563"}
         onClick={() => handleLikeClick()}
@@ -291,7 +404,11 @@ const ProjectDetailContainer = () => {
         iconColor={bookmarkFilled ? "#6D28D9" : "#4B5563"}
         onClick={() => handleBookmarkClick()}
       />
-      <InteractionButton icon={Share2} onClick={() => { }} />
+      <InteractionButton
+        icon={ArrowUpLeft}
+        onClick={() => goToParent(projectId)}
+       />
+      <InteractionButton onClick={copyLink} icon={Copy} count={copied ? "복사됨!" : "0"} isActive={copied} />
       <InteractionButton
         icon={GitFork}
         onClick={() => handleTabClick("showTree")}
@@ -324,7 +441,7 @@ const ProjectDetailContainer = () => {
           <div className="flex flex-col justify-center items-center p-4">
             <InteractionButton
               icon={ArrowLeftCircle}
-              onClick={() => handleSiblingNavigation('before')}
+              onClick={() => handleSiblingNavigation("before")}
               size={8}
               disabled={siblingLoading}
             />
@@ -341,7 +458,7 @@ const ProjectDetailContainer = () => {
                 exit="exit"
                 transition={{
                   x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }
+                  opacity: { duration: 0.2 }, 
                 }}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
@@ -350,9 +467,9 @@ const ProjectDetailContainer = () => {
                   const swipe = swipePower(offset.x, velocity.x);
 
                   if (swipe < -swipeConfidenceThreshold) {
-                    handleSiblingNavigation('next');
+                    handleSiblingNavigation("next");
                   } else if (swipe > swipeConfidenceThreshold) {
-                    handleSiblingNavigation('before');
+                    handleSiblingNavigation("before");
                   }
                 }}
                 className="w-full h-full flex"
@@ -368,7 +485,7 @@ const ProjectDetailContainer = () => {
                         name: projectData.authorNickname,
                         profileImage: projectData.authorProfileImage,
                       },
-                      viewCnt: projectData.viewCnt
+                      viewCnt: projectData.viewCnt,
                     }}
                     isPortrait={true}
                   />
@@ -378,8 +495,11 @@ const ProjectDetailContainer = () => {
                 </div>
 
                 <SidePanel
-                  activeTab={activeTab && activeTab !== 'showTree' ? activeTab : null}
+                  activeTab={
+                    activeTab && activeTab !== "showTree" ? activeTab : null
+                  }
                   content={renderSidePanelContent()}
+                  onClose={() => setActiveTab(null)}
                 />
               </motion.div>
             </AnimatePresence>
@@ -388,7 +508,7 @@ const ProjectDetailContainer = () => {
           <div className="flex flex-col justify-center p-4">
             <InteractionButton
               icon={ArrowRightCircle}
-              onClick={() => handleSiblingNavigation('next')}
+              onClick={() => handleSiblingNavigation("next")}
               size={8}
               disabled={siblingLoading}
             />

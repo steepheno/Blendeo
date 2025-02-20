@@ -1,125 +1,128 @@
+// src/stores/chatStore.ts
 import { create } from "zustand";
+import { Client, StompSubscription } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { chatAPI } from "@/api/chat";
 import type {
   ChatRoom,
   ChatMessage,
   WebSocketStatus,
-  SearchUserResponse,
+  SearchUser,
   RoomParticipant,
 } from "@/types/api/chat";
 import { useAuthStore } from "@/stores/authStore";
-import { Client, StompSubscription } from "@stomp/stompjs";
 
-interface ChatState {
+const SOCKET_URL = "https://api.blendeo.shop/ws-stomp";
+
+export interface ChatState {
   rooms: ChatRoom[];
   currentRoom: ChatRoom | null;
   messagesByRoom: Record<number, ChatMessage[]>;
-  searchResults: SearchUserResponse[];
+  searchResults: SearchUser[];
   isLoading: boolean;
   error: string | null;
   wsStatus: WebSocketStatus;
   stompClient: Client | null;
-  isInitialized: boolean;
   currentSubscription: StompSubscription | null;
   roomParticipants: Record<number, RoomParticipant[]>;
 }
 
-interface ChatActions {
-  // WebSocket 관련
+export interface ChatActions {
   connectWebSocket: () => void;
   disconnectWebSocket: () => void;
-  sendMessage: (content: string) => void;
-
-  // Room 관련
+  sendMessage: (content: string, createdAt?: string) => void;
   fetchRooms: () => Promise<void>;
-  setCurrentRoom: (room: ChatRoom | null) => void;
-  createRoom: (roomName: string) => Promise<ChatRoom | void>;
-  fetchRoomParticipants: (roomId: number) => Promise<RoomParticipant[]>; // 반환 타입 수정
-
-  // 사용자 검색 및 초대 관련
+  setCurrentRoom: (room: ChatRoom | null) => Promise<void>;
+  createRoom: (userIds: number[]) => Promise<ChatRoom | void>;
+  fetchRoomParticipants: (roomId: number) => Promise<void>;
   searchUserByEmail: (email: string) => Promise<void>;
-  inviteUserByEmail: (roomId: number, email: string) => Promise<void>;
-  clearSearchResults: () => void;
-
-  // Message 관련
   fetchMessages: (roomId: number) => Promise<void>;
   addMessage: (message: ChatMessage) => void;
+  editRoomName: (roomId: number, newName: string) => Promise<void>;
   clearMessages: () => void;
-
-  // State 관리
+  clearSearchResults: () => void;
   reset: () => void;
+  setConnectionStatus: (status: WebSocketStatus) => void;
+  setRooms: (rooms: ChatRoom[]) => void;
+  updateRoom: (updatedRoom: ChatRoom) => void;
 }
 
-type ChatStore = ChatState & ChatActions;
+export type ChatStore = ChatState & ChatActions;
 
 const initialState: ChatState = {
   rooms: [],
   currentRoom: null,
   messagesByRoom: {},
-  searchResults: [], // 초기 검색 결과 빈 배열로 설정
+  searchResults: [],
   isLoading: false,
   error: null,
   wsStatus: "CLOSED",
   stompClient: null,
-  isInitialized: false,
   currentSubscription: null,
   roomParticipants: {},
+};
+
+const getAccessToken = () => {
+  return document.cookie
+    .split(";")
+    .find((c) => c.trim().startsWith("accessToken="))
+    ?.split("=")[1];
 };
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   ...initialState,
 
-  roomParticipants: {},
-
-  // ===== 초기화 메서드 추가 =====
-  initialize: async () => {
-    const { connectWebSocket, fetchRooms, currentRoom, fetchMessages } = get();
-    const isAuthenticated = useAuthStore.getState().isAuthenticated;
-
-    if (!get().isInitialized && isAuthenticated) {
-      await fetchRooms();
-      if (currentRoom) {
-        await fetchMessages(currentRoom.id);
-      }
-      connectWebSocket();
-      set({ isInitialized: true });
-    }
+  setConnectionStatus: (status: WebSocketStatus) => {
+    set({ wsStatus: status });
   },
 
-  // ===== WebSocket 관련 메서드 =====
   connectWebSocket: () => {
     try {
-      const stompClient = new Client({
-        webSocketFactory: () =>
-          new SockJS("http://i12a602.p.ssafy.io:8080/ws-stomp"),
+      const accessToken = getAccessToken();
+
+      if (!accessToken) {
+        console.error("No access token found");
+        return;
+      }
+
+      const socket = new SockJS(SOCKET_URL);
+      const client = new Client({
+        webSocketFactory: () => socket,
         connectHeaders: {
-          userId: String(useAuthStore.getState().userId),
+          Authorization: `Bearer ${accessToken}`,
         },
-        debug: function (str) {
-          console.log(str);
+        debug: (str) => {
+          console.debug(str);
         },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
       });
 
-      stompClient.onConnect = () => {
-        set({ wsStatus: "OPEN", error: null });
-        // 여기서 구독 로직 제거
+      client.onConnect = () => {
+        set({ wsStatus: "OPEN", stompClient: client, error: null });
+        const { currentRoom } = get();
+        if (currentRoom) {
+          get().setCurrentRoom(currentRoom);
+        }
       };
 
-      stompClient.onDisconnect = () => {
+      client.onStompError = (frame) => {
+        console.error("STOMP error:", frame);
+        set({ wsStatus: "CLOSED", error: "WebSocket connection error" });
+      };
+
+      client.onWebSocketError = (event) => {
+        console.error("WebSocket error:", event);
+        set({ wsStatus: "CLOSED", error: "WebSocket connection error" });
+      };
+
+      client.onWebSocketClose = () => {
         set({ wsStatus: "CLOSED" });
       };
 
-      stompClient.onStompError = (frame) => {
-        console.error("WebSocket Error:", frame);
-        set({ error: "WebSocket connection error", wsStatus: "CLOSED" });
-      };
-
-      stompClient.activate();
-      set({ stompClient });
+      client.activate();
+      set({ wsStatus: "CONNECTING" });
     } catch (error) {
       console.error("WebSocket connection error:", error);
       set({
@@ -130,41 +133,36 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   disconnectWebSocket: () => {
-    const { stompClient } = get();
+    const { stompClient, currentSubscription } = get();
+    if (currentSubscription) {
+      currentSubscription.unsubscribe();
+    }
     if (stompClient) {
-      try {
-        stompClient.deactivate();
-        set({ stompClient: null, wsStatus: "CLOSED" });
-      } catch (error) {
-        console.error("WebSocket disconnection error:", error);
-      }
+      stompClient.deactivate();
+      set({ stompClient: null, wsStatus: "CLOSED", currentSubscription: null });
     }
   },
 
-  sendMessage: (content: string) => {
+  sendMessage: (content: string, createdAt?: string) => {
     const { stompClient, currentRoom } = get();
-    if (!stompClient?.connected) {
-      console.error("WebSocket is not connected");
-      return;
-    }
-    if (!currentRoom) {
-      console.error("No current room selected");
+    if (!stompClient?.connected || !currentRoom) {
+      console.error("Cannot send message: No connection or room");
       return;
     }
 
     try {
       const userId = useAuthStore.getState().userId;
       if (!userId) {
-        console.error("User ID not found");
+        console.error("User Id not found");
         return;
       }
 
       const message = {
-        type: "TALK" as const,
+        type: "TALK",
+        userId,
         chatRoomId: currentRoom.id,
-        userId, // useAuthStore에서 가져온 userId 사용
         content,
-        timestamp: new Date().toISOString(),
+        createdAt: createdAt || new Date().toISOString(),
       };
 
       stompClient.publish({
@@ -172,23 +170,82 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         body: JSON.stringify(message),
       });
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending messages", error);
       set({ error: "Failed to send message" });
     }
   },
 
-  // ===== Room 관련 메서드 =====
   fetchRooms: async () => {
     try {
       set({ isLoading: true, error: null });
-      const response = await chatAPI.getRooms();
-      if (!response) {
-        throw new Error("No response from server");
-      }
-      set({ rooms: response, isLoading: false });
+      const rooms = await chatAPI.getRooms();
+      set({ rooms, isLoading: false });
     } catch (error) {
-      console.error("방 목록 조회 에러:", error);
-      set({ error: "Failed to fetch rooms", isLoading: false, rooms: [] });
+      console.error("Error fetching rooms:", error);
+      set({ error: "Failed to fetch rooms", isLoading: false });
+    }
+  },
+
+  setCurrentRoom: async (room: ChatRoom | null) => {
+    const { stompClient, currentSubscription } = get();
+
+    if (currentSubscription) {
+      currentSubscription.unsubscribe();
+    }
+
+    set({ currentRoom: room });
+
+    if (!room) {
+      return;
+    }
+
+    if (room && stompClient?.connected) {
+      try {
+        await get().fetchMessages(room.id);
+        await get().fetchRoomParticipants(room.id);
+
+        const subscription = stompClient.subscribe(
+          `/sub/chat/room/${room.id}`,
+          (message) => {
+            try {
+              const receivedMessage = JSON.parse(message.body);
+              get().addMessage(receivedMessage);
+            } catch (error) {
+              console.error("Error parsing message:", error);
+            }
+          }
+        );
+
+        set({ currentSubscription: subscription });
+      } catch (error) {
+        console.error("Error setting up room:", error);
+        set({ error: "Failed to set up room" });
+      }
+    }
+  },
+
+  createRoom: async (userIds: number[]) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await chatAPI.createRoom(userIds);
+      if (response) {
+        const newRoom: ChatRoom = {
+          id: response.roomId,
+          name: response.roomName,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          participants: [],
+        };
+
+        set((state) => ({
+          rooms: [...state.rooms, newRoom],
+          isLoading: false,
+        }));
+        return newRoom;
+      }
+    } catch (error) {
+      console.error("Error creating room:", error);
+      set({ error: "Failed to create room", isLoading: false });
     }
   },
 
@@ -201,170 +258,91 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           [roomId]: participants,
         },
       }));
-      return participants;
     } catch (error) {
-      console.error("Failed to fetch room participants:", error);
-      return [];
+      console.error("Error fetching participants:", error);
+      set({ error: "Failed to fetch participants" });
     }
   },
 
-  // setCurrentRoom 메서드 수정
-  setCurrentRoom: async (room: ChatRoom | null) => {
-    const { stompClient, currentSubscription, fetchMessages } = get();
-
-    if (currentSubscription) {
-      currentSubscription.unsubscribe();
-    }
-
-    set({ currentRoom: room, currentSubscription: null });
-
-    if (room) {
-      await fetchMessages(room.id);
-    }
-
-    if (room && stompClient?.connected) {
-      const newSubscription = stompClient.subscribe(
-        `/sub/chat/room/${room.id}`,
-        (message) => {
-          try {
-            const receivedMessage = JSON.parse(message.body);
-            if (receivedMessage.type === "TALK") {
-              get().addMessage(receivedMessage);
-            }
-          } catch (error) {
-            console.error("Message parsing error:", error);
-          }
-        }
-      );
-
-      set({ currentSubscription: newSubscription });
-    }
-  },
-
-  createRoom: async (roomName: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await chatAPI.createRoom({ roomName });
-      if (!response) {
-        throw new Error("Failed to create room");
-      }
-
-      set((state) => ({
-        rooms: [...state.rooms, response],
-        isLoading: false,
-      }));
-
-      return response;
-    } catch (error) {
-      console.error("방 생성 에러:", error);
-      set({ error: "Failed to create room", isLoading: false });
-    }
-  },
   searchUserByEmail: async (email: string) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await chatAPI.searchUserByEmail(email);
-      // 응답을 SearchUserResponse[] 타입으로 명시적 타입 단언
-      set({
-        searchResults: response as SearchUserResponse[],
-        isLoading: false,
-      });
+      const results = await chatAPI.searchUserByEmail(email);
+      set({ searchResults: results, isLoading: false });
     } catch (error) {
-      console.error("사용자 검색 실패:", error);
-      set({
-        error: "Failed to search user",
-        isLoading: false,
-        searchResults: [],
-      });
+      console.error("Error searching users:", error);
+      set({ error: "Failed to search users", isLoading: false });
     }
   },
 
-  // 이메일로 사용자 초대
-  inviteUserByEmail: async (roomId: number, email: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      await chatAPI.inviteUserByEmail(roomId, email);
-      set({ isLoading: false });
-      await get().fetchRooms(); // 방 목록 새로고침
-    } catch (error) {
-      console.error("초대 실패:", error);
-      set({ error: "Failed to invite user", isLoading: false });
-    }
-  },
-
-  // 검색 결과 초기화
-  clearSearchResults: () => {
-    set({ searchResults: [] });
-  },
-
-  // ===== Message 관련 메서드 =====
-  // src/stores/chatStore.ts
   fetchMessages: async (roomId: number) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await chatAPI.getRoomMessages(roomId);
-
-      if (!response) {
-        set((state) => ({
-          messagesByRoom: {
-            ...state.messagesByRoom,
-            [roomId]: [],
-          },
-          isLoading: false,
-        }));
-        return;
-      }
-
-      const messages = Array.isArray(response) ? response : response.messages;
-      const sortedMessages = [...messages].sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
-
+      const messages = await chatAPI.getRoomMessages(roomId);
       set((state) => ({
         messagesByRoom: {
           ...state.messagesByRoom,
-          [roomId]: sortedMessages,
+          [roomId]: messages,
         },
         isLoading: false,
       }));
     } catch (error) {
-      console.error(`메시지 조회 실패 (방 ${roomId}):`, error);
-      set((state) => ({
-        error: "Failed to fetch messages",
-        isLoading: false,
-        messagesByRoom: {
-          ...state.messagesByRoom,
-          [roomId]: [],
-        },
-      }));
+      console.error("Error fetching messages:", error);
+      set({ error: "Failed to fetch messages", isLoading: false });
     }
   },
 
   addMessage: (message: ChatMessage) => {
-    set((state) => {
-      const currentMessages = state.messagesByRoom[message.chatRoomId] || [];
-      return {
-        messagesByRoom: {
-          ...state.messagesByRoom,
-          [message.chatRoomId]: [...currentMessages, message],
-        },
-      };
-    });
+    set((state) => ({
+      messagesByRoom: {
+        ...state.messagesByRoom,
+        [message.chatRoomId]: [
+          ...new Set([
+            ...(state.messagesByRoom[message.chatRoomId] || []),
+            message,
+          ]),
+        ].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        ),
+      },
+    }));
+  },
+
+  editRoomName: async (roomId: number, newName: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      await chatAPI.editRoomName({ roomId, roomName: newName });
+      await get().fetchRooms();
+      set({ isLoading: false });
+    } catch (error) {
+      console.error("Error editing room name:", error);
+      set({ error: "Failed to edit room name", isLoading: false });
+    }
   },
 
   clearMessages: () => {
-    set({
-      messagesByRoom: {},
-    });
+    set({ messagesByRoom: {} });
   },
 
-  // ===== State 관리 메서드 =====
+  clearSearchResults: () => {
+    set({ searchResults: [] });
+  },
+
   reset: () => {
     const { disconnectWebSocket } = get();
     disconnectWebSocket();
-    set({ ...initialState, isInitialized: false });
+    set(initialState);
   },
+
+  setRooms: (rooms) => set({ rooms }),
+
+  updateRoom: (updatedRoom) =>
+    set((state) => ({
+      rooms: state.rooms.map((room) =>
+        room.id === updatedRoom.id ? updatedRoom : room
+      ),
+    })),
 }));
 
 export default useChatStore;

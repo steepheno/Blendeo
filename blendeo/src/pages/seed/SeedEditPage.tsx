@@ -31,9 +31,14 @@ const SeedEditPage = () => {
   }
 
   return (
-    <div className="bg-black w-full h-full">
-      <Searchbar/>
-        <VideoEditor />
+    <div
+      className="w-full h-full"
+      style={{
+        backgroundColor: "#171222",
+      }}
+    >
+      <Searchbar />
+      <VideoEditor />
     </div>
   );
 };

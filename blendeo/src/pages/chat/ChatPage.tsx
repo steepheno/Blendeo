@@ -1,45 +1,20 @@
-// src/pages/chat/ChatPage.tsx
-import { useState, useEffect } from "react";
-import { ChatSearchBar } from "@/components/chat/ChatSearchBar";
-import { UserItem } from "@/components/chat/UserItem";
-import { ChatWindow } from "@/components/chat/ChatWindow";
-import CreateRoomModal from "@/components/chat/CreateRoomModal";
-import InviteUserModal from "@/components/chat/InviteUserModal";
-import Layout from "@/components/layout/Layout";
-import { useWebSocket } from "@/hooks/chat/useWebSocket";
-import { useChatRooms } from "@/hooks/chat/useChatRooms";
-import { useChatStore } from "@/stores/chatStore";
+import { useEffect, useState } from "react";
+import Layout from "@/components/layout/ChatLayout";
+import ChatApp from "@/components/chat/ChatRoomModal";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserStore } from "@/stores/userStore";
-import { useChatMessages } from "@/hooks/chat/useChatMessages";
-import type { ChatRoom } from "@/types/api/chat";
+import { useChatRooms } from "@/hooks/chat/useChatRooms";
+import { useLocation } from "react-router-dom";
+import { useChatStore } from "@/stores/chatStore";
 
 const ChatPage = () => {
-  const [chatWindowOpened, setChatWindowOpened] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
-
-  const { rooms = [], isLoading, createRoom, fetchRooms } = useChatRooms();
-  const {
-    currentRoom,
-    setCurrentRoom,
-    inviteUserByEmail,
-    searchUserByEmail,
-    searchResults,
-    clearSearchResults,
-    fetchMessages,
-  } = useChatStore();
-
-  // useChatMessages 훅 사용
-  const { messages: currentMessages } = useChatMessages(currentRoom?.id || 0);
-  const { sendMessage, isConnected } = useWebSocket();
-
   const currentUser = useUserStore((state) => state.currentUser);
   const userId = useAuthStore((state) => state.userId);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { fetchRooms } = useChatRooms();
+  const [chatWindowOpened, setChatWindowOpened] = useState(false);
+  const location = useLocation();
 
-  // 인증 상태 확인
   useEffect(() => {
     const initializeUser = async () => {
       if (isAuthenticated && userId && !currentUser) {
@@ -51,82 +26,36 @@ const ChatPage = () => {
       }
     };
 
-    initializeUser();
+    void initializeUser();
   }, [isAuthenticated, userId, currentUser]);
 
-  // 메시지 로딩 로직 개선
   useEffect(() => {
-    const loadMessages = async () => {
-      if (currentRoom?.id && isConnected && isAuthenticated) {
+    if (isAuthenticated) {
+      void fetchRooms();
+    }
+  }, [isAuthenticated, fetchRooms]);
+
+  useEffect(() => {
+    if (location.state?.openChat && location.state?.roomId) {
+      const initializeChat = async () => {
         try {
-          await fetchMessages(currentRoom.id);
+          await fetchRooms();
+          const rooms = useChatStore.getState().rooms;
+          const targetRoom = rooms.find(
+            (room) => room.id === location.state.roomId
+          );
+          if (targetRoom) {
+            await useChatStore.getState().setCurrentRoom(targetRoom);
+            setChatWindowOpened(true);
+          }
         } catch (error) {
-          console.error("Failed to fetch messages:", error);
+          console.error("채팅방 초기화 중 오류 발생:", error);
         }
-      }
-    };
+      };
 
-    loadMessages();
-  }, [currentRoom?.id, isConnected, isAuthenticated, fetchMessages]);
-
-  // 모달이 닫힐 때 검색 결과 초기화
-  useEffect(() => {
-    if (!inviteModalOpen) {
-      clearSearchResults();
+      void initializeChat();
     }
-  }, [inviteModalOpen, clearSearchResults]);
-
-  const filteredRooms =
-    rooms?.filter((room) =>
-      room.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
-
-  const handleRoomClick = async (room: ChatRoom) => {
-    if (!isAuthenticated) return;
-
-    setCurrentRoom(room);
-    setChatWindowOpened(true);
-  };
-
-  const handleCloseChat = () => {
-    setCurrentRoom(null);
-    setChatWindowOpened(false);
-  };
-
-  const handleCreateRoom = async (roomName: string) => {
-    if (!isAuthenticated) return;
-
-    try {
-      const newRoom = await createRoom(roomName);
-      if (newRoom) {
-        await fetchRooms();
-        setCreateModalOpen(false);
-      }
-    } catch (error) {
-      console.error("Failed to create room:", error);
-    }
-  };
-
-  const handleInviteUser = async (email: string) => {
-    if (!isAuthenticated || !currentRoom) return;
-
-    try {
-      await inviteUserByEmail(currentRoom.id, email);
-      setInviteModalOpen(false);
-    } catch (error) {
-      console.error("Failed to invite user:", error);
-    }
-  };
-
-  const handleSearchUser = async (email: string) => {
-    if (!isAuthenticated) return;
-
-    try {
-      await searchUserByEmail(email);
-    } catch (error) {
-      console.error("Failed to search user:", error);
-    }
-  };
+  }, [location.state, fetchRooms]);
 
   if (isAuthenticated && !currentUser) {
     return <div>로딩 중...</div>;
@@ -135,82 +64,25 @@ const ChatPage = () => {
   if (!isAuthenticated) {
     return <div>로그인이 필요합니다.</div>;
   }
+
   return (
     <Layout showNotification>
-      <div className={`flex flex-1 ${chatWindowOpened ? "gap-0" : ""}`}>
-        {/* 채팅방 목록 (변경 없음) */}
-        <div
-          className={`flex flex-col ${
-            chatWindowOpened ? "w-[400px] min-w-[400px]" : "w-full"
-          }`}
-        >
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <button
-                onClick={() => setCreateModalOpen(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                새 채팅방 만들기
-              </button>
-            </div>
-            <ChatSearchBar
-              placeholder="채팅방 검색..."
-              iconSrc="https://cdn.builder.io/api/v1/image/assets/TEMP/1b61981f2c48450f2aff765e8726b53074f0dbc21e70d524b2f0fd106c92ae86"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {isLoading ? (
-              <div className="p-4">로딩 중...</div>
-            ) : (
-              filteredRooms.map((room) => (
-                <UserItem
-                  key={room.id}
-                  id={room.id}
-                  name={room.name}
-                  onClick={() => handleRoomClick(room)}
-                  isSelected={currentRoom?.id === room.id}
-                />
-              ))
-            )}
-          </div>
+      {!chatWindowOpened && (
+        <div className="absolute left-1/2 top-1/2 -translate-x-[55%] -translate-y-[60%] flex flex-col items-center justify-center space-y-6 max-w-[calc(100vw-640px)] md:max-w-[calc(100vw-768px)]">
+          <div className="w-64 h-64 bg-center bg-no-repeat bg-contain bg-[url('/images/login_img.png')]" />
+          <h1 className="text-2xl font-bold text-gray-800">
+            채팅을 시작해보세요!
+          </h1>
+          <p className="text-gray-600 text-center max-w-md">
+            좌측의 채팅 목록에서 대화할 상대를 선택하거나,
+            <br />
+            새로운 대화를 시작할 수 있습니다.
+          </p>
         </div>
-
-        {/* 채팅 창 (변경 없음) */}
-        {chatWindowOpened && currentRoom && (
-          <div className="flex-1 border-l border-gray-200">
-            <div className="h-full relative">
-              <ChatWindow
-                room={currentRoom}
-                onClose={handleCloseChat}
-                messages={currentMessages}
-                onSendMessage={sendMessage}
-                isConnected={isConnected}
-              />
-              <button
-                onClick={() => setInviteModalOpen(true)}
-                className="absolute top-4 right-20 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-              >
-                친구 초대
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <CreateRoomModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onCreateRoom={handleCreateRoom}
-      />
-
-      <InviteUserModal
-        isOpen={inviteModalOpen}
-        onClose={() => setInviteModalOpen(false)}
-        onInvite={handleInviteUser}
-        onSearch={handleSearchUser}
-        searchResults={searchResults}
+      )}
+      <ChatApp
+        chatWindowOpened={chatWindowOpened}
+        setChatWindowOpened={setChatWindowOpened}
       />
     </Layout>
   );

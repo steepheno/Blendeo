@@ -1,9 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import noUserImg from "@/assets/no_user.jpg"
+import noUserImg from "@/assets/no_user.jpg";
 
-const Searchbar = () => {
+interface NavbarProps {
+  showNotification?: boolean;
+}
+
+const Searchbar: React.FC<NavbarProps> = ({ showNotification }) => {
   const navigate = useNavigate();
   const currentUser = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -56,6 +60,11 @@ const Searchbar = () => {
 
           {/* 오른쪽 요소들 - 반응형 간격 및 검색창 조정 */}
           <div className="flex items-center gap-6 max-lg:gap-4 max-md:gap-2">
+            {showNotification && (
+              <button className="p-2 hover:bg-gray-100 rounded-full">
+                <Bell className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
             <form className="relative max-md:hidden" role="search">
               <div className="flex items-center bg-gray-100 rounded-full overflow-hidden">
                 <div className="flex items-center justify-center pl-4">
@@ -92,7 +101,7 @@ const Searchbar = () => {
         </div>
       </div>
 
-      <div className="h-[81px]" />
+      <div className="h-[65px]" />
     </>
   );
 };
