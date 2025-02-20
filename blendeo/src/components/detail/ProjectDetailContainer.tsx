@@ -5,7 +5,7 @@ import SettingsSection from "@/components/detail/SettingsSection";
 import ContributorsSection from "@/components/detail/ContributorsSection";
 import SidePanel from "@/components/detail/SidePanel";
 import hamburgerIcon from "@/assets/hamburger_icon.png";
-
+import ChildProjectsSection from "@/components/detail/ChildProjectsSection";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +33,7 @@ import {
   ArrowRightCircle,
   GitFork,
   ArrowUpLeft,
+  ArrowDownRight,
 } from "lucide-react";
 
 import { useUserStore } from "@/stores/userStore";
@@ -92,7 +93,13 @@ const getSiblingProject = async (
   }
 };
 
-type TabType = "comments" | "settings" | "contributors" | "showTree" | null;
+type TabType =
+  | "comments"
+  | "settings"
+  | "contributors"
+  | "showTree"
+  | "children"
+  | null;
 
 const ProjectDetailContainer = () => {
   const params = useParams();
@@ -217,7 +224,6 @@ const ProjectDetailContainer = () => {
             direction === "next"
               ? "다음 프로젝트가 없습니다."
               : "이전 프로젝트가 없습니다."
-
           );
           paginate(direction === "next" ? -1 : 1);
         }
@@ -403,6 +409,11 @@ const ProjectDetailContainer = () => {
         onClick={() => goToParent(projectId)}
       />
       <InteractionButton
+        icon={ArrowDownRight}
+        onClick={() => handleTabClick("children")}
+        isActive={activeTab === "children"}
+      />
+      <InteractionButton
         onClick={copyLink}
         icon={Copy}
         count={copied ? "복사됨!" : "0"}
@@ -425,6 +436,13 @@ const ProjectDetailContainer = () => {
         return <SettingsSection projectId={projectData.projectId} />;
       case "contributors":
         return <ContributorsSection projectId={projectData.projectId} />;
+      case "children":
+        return (
+          <ChildProjectsSection
+            projectId={projectData.projectId}
+            onClose={() => setActiveTab(null)}
+          />
+        );
       default:
         return null;
     }

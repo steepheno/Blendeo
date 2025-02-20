@@ -285,3 +285,11 @@ export const projectTreeAPI = {
     return response;
   },
 };
+
+export const getChildProjects = async (
+  projectId: number
+): Promise<Project[]> => {
+  return axiosInstance.get<Project[]>(
+    `/project/get/children?projectId=${projectId}`
+  );
+};

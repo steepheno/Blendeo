@@ -6,10 +6,19 @@ const TAB_TITLES = {
   settings: "설정",
   contributors: "기여자",
   showTree: "트리 보기",
+  children: "하위 프로젝트",
 } as const;
 
+type SidePanelTabType =
+  | "comments"
+  | "settings"
+  | "contributors"
+  | "children"
+  | "showTree"
+  | null;
+
 interface SidePanelProps {
-  activeTab: "comments" | "settings" | "contributors" | "showTree" | null;
+  activeTab: SidePanelTabType;
   content: React.ReactNode;
   onClose: () => void;
 }
