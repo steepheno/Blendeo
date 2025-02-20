@@ -231,22 +231,6 @@ const ProjectDetailContainer = () => {
     [projectId, siblingLoading, navigate, paginate]
   );
 
-  // 키보드 네비게이션
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (!siblingLoading) {
-        if (event.key === "ArrowLeft") {
-          handleSiblingNavigation("before");
-        } else if (event.key === "ArrowRight") {
-          handleSiblingNavigation("next");
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [projectId, siblingLoading, handleSiblingNavigation]);
-
   const handleTabClick = (tab: TabType) => {
     if (tab === "showTree") navigate("tree");
     setActiveTab(activeTab === tab ? null : tab);
