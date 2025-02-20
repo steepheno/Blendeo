@@ -34,7 +34,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "signin", element: <SignInPage /> },
       { path: "signup", element: <SignUpPage /> },
-      { path: "signup2", element: <InstrumentSelector /> },
+      { path: "selectinstrument", element: <InstrumentSelector /> },
     ],
   },
   {
@@ -133,6 +133,10 @@ export const router = createBrowserRouter([
             <MyProfilePage />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: "selectinstrument",
+        element: <InstrumentSelector />
       },
     ],
   },
