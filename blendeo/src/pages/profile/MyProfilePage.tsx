@@ -1,10 +1,11 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Pencil, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import Layout from "@/components/layout/Layout";
 import InfiniteVideoGrid from "@/components/profile/InfiniteVideoGrid";
 import TabNavigation from "@/components/common/TabNavigation";
+import FollowListModal from "@/components/follow/FollowListModal";
 
 import { useUser, useAuthStore } from "@/stores/authStore";
 import useMyPageStore from "@/stores/myPageStore";
@@ -71,6 +72,10 @@ const MyProfilePage = () => {
     saveProfile,
   } = useMyPageStore();
 
+  const [followModalType, setFollowModalType] = useState<
+    "following" | "followers" | null
+  >(null);
+
   const handleFileChange = useCallback(
     (type: "profileImage" | "header") =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,6 +112,13 @@ const MyProfilePage = () => {
       setActiveTab(tab as ProjectType);
     },
     [setActiveTab]
+  );
+
+  const handleFollowListClick = useCallback(
+    (type: "following" | "followers") => {
+      setFollowModalType(type);
+    },
+    []
   );
 
   // 회원 탈퇴
@@ -263,13 +275,19 @@ const MyProfilePage = () => {
                 )}
 
                 <div className="flex gap-4 mt-3">
-                  <span className="text-sm">
+                  <span
+                    className="text-sm cursor-pointer hover:text-blue-600"
+                    onClick={() => handleFollowListClick("following")}
+                  >
                     <span className="font-bold">
                       {followData.followingCount}
                     </span>
                     <span className="text-gray-600"> 팔로잉</span>
                   </span>
-                  <span className="text-sm">
+                  <span
+                    className="text-sm cursor-pointer hover:text-blue-600"
+                    onClick={() => handleFollowListClick("followers")}
+                  >
                     <span className="font-bold">
                       {followData.followerCount}
                     </span>
@@ -344,6 +362,13 @@ const MyProfilePage = () => {
           onProjectClick={handleProjectClick}
         />
       </div>
+
+      <FollowListModal
+        isOpen={followModalType !== null}
+        onClose={() => setFollowModalType(null)}
+        type={followModalType || "following"}
+        followData={followData}
+      />
     </Layout>
   );
 };
