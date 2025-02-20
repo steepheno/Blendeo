@@ -4,11 +4,6 @@ import SignUpForm from "@/components/signup/SignupForm";
 const SignUpPage = () => {
   const navigate = useNavigate();
 
-  const handleGoogleSignup = () => {
-    // Google OAuth 로그인 구현
-    console.log("Google signup clicked");
-  };
-
   return (
     <div className="flex justify-center items-center h-screen overflow-hidden mx-auto my-0 w-full bg-white max-w-[1920px] max-md:flex-col">
       <div className="h-full pt-12 pr-0 pb-0 pl-20 w-[36%] max-md:px-5 max-md:py-10 max-md:w-full min-w-[420px] transform scale-80">
