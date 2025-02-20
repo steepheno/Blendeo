@@ -261,7 +261,7 @@ const UserProfile = () => {
                   className={`px-6 py-2 rounded-full ${
                     followData.isFollowing
                       ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-violet-600 text-white hover:bg-violet-700"
                   } disabled:opacity-50`}
                 >
                   {followData.loading
@@ -303,7 +303,7 @@ const UserProfile = () => {
               type="button"
               onClick={() => loadMore()}
               disabled={loading}
-              className="px-8 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
+              className="px-8 py-2 bg-violet-700 text-white rounded-md disabled:opacity-50"
             >
               {loading ? "Loading..." : "Load More"}
             </button>

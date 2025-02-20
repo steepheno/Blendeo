@@ -38,7 +38,7 @@ export const UserItem = memo<UserItemProps>(
         tabIndex={0}
         className={`
         p-4 cursor-pointer transition-colors duration-200
-        ${isSelected ? "bg-blue-50" : "hover:bg-gray-100"}
+        ${isSelected ? "bg-violet-50" : "hover:bg-gray-100"}
         ${type === "room" ? "border-b border-gray-100" : ""}
       `}
         aria-selected={isSelected}

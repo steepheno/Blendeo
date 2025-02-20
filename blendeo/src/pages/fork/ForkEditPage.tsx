@@ -251,7 +251,7 @@ const ForkEditor = () => {
           onClick={handleProgressBarClick}
         >
           <div
-            className="h-full bg-blue-500 rounded-full"
+            className="h-full bg-violet-700 rounded-full"
             style={{ width: `${(currentTime / totalDuration) * 100}%` }}
           />
         </div>

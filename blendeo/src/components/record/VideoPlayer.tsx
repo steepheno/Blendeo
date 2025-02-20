@@ -80,7 +80,7 @@ const PreciseVideoPlayer: React.FC<VideoPlayerProps> = ({
         <button
           type="button"
           onClick={startPlayback}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
+          className="px-4 py-2 bg-violet-700 text-white rounded hover:bg-violet-800 disabled:bg-gray-400"
           disabled={isPlaying}
         >
           재생
