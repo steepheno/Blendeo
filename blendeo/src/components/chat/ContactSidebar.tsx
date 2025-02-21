@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
+import { ChatCard } from "@/components/ui/chat-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -92,7 +92,7 @@ const ContactSidebar = ({ setChatWindowOpened }: ContactSidebarProps) => {
                   </div>
                 ) : (
                   rooms.map((room) => (
-                    <Card
+                    <ChatCard
                       key={room.id}
                       className="flex items-center gap-3 p-3 cursor-pointer hover:bg-accent/50"
                       onClick={() => handleRoomClick(room)}
@@ -110,7 +110,7 @@ const ContactSidebar = ({ setChatWindowOpened }: ContactSidebarProps) => {
                           <h3 className="font-semibold">{room.name}</h3>
                         </div>
                       </div>
-                    </Card>
+                    </ChatCard>
                   ))
                 )}
               </div>
