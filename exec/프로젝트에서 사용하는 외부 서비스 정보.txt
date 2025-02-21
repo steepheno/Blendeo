@@ -1,0 +1,21 @@
+2. 프로젝트에서 사용하는 외부 서비스 정보를 정리한 문서
+: 소셜 인증, 포톤 클라우드, 코드 컴파일 외부 서비스 가입 및 활용에 필요한 정보
+
+[.env 파일에 설정해야할 값들]
+# 이메일 인증
+SMTP_EMAIL=blendeo.ssafy@gmail.com
+SMTP_PASSWORD=jfph cqrm sycl team
+
+# jwt 암호화
+JWT_SECRET=dkanrjskdlqfurgkrpTdmadlrjffhsdksehlfemt
+
+# S3 버킷 접근 키
+AWS_ACCESS_KEY=AKIAWPPO6AOWTOYOTT7V
+AWS_SECRET_KEY=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
+
+# ffmpeg, ffprobe 다운로드
+# 운영체제에 맞게 다운 받아야함. linux 혹은 max)
+# https://ffmpeg.org/download.html
+# application.properties 경로 재설정
+ffmpeg.path=/bin/ffmpeg
+ffprobe.path=/bin/ffprobe
