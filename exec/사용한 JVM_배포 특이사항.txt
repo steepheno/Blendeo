@@ -1,0 +1,47 @@
+# 사용한 JVM #
+
+# 빌드 시 사용되는 환경변수
+    - Pem key로 ubuntu 접속
+    - ssh -i I12A602T.pem ubuntu@i12a602.p.ssafy.io
+
+# [FrontEnd]
+- 명령어 실행 location
+    - ubuntu@ip-172-26-13-160:~/frontend/S12P11A602/blendeo$
+- 원격 코드 업데이트
+    - sudo git pull origin FE-Build
+- 의존성 설치
+    - sudo npm install
+- 빌드
+    - sudo npm run build
+
+# [BackEnd]
+- 명령어 실행 location
+    - ubuntu@ip-172-26-13-160:~/S12P11A602/backend
+- 열린 포트 확인
+    - ps -ef | grep java
+- 프로세스 kill
+    - sudo kill -9 [해당 프로세스 no: ex)5134]
+- 빌드 파일 생성
+    - ./gradlew clean build
+- 빌드 파일 위치 확인
+    - ls build/libs
+- nohup으로 배포
+    - sudo nohup java -jar build/libs/backend-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+
+# 배포 시 특이사항 #
+    - EC2에 프론트엔드, 백엔드, 영상 랜더링 할 서버가 있습니다.
+    - Docker로 mysql과 neo4j를 설치합니다.
+    - Nginx를 통해 CA 인증서를 설치하고 https로 배포합니다.
+    - DB 접속 정보
+
+# MySQL Configuration
+    - MYSQL_URL=jdbc:mysql://localhost:3306/blendeo
+    - MYSQL_USERNAME=ssafy
+    - MYSQL_PASSWORD=ssafy
+
+# Neo4j
+    - ConfigurationNEO4J_URL=bolt://localhost:7687NEO4J_USERNAME=neo4jNEO4J_PASSWORD=12341234
+
+# open vidu
+    - OPENVIDU_URL=http://localhost:4443/
+    - OPENVIDU_SECRET=zhavbxksmsahtakffu
