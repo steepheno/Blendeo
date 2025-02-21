@@ -1,0 +1,57 @@
+-- MySQL dump 10.13  Distrib 8.0.40, for Win64 (x86_64)
+--
+-- Host: i12a602.p.ssafy.io    Database: newBlendeo
+-- ------------------------------------------------------
+-- Server version	8.0.41
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `project_instrument`
+--
+
+DROP TABLE IF EXISTS `project_instrument`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `project_instrument` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` int NOT NULL,
+  `instrument_id` int DEFAULT NULL,
+  `etc_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `project_id` (`project_id`,`instrument_id`,`etc_id`),
+  KEY `FK_instrument_TO_project_instrument` (`instrument_id`),
+  CONSTRAINT `FK_instrument_TO_project_instrument` FOREIGN KEY (`instrument_id`) REFERENCES `instrument` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `project_instrument_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `project_instrument`
+--
+
+LOCK TABLES `project_instrument` WRITE;
+/*!40000 ALTER TABLE `project_instrument` DISABLE KEYS */;
+INSERT INTO `project_instrument` VALUES (1,1,18,NULL),(2,2,18,NULL),(3,3,18,NULL),(4,4,18,NULL),(5,5,18,NULL),(6,6,18,NULL),(7,7,9,NULL),(8,8,9,NULL),(9,9,9,NULL),(10,10,7,NULL),(11,11,9,NULL),(12,12,9,NULL),(13,13,NULL,1),(14,14,9,NULL),(15,15,7,NULL),(16,16,16,NULL),(17,17,18,NULL),(18,18,18,NULL),(19,19,4,NULL),(20,20,3,NULL),(21,21,18,NULL),(22,22,18,NULL),(23,23,18,NULL),(24,24,29,NULL),(25,25,11,NULL),(26,26,9,NULL),(27,27,11,NULL),(28,28,18,NULL),(29,29,11,NULL),(30,30,9,NULL),(31,31,9,NULL),(32,32,10,NULL),(33,33,6,NULL),(34,34,25,NULL),(35,35,9,NULL),(36,36,15,NULL),(37,37,11,NULL),(38,38,9,NULL),(39,39,18,NULL),(40,40,8,NULL),(41,41,13,NULL),(42,42,7,NULL),(43,43,7,NULL),(44,44,13,NULL),(45,45,7,NULL),(46,46,7,NULL),(47,47,7,NULL),(48,48,4,NULL),(49,49,2,NULL),(50,50,9,NULL),(51,51,2,NULL),(52,52,9,NULL),(53,53,6,NULL),(54,54,27,NULL),(55,55,29,NULL),(56,56,30,NULL),(57,57,16,NULL),(58,58,7,NULL),(59,59,7,NULL),(60,60,27,NULL),(61,61,4,NULL),(62,62,9,NULL),(63,63,22,NULL),(64,64,6,NULL),(65,65,27,NULL);
+/*!40000 ALTER TABLE `project_instrument` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2025-02-21  9:55:44
