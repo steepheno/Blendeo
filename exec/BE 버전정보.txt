@@ -1,0 +1,5 @@
+- Jdk17
+- spring 3.4.1
+- ffmpeg 0.7.0
+- openvidu 2.31.0
+- resilience4j 2.1.0
