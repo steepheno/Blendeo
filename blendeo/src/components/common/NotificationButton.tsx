@@ -1,68 +1,16 @@
+// src/components/common/NotificationButton.tsx
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useNotification } from "../../hooks/useNotification";
 
 const NotificationButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      user: {
-        name: "유리리",
-        avatar: "/api/placeholder/40/40",
-      },
-      message: "님이 내 음악을 Blend 했어요!",
-      timestamp: "방금 전",
-      isRead: false,
-    },
-    {
-      id: 2,
-      user: {
-        name: "민지",
-        avatar: "/api/placeholder/40/40",
-      },
-      message: "님이 회원님의 게시물을 좋아합니다.",
-      timestamp: "1시간 전",
-      isRead: false,
-    },
-    {
-      id: 3,
-      user: {
-        name: "하니",
-        avatar: "/api/placeholder/40/40",
-      },
-      message: "님이 회원님을 팔로우하기 시작했습니다.",
-      timestamp: "2시간 전",
-      isRead: true,
-    },
-  ]);
-
-  const unreadCount = notifications.filter(
-    (notification) => !notification.isRead
-  ).length;
-
-  const markAsRead = (notificationId: number) => {
-    setNotifications(
-      notifications.map((notification) =>
-        notification.id === notificationId
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({
-        ...notification,
-        isRead: true,
-      }))
-    );
-  };
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotification();
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <div className="relative">
-        {/* 알림 버튼 */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="bg-violet-700 hover:bg-violet-800 text-white rounded-full p-3 shadow-lg relative"
@@ -87,10 +35,8 @@ const NotificationButton = () => {
           )}
         </button>
 
-        {/* 알림 팝오버 */}
         {isOpen && (
           <div className="absolute bottom-16 right-0 bg-white w-80 rounded-lg shadow-xl">
-            {/* 헤더 */}
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center space-x-4">
                 <h2 className="text-lg font-semibold">알림</h2>
@@ -111,7 +57,6 @@ const NotificationButton = () => {
               </button>
             </div>
 
-            {/* 알림 목록 */}
             <div className="p-4 max-h-96 overflow-y-auto">
               {notifications.map((notification) => (
                 <div
