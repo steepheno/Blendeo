@@ -1,0 +1,21 @@
+MYSQL_URL=jdbc:mysql://localhost/newBlendeo?serverTimezone=UTC
+MYSQL_USERNAME=shinnosuke602
+MYSQL_PASSWORD=siro602
+
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=yourpassword
+
+SMTP_EMAIL=blendeo.ssafy@gmail.com
+SMTP_PASSWORD=jfph cqrm sycl team
+
+JWT_SECRET=fhdsufasdknjuijodjkawlskn1234r3ewfl
+
+AWS_ACCESS_KEY=AKIAWPPO6AOWTOYOTT7V
+AWS_SECRET_KEY=IzHHtp8JextlgxfaWAMsSvrqM0p3qENg6KfWHuPp
+
+OPENVIDU_URL=https://blendeo.shop:8443/
+OPENVIDU_SECRET=zhavbxksmsahtakffu
+
+CLIENT_ID=559514909746-s96j6sgc5hfn4s7t8k6qptmu3cnseccb.apps.googleusercontent.com
+CLIENT_SECRET=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
+REDIRECT_URL=https://api.blendeo.shop/login/oauth2/code/google
