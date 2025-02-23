@@ -2,8 +2,10 @@ package Blendeo.backend.project.service;
 
 import Blendeo.backend.exception.EntityNotFoundException;
 import Blendeo.backend.global.error.ErrorCode;
+import Blendeo.backend.project.dto.ProjectHierarchyDto;
 import Blendeo.backend.project.dto.ProjectHierarchyRes;
 import Blendeo.backend.project.dto.ProjectHierarchyRes.ProjectNodeInfo;
+import Blendeo.backend.project.dto.ProjectHierarchyRes2;
 import Blendeo.backend.project.dto.ProjectNodeLink;
 import Blendeo.backend.project.dto.ProjectNodeLink.Node;
 import Blendeo.backend.project.entity.Project;
@@ -47,6 +49,18 @@ public class ForkService {
                 .nodes(nodes)
                 .links(result.getLinks())
                 .build();
+    }
+
+    public List<ProjectHierarchyDto> getHierarchy2(Long projectId) {
+        return projectRepository.getHierarchy2(projectId)
+                .stream()
+                .map(project -> new ProjectHierarchyDto(
+                        project.getId(),
+                        project.getForkId(),
+                        project.getTitle(),
+                        project.getAuthor().getNickname()
+                ))
+                .collect(Collectors.toList());
     }
 
     public List<ProjectHierarchyRes> getAllNodes() {

@@ -5,6 +5,8 @@ import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.user.entity.User;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.List;
@@ -15,6 +17,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query("SELECT new Blendeo.backend.project.dto.ProjectRankRes(p.id, p.title, p.author.id, p.author.nickname) " +
             "FROM Project p " +
@@ -67,4 +70,35 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
         return findById(randomId);
     }
+
+    @Query(value = """
+
+            WITH RECURSIVE ParentProject AS (
+        SELECT id, fork_id, 1 as depth
+        FROM project
+        WHERE id = :projectId
+        UNION ALL
+        SELECT p.id, p.fork_id, pp.depth + 1
+        FROM project p
+        JOIN ParentProject pp ON p.id = pp.fork_id
+        WHERE pp.depth < 10  -- 깊이 제한
+    ),
+    ChildProjects AS (
+        SELECT id, 1 as depth
+        FROM project
+        WHERE fork_id = (SELECT fork_id FROM ParentProject ORDER BY id LIMIT 1)
+        UNION ALL
+        SELECT p.id, cp.depth + 1
+        FROM project p
+        JOIN ChildProjects cp ON p.fork_id = cp.id
+        WHERE cp.depth < 10  -- 깊이 제한
+    )
+    SELECT *\s
+    FROM project
+    WHERE id IN (SELECT id FROM ParentProject
+                UNION
+                SELECT id FROM ChildProjects)   
+    """, nativeQuery = true)
+    List<Project> getHierarchy2(@Param("projectId") Long projectId);
+
 }

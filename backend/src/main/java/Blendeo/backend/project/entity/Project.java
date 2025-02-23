@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @ToString
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project {
     @Id

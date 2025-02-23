@@ -1,7 +1,10 @@
 package Blendeo.backend.project.controller;
 
+import Blendeo.backend.project.dto.ProjectHierarchyDto;
 import Blendeo.backend.project.dto.ProjectHierarchyRes;
+import Blendeo.backend.project.dto.ProjectHierarchyRes2;
 import Blendeo.backend.project.dto.ProjectNodeInfoRes;
+import Blendeo.backend.project.entity.Project;
 import Blendeo.backend.project.service.ForkService;
 import java.util.List;
 
@@ -24,6 +27,12 @@ public class ForkController {
     @GetMapping("/hierarchy/{projectId}")
     public ResponseEntity<ProjectHierarchyRes> getHierarchy(@PathVariable Long projectId) {
         return ResponseEntity.ok(forkService.getHierarchy(projectId));
+    }
+
+    @Operation(summary = "해당 프로젝트와 연관된 모든 노드들 조회-MySQL")
+    @GetMapping("/hierarchy2/{projectId}")
+    public ResponseEntity<List<ProjectHierarchyDto>> getHierarchy2(@PathVariable Long projectId) {
+        return ResponseEntity.ok(forkService.getHierarchy2(projectId));
     }
 
     @Operation(summary = "프로젝트 노드의 관계 전체 조회")
