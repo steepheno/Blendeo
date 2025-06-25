@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'Blendeo'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation 'org.springframework.boot:spring-boot-starter' // logger 포함
+
+    // jpa 라이브러리 추가.
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'com.mysql:mysql-connector-j:8.0.33'
+    implementation 'me.paulschwarz:spring-dotenv:3.0.0' // .env 실행 안됨
+
+    // 영상
+    implementation 'me.paulschwarz:spring-dotenv:3.0.0'
+    implementation 'net.bramp.ffmpeg:ffmpeg:0.7.0'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-neo4j' // neo4j
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'io.openvidu:openvidu-java-client:2.31.0' // openvidu
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Springdoc OpenAPI Starter WebMVC UI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+    // 이메일 인증
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation("org.springframework.security:spring-security-test")
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.redisson:redisson-spring-boot-starter:3.17.0'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // s3
+    implementation 'com.amazonaws:aws-java-sdk-core:1.12.571'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.571'
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+    // webSocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    // LocalDateTime 직렬화 위한 모듈
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // OAuth
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
